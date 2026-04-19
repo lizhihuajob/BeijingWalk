@@ -1,0 +1,1005 @@
+/* 全局样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 根变量 - 中国传统色彩 */
+:root {
+    --primary-red: #C41E3A; /* 中国红 */
+    --deep-red: #8B0000;
+    --golden: #D4AF37; /* 金色 */
+    --light-gold: #FFD700;
+    --dark-bg: #1a1a2e;
+    --light-bg: #f5f5f5;
+    --text-dark: #333;
+    --text-light: #f5f5f5;
+    --border-color: #e0e0e0;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    --transition: all 0.3s ease;
+}
+
+/* 基础样式 */
+body {
+    font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+    line-height: 1.6;
+    color: var(--text-dark);
+    background-color: var(--light-bg);
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 700;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* 中国传统元素装饰 */
+.chinese-border {
+    position: relative;
+}
+
+.chinese-border::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid var(--golden);
+    border-image: repeating-linear-gradient(
+        45deg,
+        var(--golden),
+        var(--golden) 10px,
+        transparent 10px,
+        transparent 20px
+    ) 1;
+    pointer-events: none;
+}
+
+/* 头部导航 */
+#header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: linear-gradient(135deg, var(--primary-red), var(--deep-red));
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+#header.scrolled {
+    background: rgba(139, 0, 0, 0.95);
+    backdrop-filter: blur(10px);
+}
+
+#header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.logo:hover {
+    transform: scale(1.05);
+}
+
+.logo img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid var(--golden);
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+.logo span {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--golden);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    letter-spacing: 2px;
+}
+
+/* 导航菜单 */
+nav ul {
+    display: flex;
+    list-style: none;
+    gap: 30px;
+}
+
+nav ul li a {
+    color: var(--text-light);
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 8px 16px;
+    position: relative;
+    transition: var(--transition);
+}
+
+nav ul li a::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--golden);
+    transition: var(--transition);
+    transform: translateX(-50%);
+}
+
+nav ul li a:hover {
+    color: var(--golden);
+}
+
+nav ul li a:hover::before {
+    width: 100%;
+}
+
+nav ul li a.active {
+    color: var(--golden);
+}
+
+nav ul li a.active::before {
+    width: 100%;
+}
+
+/* 音乐播放器 */
+.music-player {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    z-index: 999;
+}
+
+.music-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-red), var(--deep-red));
+    border: 3px solid var(--golden);
+    color: var(--golden);
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.music-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(196, 30, 58, 0.4);
+}
+
+.music-btn.playing .music-icon {
+    animation: musicSpin 2s linear infinite;
+}
+
+@keyframes musicSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Banner轮播图 */
+.banner {
+    position: relative;
+    margin-top: 80px;
+    height: 600px;
+    overflow: hidden;
+}
+
+.slideshow-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.mySlides {
+    display: none;
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.mySlides img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.fade {
+    animation-name: fade;
+    animation-duration: 1.5s;
+}
+
+@keyframes fade {
+    from { opacity: 0.4; }
+    to { opacity: 1; }
+}
+
+.mySlides .text {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    color: var(--text-light);
+    font-size: 24px;
+    padding: 40px 20px 30px;
+    text-align: center;
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 600;
+}
+
+/* 轮播控制按钮 */
+.prev, .next {
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    width: 50px;
+    height: 50px;
+    margin-top: -25px;
+    color: var(--golden);
+    font-weight: bold;
+    font-size: 24px;
+    transition: var(--transition);
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    z-index: 10;
+}
+
+.prev {
+    left: 30px;
+}
+
+.next {
+    right: 30px;
+}
+
+.prev:hover, .next:hover {
+    background: var(--primary-red);
+    transform: scale(1.1);
+}
+
+/* 轮播指示器 */
+.dots-container {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+.dot {
+    cursor: pointer;
+    height: 12px;
+    width: 12px;
+    margin: 0 6px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    display: inline-block;
+    transition: var(--transition);
+    border: 2px solid var(--golden);
+}
+
+.dot.active, .dot:hover {
+    background-color: var(--golden);
+    transform: scale(1.2);
+}
+
+/* 通用章节样式 */
+.section {
+    padding: 80px 0;
+    position: relative;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 60px;
+    color: var(--deep-red);
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.section-title .title-icon {
+    font-size: 32px;
+    margin-right: 15px;
+}
+
+.section-title .title-decoration {
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--golden), var(--primary-red), var(--golden));
+    border-radius: 2px;
+}
+
+.read-more {
+    display: inline-block;
+    margin-top: 15px;
+    color: var(--primary-red);
+    text-decoration: none;
+    font-weight: 500;
+    transition: var(--transition);
+    position: relative;
+}
+
+.read-more::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary-red);
+    transition: var(--transition);
+}
+
+.read-more:hover {
+    color: var(--deep-red);
+}
+
+.read-more:hover::after {
+    width: 100%;
+}
+
+/* 北京文化板块 - 左右交错布局 */
+.culture-section {
+    background: linear-gradient(135deg, #fefefe 0%, #f8f8f8 100%);
+}
+
+.culture-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 60px;
+}
+
+.culture-card {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    position: relative;
+}
+
+.culture-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--primary-red), var(--golden));
+}
+
+.culture-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.culture-card.reverse {
+    flex-direction: row-reverse;
+}
+
+.culture-card.reverse::before {
+    left: auto;
+    right: 0;
+}
+
+.culture-image {
+    flex: 1;
+    min-width: 400px;
+    height: 350px;
+    overflow: hidden;
+}
+
+.culture-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.culture-card:hover .culture-image img {
+    transform: scale(1.05);
+}
+
+.culture-content {
+    flex: 1;
+    padding: 30px 40px;
+}
+
+.culture-content h3 {
+    font-size: 28px;
+    color: var(--deep-red);
+    margin-bottom: 20px;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.culture-content h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: var(--golden);
+}
+
+.culture-content p {
+    margin-bottom: 15px;
+    color: #555;
+    line-height: 1.8;
+    font-size: 15px;
+}
+
+/* 地方特产板块 - 卡片网格布局 */
+.specialties-section {
+    background: linear-gradient(135deg, #fff9f9 0%, #fff5e6 100%);
+}
+
+.specialties-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+}
+
+.specialty-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    cursor: pointer;
+    position: relative;
+}
+
+.specialty-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 0;
+    background: linear-gradient(135deg, var(--primary-red), var(--golden));
+    transition: var(--transition);
+    z-index: 1;
+}
+
+.specialty-card:hover::before {
+    height: 100%;
+    opacity: 0.9;
+}
+
+.specialty-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(196, 30, 58, 0.2);
+}
+
+.specialty-image {
+    height: 250px;
+    overflow: hidden;
+    position: relative;
+    z-index: 2;
+}
+
+.specialty-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.specialty-card:hover .specialty-image img {
+    transform: scale(1.1);
+}
+
+.specialty-info {
+    padding: 25px;
+    position: relative;
+    z-index: 2;
+    transition: var(--transition);
+}
+
+.specialty-card:hover .specialty-info {
+    color: white;
+}
+
+.specialty-info h3 {
+    font-size: 22px;
+    color: var(--deep-red);
+    margin-bottom: 12px;
+    transition: var(--transition);
+}
+
+.specialty-card:hover .specialty-info h3 {
+    color: var(--golden);
+}
+
+.specialty-info p {
+    color: #666;
+    line-height: 1.7;
+    margin-bottom: 15px;
+    transition: var(--transition);
+}
+
+.specialty-card:hover .specialty-info p {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.rating {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.star {
+    color: var(--golden);
+    font-size: 18px;
+}
+
+.rating-text {
+    margin-left: 10px;
+    color: #888;
+    font-size: 14px;
+    transition: var(--transition);
+}
+
+.specialty-card:hover .rating-text {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* 名胜古迹板块 - 主侧栏布局 */
+.scenic-section {
+    background: linear-gradient(135deg, #f0f4f8 0%, #e8eef4 100%);
+}
+
+.scenic-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+}
+
+.scenic-main {
+    position: relative;
+}
+
+.scenic-featured {
+    position: relative;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    height: 500px;
+    cursor: pointer;
+}
+
+.scenic-featured img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.scenic-featured:hover img {
+    transform: scale(1.05);
+}
+
+.scenic-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    padding: 40px 30px 30px;
+    color: white;
+}
+
+.scenic-overlay h3 {
+    font-size: 28px;
+    margin-bottom: 10px;
+    color: var(--golden);
+}
+
+.scenic-overlay p {
+    font-size: 15px;
+    line-height: 1.7;
+    opacity: 0.9;
+}
+
+.scenic-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.scenic-item {
+    display: flex;
+    gap: 15px;
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.scenic-item:hover {
+    transform: translateX(10px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+}
+
+.scenic-item img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.scenic-item:hover img {
+    transform: scale(1.1);
+}
+
+.scenic-info h4 {
+    font-size: 18px;
+    color: var(--deep-red);
+    margin-bottom: 8px;
+}
+
+.scenic-info p {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+}
+
+/* 非物质文化遗产板块 - 四宫格布局 */
+.heritage-section {
+    background: linear-gradient(135deg, #faf5f0 0%, #f5ebe0 100%);
+}
+
+.heritage-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+}
+
+.heritage-item {
+    background: white;
+    border-radius: 15px;
+    padding: 30px 25px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.heritage-item::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(196, 30, 58, 0.1) 0%, transparent 70%);
+    transform: scale(0);
+    transition: var(--transition);
+    pointer-events: none;
+}
+
+.heritage-item:hover::before {
+    transform: scale(1);
+}
+
+.heritage-item:hover {
+    transform: translateY(-15px) rotate(1deg);
+    box-shadow: 0 20px 50px rgba(196, 30, 58, 0.2);
+}
+
+.heritage-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+    display: inline-block;
+    transition: var(--transition);
+}
+
+.heritage-item:hover .heritage-icon {
+    animation: bounce 0.6s ease;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.heritage-item h3 {
+    font-size: 20px;
+    color: var(--deep-red);
+    margin-bottom: 15px;
+}
+
+.heritage-item p {
+    color: #666;
+    line-height: 1.7;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.heritage-image {
+    width: 100%;
+    height: 150px;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.heritage-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.heritage-item:hover .heritage-image {
+    transform: scale(1.05);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* 页脚 */
+#footer {
+    background: linear-gradient(135deg, var(--deep-red), #5a0000);
+    color: var(--text-light);
+    padding: 60px 0 20px;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 50px;
+    margin-bottom: 40px;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.footer-logo img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid var(--golden);
+}
+
+.footer-logo span {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--golden);
+}
+
+.footer-links h4,
+.footer-contact h4 {
+    font-size: 18px;
+    margin-bottom: 20px;
+    color: var(--golden);
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.footer-links h4::after,
+.footer-contact h4::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: var(--golden);
+}
+
+.footer-links ul {
+    list-style: none;
+}
+
+.footer-links ul li {
+    margin-bottom: 12px;
+}
+
+.footer-links ul li a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.footer-links ul li a:hover {
+    color: var(--golden);
+    padding-left: 5px;
+}
+
+.footer-contact p {
+    margin-bottom: 12px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.footer-bottom p {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+}
+
+/* 返回顶部按钮 */
+.back-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-red), var(--deep-red));
+    border: 2px solid var(--golden);
+    color: var(--golden);
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+    z-index: 999;
+    box-shadow: var(--shadow);
+}
+
+.back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.back-to-top:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(196, 30, 58, 0.4);
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+    .culture-card {
+        flex-direction: column;
+    }
+    
+    .culture-card.reverse {
+        flex-direction: column;
+    }
+    
+    .culture-image {
+        min-width: 100%;
+        height: 300px;
+    }
+    
+    .scenic-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .scenic-featured {
+        height: 400px;
+    }
+    
+    .scenic-sidebar {
+        flex-direction: row;
+        overflow-x: auto;
+    }
+    
+    .scenic-item {
+        min-width: 300px;
+    }
+    
+    .heritage-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .footer-content {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    nav ul {
+        display: none;
+    }
+    
+    .banner {
+        height: 400px;
+    }
+    
+    .mySlides .text {
+        font-size: 18px;
+    }
+    
+    .section-title {
+        font-size: 28px;
+    }
+    
+    .specialties-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .heritage-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .prev, .next {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+    
+    .prev {
+        left: 10px;
+    }
+    
+    .next {
+        right: 10px;
+    }
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--primary-red), var(--golden));
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--deep-red), var(--light-gold));
+}
