@@ -1,21 +1,6 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_cors import CORS
-from app.config import Config
+from app import create_app
 
-db = SQLAlchemy()
-migrate = Migrate()
+app = create_app()
 
-def create_app(config_class=Config):
-    app = Flask(__name__)
-    app.config.from_object(config_class)
-    
-    db.init_app(app)
-    migrate.init_app(app, db)
-    CORS(app)
-    
-    from app.api import api_bp
-    app.register_blueprint(api_bp, url_prefix='/api')
-    
-    return app
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
