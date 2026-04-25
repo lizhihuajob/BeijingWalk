@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>北京旅游 - 探索千年古都</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 头部导航 -->
+    <header id="header">
+        <div class="container">
+            <div class="logo">
+                <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Chinese%20traditional%20logo%20for%20Beijing%20tourism%20with%20red%20and%20gold%20colors%20featuring%20Forbidden%20City%20architecture%20and%20Chinese%20characters%20Beijing%20Travel&image_size=square" alt="北京旅游Logo">
+                <span>北京旅游</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#home">首页</a></li>
+                    <li><a href="#culture">北京文化</a></li>
+                    <li><a href="#specialties">地方特产</a></li>
+                    <li><a href="#scenic">名胜古迹</a></li>
+                    <li><a href="#heritage">非物质文化遗产</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 背景音乐播放器 -->
+    <div class="music-player">
+        <button id="music-toggle" class="music-btn">
+            <span class="music-icon">🎵</span>
+        </button>
+        <audio id="bg-music" loop>
+            <source src="music/villatic_music.mp3" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <!-- Banner轮播图 -->
+    <section id="home" class="banner">
+        <div class="slideshow-container">
+            <div class="mySlides fade">
+                <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Forbidden%20City%20Beijing%20China%20imperial%20palace%20traditional%20Chinese%20architecture%20red%20walls%20golden%20roofs%20panoramic%20view&image_size=landscape_16_9" alt="故宫">
+                <div class="text">故宫博物院 - 明清两代的皇家宫殿</div>
+            </div>
+            <div class="mySlides fade">
+                <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Great%20Wall%20of%20China%20Badaling%20section%20snaking%20through%20mountainous%20landscape%20majestic%20historical%20monument&image_size=landscape_16_9" alt="长城">
+                <div class="text">万里长城 - 世界奇迹之一</div>
+            </div>
+            <div class="mySlides fade">
+                <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Summer%20Palace%20Beijing%20China%20Kunming%20Lake%20Tower%20of%20Buddhist%20Incense%20traditional%20Chinese%20garden%20landscape&image_size=landscape_16_9" alt="颐和园">
+                <div class="text">颐和园 - 皇家园林博物馆</div>
+            </div>
+            <div class="mySlides fade">
+                <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Temple%20of%20Heaven%20Beijing%20China%20Hall%20of%20Prayer%20for%20Good%20Harvests%20circular%20roof%20traditional%20Chinese%20architecture&image_size=landscape_16_9" alt="天坛">
+                <div class="text">天坛 - 明清皇帝祭天场所</div>
+            </div>
+        </div>
+        <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+        <a class="next" onclick="plusSlides(1)">&#10095;</a>
+        <div class="dots-container">
+            <span class="dot" onclick="currentSlide(1)"></span>
+            <span class="dot" onclick="currentSlide(2)"></span>
+            <span class="dot" onclick="currentSlide(3)"></span>
+            <span class="dot" onclick="currentSlide(4)"></span>
+        </div>
+    </section>
+
+    <!-- 北京文化板块 -->
+    <section id="culture" class="section culture-section">
+        <div class="container">
+            <h2 class="section-title">
+                <span class="title-icon">📜</span>
+                北京文化
+                <span class="title-decoration"></span>
+            </h2>
+            <div class="culture-grid">
+                <div class="culture-card">
+                    <div class="culture-image">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Peking%20Opera%20Beijing%20China%20traditional%20Chinese%20opera%20performers%20in%20colorful%20costumes%20and%20makeup%20on%20stage&image_size=landscape_4_3" alt="京剧">
+                    </div>
+                    <div class="culture-content">
+                        <h3>京剧</h3>
+                        <p>京剧又称平剧、京戏，是中国影响最大的戏曲剧种，分布地以北京为中心，遍及全国。京剧的腔调以西皮、二黄为主，用胡琴和锣鼓等伴奏，被视为中国国粹。</p>
+                        <p>京剧形成于清代乾隆年间，由徽剧、汉剧等剧种融合演变而成。京剧表演艺术讲究唱、念、做、打四种基本功，角色分为生、旦、净、丑四大行当。</p>
+                        <a href="#" class="read-more">了解更多 &rarr;</a>
+                    </div>
+                </div>
+                <div class="culture-card reverse">
+                    <div class="culture-image">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Beijing%20Hutong%20China%20traditional%20alleyway%20with%20courtyard%20houses%20siheyuan%20red%20doors%20gray%20brick%20walls%20old%20street&image_size=landscape_4_3" alt="胡同文化">
+                    </div>
+                    <div class="culture-content">
+                        <h3>胡同文化</h3>
+                        <p>胡同是北京特有的一种古老的城市小巷，源于元代。北京胡同是久远历史的产物，它反映了北京历史的面貌，有着丰富的内容。北京有句老话："有名的胡同三千六，没名的胡同如牛毛。"</p>
+                        <p>胡同文化是北京文化的重要组成部分，它代表了老北京人的生活方式和社会关系。胡同里的四合院是中国传统民居建筑的典范，体现了中国古代的家庭伦理和宗法制度。</p>
+                        <a href="#" class="read-more">了解更多 &rarr;</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 地方特产板块 -->
+    <section id="specialties" class="section specialties-section">
+        <div class="container">
+            <h2 class="section-title">
+                <span class="title-icon">🍜</span>
+                地方特产
+                <span class="title-decoration"></span>
+            </h2>
+            <div class="specialties-grid">
+                <div class="specialty-card">
+                    <div class="specialty-image">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Beijing%20Roast%20Duck%20Peking%20Duck%20crispy%20skin%20sliced%20duck%20meat%20pancakes%20hoisin%20sauce%20scallions%20cucumber%20traditional%20Chinese%20cuisine&image_size=square" alt="北京烤鸭">
+                    </div>
+                    <div class="specialty-info">
+                        <h3>北京烤鸭</h3>
+                        <p>北京烤鸭是北京著名的特色菜，被誉为"天下美味"。它以色泽红艳、肉质细嫩、味道醇厚、肥而不腻的特色而驰名中外。北京烤鸭分为挂炉烤鸭和焖炉烤鸭两大流派。</p>
+                        <div class="rating">
+                            <span class="star">⭐</span>
+                            <span class="star">⭐</span>
+                            <span class="star">⭐</span>
+                            <span class="star">⭐</span>
+                            <span class="star">⭐</span>
+                            <span class="rating-text">(4.9分)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="specialty-card">
+                    <div class="specialty-image">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Beijing%20Candied%20Haws%20Tanghulu%20traditional%20Chinese%20snack%20candied%20fruits%20on%20bamboo%20sticks%20glossy%20sugar%20coating%20hawthorns&image_size=square" alt="糖葫芦">
+                    </div>
+                    <div class="specialty-info">
+                        <h3>冰糖葫芦</h3>
+                        <p>冰糖葫芦是中国传统的小吃，尤以北京的冰糖葫芦最为著名。它是用竹签将山楂串成串，蘸上麦芽糖稀，糖稀遇风迅速变硬，吃起来又酸又甜，冰凉爽口。</p>
+                        <div class="rating">
+                            <span class="star">⭐</span>
+                            <span class="star">⭐</span>
+                            <span class="star">⭐</span>
+                            <span class="star">⭐</span>
+                            <span class="star">☆</span>
+                            <span class="rating-text">(4.7分)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="specialty-card">
+                    <div class="specialty-image">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traditional%20Chinese%20Beijing%20style%20yogurt%20in%20white%20ceramic%20bowl%20topped%20with%20fresh%20fruits%20strawberries%20blueberries%20and%20honey%20drizzle%20soft%20natural%20lighting&image_size=square" alt="北京酸奶">
+                    </div>
+                    <div class="specialty-info">
+                        <h3>北京酸奶</h3>
+                        <p>北京酸奶是北京地区特有的传统乳制品，历史悠久，口感醇厚，酸甜适中。传统的北京酸奶使用瓷碗盛装，上面盖着油纸，是老北京人喜爱的传统饮品。</p>
+                        <div class="rating">
+                            <span class="star">⭐</span>
+                            <span class="star">⭐</span>
+                            <span class="star">⭐</span>
+                            <span class="star">⭐</span>
+                            <span class="star">☆</span>
+                            <span class="rating-text">(4.6分)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 名胜古迹板块 -->
+    <section id="scenic" class="section scenic-section">
+        <div class="container">
+            <h2 class="section-title">
+                <span class="title-icon">🏯</span>
+                名胜古迹
+                <span class="title-decoration"></span>
+            </h2>
+            <div class="scenic-layout">
+                <div class="scenic-main">
+                    <div class="scenic-featured">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Forbidden%20City%20Palace%20Museum%20Beijing%20China%20Meridian%20Gate%20grand%20entrance%20imperial%20palace%20traditional%20Chinese%20architecture%20golden%20roofs&image_size=landscape_16_9" alt="故宫">
+                        <div class="scenic-overlay">
+                            <h3>故宫博物院</h3>
+                            <p>故宫又称紫禁城，是中国明清两代的皇家宫殿，位于北京中轴线的中心，是中国古代宫廷建筑之精华。故宫以三大殿为中心，占地面积72万平方米，建筑面积约15万平方米。</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="scenic-sidebar">
+                    <div class="scenic-item">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Summer%20Palace%20Beijing%20China%20Long%20Corridor%20painted%20ceiling%20traditional%20Chinese%20garden%20architecture&image_size=square" alt="颐和园">
+                        <div class="scenic-info">
+                            <h4>颐和园</h4>
+                            <p>颐和园是中国清朝时期皇家园林，前身为清漪园，坐落在北京西郊，占地约290公顷。</p>
+                        </div>
+                    </div>
+                    <div class="scenic-item">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Temple%20of%20Heaven%20Beijing%20China%20Circular%20Mound%20Altar%20blue%20sky%20reflection%20symmetrical%20architecture&image_size=square" alt="天坛">
+                        <div class="scenic-info">
+                            <h4>天坛公园</h4>
+                            <p>天坛是明清两代皇帝祭祀皇天、祈五谷丰登的场所，是现存中国古代规模最大、伦理等级最高的祭天建筑群。</p>
+                        </div>
+                    </div>
+                    <div class="scenic-item">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Ming%20Tombs%20Beijing%20China%20Sacred%20Way%20stone%20statues%20ancient%20Chinese%20imperial%20burial%20site&image_size=square" alt="明十三陵">
+                        <div class="scenic-info">
+                            <h4>明十三陵</h4>
+                            <p>明十三陵是明朝迁都北京后13位皇帝陵墓的皇家陵寝的总称，是中国现存规模最大、保存最完整的帝王陵墓群。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 非物质文化遗产板块 -->
+    <section id="heritage" class="section heritage-section">
+        <div class="container">
+            <h2 class="section-title">
+                <span class="title-icon">🎭</span>
+                非物质文化遗产
+                <span class="title-decoration"></span>
+            </h2>
+            <div class="heritage-grid">
+                <div class="heritage-item">
+                    <div class="heritage-icon">🎨</div>
+                    <h3>景泰蓝</h3>
+                    <p>景泰蓝又称铜胎掐丝珐琅，是北京著名的传统特种工艺品。因其在明朝景泰年间盛行，制作技艺比较成熟，使用的珐琅釉多以蓝色为主，故而得名景泰蓝。</p>
+                    <div class="heritage-image">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Cloisonne%20enamel%20Cloisonne%20Chinese%20traditional%20craft%20blue%20and%20gold%20vase%20intricate%20patterns%20traditional%20Chinese%20artwork&image_size=square" alt="景泰蓝">
+                    </div>
+                </div>
+                <div class="heritage-item">
+                    <div class="heritage-icon">🎪</div>
+                    <h3>北京皮影戏</h3>
+                    <p>北京皮影戏又称灯影，是一种古老的传统民间艺术。它用灯光照射兽皮或纸板做成的人物剪影以表演故事，是中国民间广为流传的傀儡戏之一。</p>
+                    <div class="heritage-image">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Chinese%20shadow%20puppetry%20Beijing%20style%20traditional%20leather%20puppets%20colorful%20intricate%20designs%20shadow%20theater%20performance&image_size=square" alt="北京皮影戏">
+                    </div>
+                </div>
+                <div class="heritage-item">
+                    <div class="heritage-icon">🪡</div>
+                    <h3>京绣</h3>
+                    <p>京绣又称宫廷绣，是以北京为中心的刺绣产品的总称，是中国传统刺绣工艺之一，历史悠久，可追溯到唐代。京绣以其精湛的技艺和独特的艺术风格闻名于世。</p>
+                    <div class="heritage-image">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Beijing%20embroidery%20Jingxiu%20traditional%20Chinese%20silk%20embroidery%20golden%20thread%20dragon%20pattern%20imperial%20royal%20craftsmanship&image_size=square" alt="京绣">
+                    </div>
+                </div>
+                <div class="heritage-item">
+                    <div class="heritage-icon">🎵</div>
+                    <h3>北京琴书</h3>
+                    <p>北京琴书是北京市的传统说唱艺术，前身是清代流行的五音大鼓，20世纪40年代改称北京琴书。北京琴书以唱为主，以说为辅，曲调优美，语言生动。</p>
+                    <div class="heritage-image">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Chinese%20traditional%20musical%20instrument%20Yangqin%20dulcimer%20Beijing%20Qinshu%20storytelling%20performance%20traditional%20Chinese%20music&image_size=square" alt="北京琴书">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer id="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Chinese%20traditional%20logo%20for%20Beijing%20tourism%20with%20red%20and%20gold%20colors%20featuring%20Forbidden%20City%20architecture%20and%20Chinese%20characters%20Beijing%20Travel&image_size=square" alt="北京旅游Logo">
+                    <span>北京旅游</span>
+                </div>
+                <div class="footer-links">
+                    <h4>快速链接</h4>
+                    <ul>
+                        <li><a href="#home">首页</a></li>
+                        <li><a href="#culture">北京文化</a></li>
+                        <li><a href="#specialties">地方特产</a></li>
+                        <li><a href="#scenic">名胜古迹</a></li>
+                        <li><a href="#heritage">非物质文化遗产</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>联系我们</h4>
+                    <p>📍 北京市东城区故宫博物院</p>
+                    <p>📞 400-888-8888</p>
+                    <p>📧 info@beijingtravel.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 北京旅游网. 版权所有 | 京ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 返回顶部按钮 -->
+    <button id="back-to-top" class="back-to-top">↑</button>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
