@@ -1,21 +1,36 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_cors import CORS
-from app.config import Config
+import os
+from dotenv import load_dotenv
 
-db = SQLAlchemy()
-migrate = Migrate()
+basedir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(basedir, '..', '.env'))
 
-def create_app(config_class=Config):
-    app = Flask(__name__)
-    app.config.from_object(config_class)
+class Config:
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
     
-    db.init_app(app)
-    migrate.init_app(app, db)
-    CORS(app)
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'sqlite:///' + os.path.join(basedir, '..', 'app.db')
     
-    from app.api import api_bp
-    app.register_blueprint(api_bp, url_prefix='/api')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    return app
+    CORS_ORIGINS = os.environ.get('CORS_ORIGINS') or '*'
+    
+    @staticmethod
+    def init_app(app):
+        pass
+
+class DevelopmentConfig(Config):
+    DEBUG = True
+
+class ProductionConfig(Config):
+    DEBUG = False
+
+class TestingConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+
+config = {
+    'development': DevelopmentConfig,
+    'production': ProductionConfig,
+    'testing': TestingConfig,
+    'default': DevelopmentConfig
+}
