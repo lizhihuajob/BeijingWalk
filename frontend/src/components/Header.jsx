@@ -1,18 +1,37 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Music, Pause, Volume2, VolumeX } from 'lucide-react';
+import { Menu, X, Music, Pause, Volume2, VolumeX, AlertCircle } from 'lucide-react';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [isAudioReady, setIsAudioReady] = useState(false);
+  const [audioError, setAudioError] = useState(null);
+  const [showErrorToast, setShowErrorToast] = useState(false);
   const audioRef = useRef(null);
 
   useEffect(() => {
-    audioRef.current = new Audio('/music/villatic_music.mp3');
-    audioRef.current.loop = true;
-    audioRef.current.volume = 0.3;
+    const audio = new Audio();
+    audio.loop = true;
+    audio.volume = 0.3;
+    audio.preload = 'metadata';
+
+    audio.addEventListener('canplaythrough', () => {
+      setIsAudioReady(true);
+      setAudioError(null);
+    });
+
+    audio.addEventListener('error', (e) => {
+      console.log('音频加载错误:', e);
+      const errorMsg = '背景音乐加载失败，请检查音乐文件是否存在';
+      setAudioError(errorMsg);
+      setIsAudioReady(false);
+    });
+
+    audio.src = '/music/villatic_music.mp3';
+    audioRef.current = audio;
 
     return () => {
       if (audioRef.current) {
@@ -30,18 +49,58 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const showError = (message) => {
+    setAudioError(message);
+    setShowErrorToast(true);
+    setTimeout(() => setShowErrorToast(false), 5000);
+  };
+
   const toggleMusic = async () => {
-    if (!audioRef.current) return;
+    if (!audioRef.current) {
+      showError('音频对象未初始化');
+      return;
+    }
+
+    if (audioError) {
+      showError(audioError);
+      return;
+    }
+
+    if (!isAudioReady) {
+      showError('音频还在加载中，请稍后再试');
+      return;
+    }
 
     if (isMusicPlaying) {
-      audioRef.current.pause();
-      setIsMusicPlaying(false);
+      try {
+        audioRef.current.pause();
+        setIsMusicPlaying(false);
+      } catch (error) {
+        console.log('暂停音频错误:', error);
+        showError('暂停音乐失败: ' + error.message);
+      }
     } else {
       try {
-        await audioRef.current.play();
-        setIsMusicPlaying(true);
+        audioRef.current.currentTime = 0;
+        const playPromise = audioRef.current.play();
+        
+        if (playPromise !== undefined) {
+          await playPromise;
+          setIsMusicPlaying(true);
+        }
       } catch (error) {
-        console.log('无法播放音频:', error);
+        console.log('播放音频错误:', error);
+        let errorMsg = '播放音乐失败';
+        
+        if (error.name === 'NotAllowedError') {
+          errorMsg = '浏览器限制自动播放，请先点击页面任意位置后再尝试播放';
+        } else if (error.name === 'NotSupportedError') {
+          errorMsg = '浏览器不支持此音频格式';
+        } else if (error.message.includes('404') || error.message.includes('not found')) {
+          errorMsg = '音乐文件不存在，请确保 public/music/villatic_music.mp3 文件存在';
+        }
+        
+        showError(errorMsg);
       }
     }
   };
@@ -250,6 +309,23 @@ const Header = () => {
                   )}
                 </motion.button>
               </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showErrorToast && (
+          <motion.div
+            className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="bg-red-50 border border-red-200 text-red-700 px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 min-w-[320px]">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <p className="text-sm font-medium">{audioError}</p>
             </div>
           </motion.div>
         )}
