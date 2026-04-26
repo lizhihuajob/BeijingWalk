@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from app import db
-from app.models.models import Banner, Culture, Specialty, ScenicSpot, Heritage
+from app.models.models import Banner, Culture, Specialty, ScenicSpot, Heritage, Guestbook
 
 api_bp = Blueprint('api', __name__)
 
@@ -78,3 +78,27 @@ def get_all_data():
         'scenic_spots': [spot.to_dict() for spot in scenic_spots],
         'heritages': [heritage.to_dict() for heritage in heritages]
     }), 200
+
+@api_bp.route('/guestbooks', methods=['GET'])
+def get_guestbooks():
+    guestbooks = Guestbook.query.filter_by(is_approved=True).order_by(Guestbook.created_at.desc()).all()
+    return jsonify([guestbook.to_dict() for guestbook in guestbooks]), 200
+
+@api_bp.route('/guestbooks', methods=['POST'])
+def create_guestbook():
+    data = request.get_json()
+    
+    if not data or 'name' not in data or 'message' not in data:
+        return jsonify({'error': '姓名和留言内容为必填项'}), 400
+    
+    guestbook = Guestbook(
+        name=data.get('name'),
+        email=data.get('email'),
+        message=data.get('message'),
+        is_approved=True
+    )
+    
+    db.session.add(guestbook)
+    db.session.commit()
+    
+    return jsonify(guestbook.to_dict()), 201
