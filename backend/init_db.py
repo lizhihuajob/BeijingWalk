@@ -1,5 +1,5 @@
 from app import create_app, db
-from app.models.models import Banner, Culture, Specialty, ScenicSpot, Heritage
+from app.models.models import Banner, Culture, Specialty, ScenicSpot, Heritage, Guestbook
 
 app = create_app()
 
@@ -163,6 +163,29 @@ def init_database():
                 )
             ]
             db.session.add_all(heritages)
+        
+        if Guestbook.query.first() is None:
+            guestbooks = [
+                Guestbook(
+                    name='张明',
+                    email='zhangming@example.com',
+                    message='北京真是一座充满历史和文化底蕴的城市！故宫、长城、颐和园都是必去的景点。特别是京剧表演，让人印象深刻。推荐大家一定要来北京旅游！',
+                    is_approved=True
+                ),
+                Guestbook(
+                    name='李华',
+                    email='lihua@example.com',
+                    message='第一次来北京，被这里的文化氛围深深吸引。胡同文化很有意思，炸酱面和北京烤鸭也非常美味。下次还要带家人一起来！',
+                    is_approved=True
+                ),
+                Guestbook(
+                    name='王芳',
+                    email=None,
+                    message='作为一个老北京，看到网站上展示的这些传统文化，感到非常亲切。希望更多人能了解和喜欢北京的文化！',
+                    is_approved=True
+                )
+            ]
+            db.session.add_all(guestbooks)
         
         try:
             db.session.commit()
