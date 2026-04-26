@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronUp, Loader2 } from 'lucide-react';
-import Header from './components/Header';
-import Banner from './components/Banner';
-import CultureSection from './components/CultureSection';
-import SpecialtiesSection from './components/SpecialtiesSection';
-import ScenicSection from './components/ScenicSection';
-import HeritageSection from './components/HeritageSection';
-import Footer from './components/Footer';
-import { getAllData } from './services/api';
+import Header from '../components/Header';
+import Banner from '../components/Banner';
+import CultureSection from '../components/CultureSection';
+import SpecialtiesSection from '../components/SpecialtiesSection';
+import ScenicSection from '../components/ScenicSection';
+import HeritageSection from '../components/HeritageSection';
+import Footer from '../components/Footer';
+import { getAllData } from '../services/api';
 
 function HomePage() {
   const [data, setData] = useState({
