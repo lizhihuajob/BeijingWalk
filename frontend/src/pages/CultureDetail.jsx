@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Calendar, MapPin, Clock, Star, Play, Loader2 } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Star, Play, Loader2, Pause, Volume2, VolumeX } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getCultureById } from '../services/api';
@@ -12,7 +12,9 @@ const CultureDetail = () => {
   const [culture, setCulture] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const videoRef = React.useRef(null);
 
   useEffect(() => {
     const fetchCulture = async () => {
@@ -32,8 +34,22 @@ const CultureDetail = () => {
     fetchCulture();
   }, [id]);
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const toggleVideoPlay = () => {
+    if (videoRef.current) {
+      if (isVideoPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsVideoPlaying(!isVideoPlaying);
+    }
+  };
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
   };
 
   if (loading) {
@@ -69,58 +85,79 @@ const CultureDetail = () => {
     );
   }
 
-  const videoUrl = `https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=${isPlaying ? 1 : 0}`;
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       
       <main className="pt-20">
-        <div className="relative h-96 md:h-[500px]">
+        <div className="fixed top-20 right-4 md:right-8 z-40">
+          <motion.button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm text-gray-700 rounded-full shadow-lg hover:bg-white transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="text-sm font-medium">返回</span>
+          </motion.button>
+        </div>
+
+        <div className="relative h-[600px] md:h-[700px]">
           <img
             src={culture.image_url}
             alt={culture.title}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
-            <motion.button
-              onClick={() => navigate(-1)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-full hover:bg-white/30 transition-colors mb-6"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <ArrowLeft className="w-4 h-4" />
-              返回
-            </motion.button>
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30" />
+          
+          <div className="absolute inset-0 flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-4xl md:text-5xl font-bold text-white mb-4"
+              transition={{ duration: 0.6 }}
+              className="text-center px-4"
             >
-              {culture.title}
-            </motion.h1>
+              <motion.h1
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 tracking-tight drop-shadow-lg"
+              >
+                {culture.title}
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed"
+              >
+                {culture.description?.substring(0, 80)}...
+              </motion.p>
+            </motion.div>
           </div>
         </div>
 
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-12"
           >
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-              <span className="w-1 h-8 bg-orange-500 rounded-full"></span>
+            <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-4">
+              <span className="w-2 h-12 bg-gradient-to-b from-orange-500 to-amber-500 rounded-full"></span>
               详细介绍
             </h2>
             <p className="text-gray-600 text-lg leading-relaxed mb-6">
               {culture.description}
             </p>
             {culture.details && (
-              <p className="text-gray-600 leading-relaxed">
-                {culture.details}
-              </p>
+              <div className="bg-amber-50 rounded-2xl p-6 mt-6">
+                <h3 className="font-semibold text-gray-900 mb-3 text-lg">更多背景</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {culture.details}
+                </p>
+              </div>
             )}
           </motion.div>
 
@@ -131,40 +168,61 @@ const CultureDetail = () => {
             className="bg-white rounded-3xl shadow-xl overflow-hidden mb-12"
           >
             <div className="p-8 md:p-12 pb-0">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                <span className="w-1 h-8 bg-orange-500 rounded-full"></span>
+              <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-4">
+                <span className="w-2 h-12 bg-gradient-to-b from-orange-500 to-amber-500 rounded-full"></span>
                 介绍视频
               </h2>
             </div>
-            <div className="relative aspect-video bg-gray-900">
-              {!isPlaying ? (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <img
-                    src={culture.image_url}
-                    alt="视频封面"
-                    className="w-full h-full object-cover opacity-50"
-                  />
+            <div className="relative aspect-video bg-gray-900 group">
+              <video
+                ref={videoRef}
+                className="w-full h-full object-cover"
+                poster={culture.image_url}
+                muted={isMuted}
+                onPlay={() => setIsVideoPlaying(true)}
+                onPause={() => setIsVideoPlaying(false)}
+              >
+                <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
+                <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
+                您的浏览器不支持视频播放
+              </video>
+              
+              {!isVideoPlaying && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                   <motion.button
-                    onClick={() => setIsPlaying(true)}
-                    className="absolute w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
+                    onClick={toggleVideoPlay}
+                    className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <Play className="w-10 h-10 text-white ml-1" />
+                    <Play className="w-12 h-12 text-white ml-2" />
                   </motion.button>
-                  <p className="absolute bottom-8 text-white text-center">
+                  <p className="absolute bottom-8 text-white text-center w-full">
                     点击播放介绍视频
                   </p>
                 </div>
-              ) : (
-                <iframe
-                  src={videoUrl}
-                  title={`${culture.title} 介绍视频`}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
               )}
+
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center justify-between">
+                  <motion.button
+                    onClick={toggleVideoPlay}
+                    className="p-2 text-white hover:bg-white/20 rounded-full transition-colors"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {isVideoPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+                  </motion.button>
+                  <motion.button
+                    onClick={toggleMute}
+                    className="p-2 text-white hover:bg-white/20 rounded-full transition-colors"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+                  </motion.button>
+                </div>
+              </div>
             </div>
           </motion.div>
 
@@ -172,28 +230,28 @@ const CultureDetail = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="grid md:grid-cols-3 gap-6 mb-12"
+            className="grid md:grid-cols-3 gap-8 mb-16"
           >
-            <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
-              <div className="w-14 h-14 rounded-xl bg-orange-100 flex items-center justify-center mx-auto mb-4">
-                <Calendar className="w-7 h-7 text-orange-500" />
+            <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center mx-auto mb-6">
+                <Calendar className="w-8 h-8 text-orange-500" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">历史悠久</h3>
-              <p className="text-sm text-gray-500">传承千年的文化瑰宝</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">历史悠久</h3>
+              <p className="text-gray-500">传承千年的文化瑰宝</p>
             </div>
-            <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
-              <div className="w-14 h-14 rounded-xl bg-amber-100 flex items-center justify-center mx-auto mb-4">
-                <Star className="w-7 h-7 text-amber-500" />
+            <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center mx-auto mb-6">
+                <Star className="w-8 h-8 text-amber-500" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">国粹精华</h3>
-              <p className="text-sm text-gray-500">中华文化的杰出代表</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">国粹精华</h3>
+              <p className="text-gray-500">中华文化的杰出代表</p>
             </div>
-            <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
-              <div className="w-14 h-14 rounded-xl bg-yellow-100 flex items-center justify-center mx-auto mb-4">
-                <MapPin className="w-7 h-7 text-yellow-600" />
+            <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-yellow-100 flex items-center justify-center mx-auto mb-6">
+                <MapPin className="w-8 h-8 text-yellow-600" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">北京特色</h3>
-              <p className="text-sm text-gray-500">老北京独特的文化符号</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">北京特色</h3>
+              <p className="text-gray-500">老北京独特的文化符号</p>
             </div>
           </motion.div>
 
@@ -205,11 +263,11 @@ const CultureDetail = () => {
           >
             <motion.button
               onClick={() => navigate('/')}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-400 to-amber-500 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+              className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-orange-400 to-amber-500 text-white font-bold text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-6 h-6" />
               返回首页探索更多
             </motion.button>
           </motion.div>
