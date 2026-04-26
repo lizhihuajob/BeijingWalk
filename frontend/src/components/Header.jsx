@@ -1,12 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, MapPin, Phone, Mail, ChevronUp, ChevronDown, Star, Music, Pause } from 'lucide-react';
-import { getAPIBaseURL } from '../services/api';
+import { Menu, X, Music, Pause, Volume2, VolumeX } from 'lucide-react';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    audioRef.current = new Audio('/music/villatic_music.mp3');
+    audioRef.current.loop = true;
+    audioRef.current.volume = 0.3;
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,6 +29,28 @@ const Header = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const toggleMusic = async () => {
+    if (!audioRef.current) return;
+
+    if (isMusicPlaying) {
+      audioRef.current.pause();
+      setIsMusicPlaying(false);
+    } else {
+      try {
+        await audioRef.current.play();
+        setIsMusicPlaying(true);
+      } catch (error) {
+        console.log('无法播放音频:', error);
+      }
+    }
+  };
+
+  const toggleMute = () => {
+    if (!audioRef.current) return;
+    audioRef.current.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
 
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
@@ -81,18 +117,52 @@ const Header = () => {
             </nav>
 
             <div className="flex items-center space-x-2">
+              <AnimatePresence>
+                {isMusicPlaying && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    onClick={toggleMute}
+                    className={`p-2 rounded-full transition-all duration-300 ${
+                      isScrolled
+                        ? 'text-gray-700 hover:bg-gray-100'
+                        : 'text-white/90 hover:bg-white/20'
+                    }`}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    {isMuted ? (
+                      <VolumeX className="w-5 h-5" />
+                    ) : (
+                      <Volume2 className="w-5 h-5" />
+                    )}
+                  </motion.button>
+                )}
+              </AnimatePresence>
+
               <motion.button
-                onClick={() => setIsMusicPlaying(!isMusicPlaying)}
+                onClick={toggleMusic}
                 className={`p-2 rounded-full transition-all duration-300 ${
                   isScrolled
                     ? 'text-gray-700 hover:bg-gray-100'
                     : 'text-white/90 hover:bg-white/20'
+                } ${
+                  isMusicPlaying
+                    ? 'bg-orange-100 text-orange-600'
+                    : ''
                 }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
+                title={isMusicPlaying ? '暂停音乐' : '播放背景音乐'}
               >
                 {isMusicPlaying ? (
-                  <Pause className="w-5 h-5" />
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                  >
+                    <Pause className="w-5 h-5" />
+                  </motion.div>
                 ) : (
                   <Music className="w-5 h-5" />
                 )}
@@ -151,6 +221,35 @@ const Header = () => {
                   </motion.button>
                 ))}
               </nav>
+
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <p className="text-sm text-gray-500 mb-3">背景音乐</p>
+                <motion.button
+                  onClick={() => {
+                    toggleMusic();
+                    setIsMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-colors ${
+                    isMusicPlaying
+                      ? 'bg-orange-100 text-orange-600'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {isMusicPlaying ? (
+                    <>
+                      <Pause className="w-4 h-4" />
+                      暂停音乐
+                    </>
+                  ) : (
+                    <>
+                      <Music className="w-4 h-4" />
+                      播放音乐
+                    </>
+                  )}
+                </motion.button>
+              </div>
             </div>
           </motion.div>
         )}
