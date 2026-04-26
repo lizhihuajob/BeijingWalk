@@ -1,8 +1,16 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Utensils, Star, ArrowRight } from 'lucide-react';
 
 const SpecialtiesSection = ({ specialties, loading }) => {
+  const navigate = useNavigate();
+
+  const truncateText = (text, maxLength = 60) => {
+    if (!text || text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
   if (loading) {
     return (
       <section id="specialties" className="py-20 bg-white">
@@ -69,29 +77,29 @@ const SpecialtiesSection = ({ specialties, loading }) => {
           {specialties.map((specialty, index) => (
             <motion.div
               key={specialty.id}
-              className="group"
+              className="group h-full"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <div className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100">
-                <div className="relative overflow-hidden">
+              <div className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 h-full flex flex-col">
+                <div className="relative overflow-hidden h-56">
                   <img
                     src={specialty.image_url}
                     alt={specialty.name}
-                    className="w-full h-48 md:h-56 object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 </div>
-                <div className="p-6">
+                <div className="p-6 flex-1 flex flex-col">
                   <h3 className="text-xl font-bold text-gray-900 mb-3">
                     {specialty.name}
                   </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed mb-4">
-                    {specialty.description}
+                  <p className="text-gray-600 text-sm leading-relaxed mb-4 flex-1 line-clamp-3">
+                    {truncateText(specialty.description, 60)}
                   </p>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mt-auto">
                     <div className="flex items-center gap-1">
                       {renderStars(specialty.rating)}
                       <span className="ml-2 text-sm text-gray-500">
@@ -99,6 +107,7 @@ const SpecialtiesSection = ({ specialties, loading }) => {
                       </span>
                     </div>
                     <motion.button
+                      onClick={() => navigate(`/specialty/${specialty.id}`)}
                       className="text-red-500 hover:text-red-600 text-sm font-medium flex items-center gap-1 transition-colors"
                       whileHover={{ x: 3 }}
                     >

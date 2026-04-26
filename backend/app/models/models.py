@@ -118,3 +118,24 @@ class Heritage(db.Model):
             'order': self.order,
             'is_active': self.is_active
         }
+
+class Guestbook(db.Model):
+    __tablename__ = 'guestbooks'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(200))
+    message = db.Column(db.Text, nullable=False)
+    is_approved = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'email': self.email,
+            'message': self.message,
+            'is_approved': self.is_approved,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }

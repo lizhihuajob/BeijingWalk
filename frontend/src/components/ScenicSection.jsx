@@ -1,8 +1,16 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Building, ArrowRight } from 'lucide-react';
 
 const ScenicSection = ({ scenicSpots, loading }) => {
+  const navigate = useNavigate();
+
+  const truncateText = (text, maxLength = 50) => {
+    if (!text || text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
   if (loading) {
     return (
       <section id="scenic" className="py-20 bg-gray-50">
@@ -75,10 +83,11 @@ const ScenicSection = ({ scenicSpots, loading }) => {
                 <h3 className="text-2xl md:text-4xl font-bold text-white mb-3">
                   {featuredSpot.name}
                 </h3>
-                <p className="text-white/80 text-lg max-w-2xl mb-4">
-                  {featuredSpot.description}
+                <p className="text-white/80 text-lg max-w-2xl mb-4 line-clamp-2">
+                  {truncateText(featuredSpot.description, 80)}
                 </p>
                 <motion.button
+                  onClick={() => navigate(`/scenic-spot/${featuredSpot.id}`)}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-900 font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -95,29 +104,30 @@ const ScenicSection = ({ scenicSpots, loading }) => {
             {otherSpots.map((spot, index) => (
               <motion.div
                 key={spot.id}
-                className="group"
+                className="group h-full"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100">
-                  <div className="relative overflow-hidden">
+                <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 h-full flex flex-col">
+                  <div className="relative overflow-hidden h-48">
                     <img
                       src={spot.image_url}
                       alt={spot.name}
-                      className="w-full h-48 object-cover transition-transform duration-700 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   </div>
-                  <div className="p-5">
+                  <div className="p-5 flex-1 flex flex-col">
                     <h3 className="text-lg font-bold text-gray-900 mb-2">
                       {spot.name}
                     </h3>
-                    <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">
-                      {spot.description}
+                    <p className="text-gray-600 text-sm leading-relaxed mb-4 flex-1 line-clamp-3">
+                      {truncateText(spot.description, 50)}
                     </p>
                     <motion.button
+                      onClick={() => navigate(`/scenic-spot/${spot.id}`)}
                       className="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center gap-1 transition-colors"
                       whileHover={{ x: 3 }}
                     >
