@@ -40,7 +40,7 @@ function HomePage() {
         setFeaturedData({
           cultures: culturesData.slice(0, 2),
           specialties: specialtiesData.slice(0, 3),
-          scenicSpots: scenicSpots.filter(s => s.is_featured).slice(0, 1).concat(scenicSpots.filter(s => !s.is_featured).slice(0, 2)),
+          scenicSpots: scenicSpotsData.filter(s => s.is_featured).slice(0, 1).concat(scenicSpotsData.filter(s => !s.is_featured).slice(0, 2)),
           heritages: heritagesData.slice(0, 4),
         });
         setError(null);
@@ -283,20 +283,6 @@ function HomePage() {
               </div>
             </>
           )}
-
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-          >
-            <div className="w-8 h-12 rounded-full border-2 border-white/50 flex items-start justify-center p-2">
-              <motion.div
-                animate={{ y: [0, 12, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-                className="w-1.5 h-3 bg-white/80 rounded-full"
-              />
-            </div>
-          </motion.div>
         </section>
 
         <section className="py-20 bg-gradient-to-b from-gray-50 to-white">

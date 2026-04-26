@@ -1,162 +1,124 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, MapPin, Phone, Mail, ChevronUp, ChevronDown, Star, Music, Pause } from 'lucide-react';
-import { getAPIBaseURL } from '../services/api';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { MapPin, Phone, Mail, Heart, Map } from 'lucide-react';
 
-const Header = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+const Footer = () => {
+  const currentYear = new Date().getFullYear();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollToSection = (id) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setIsMenuOpen(false);
-    }
-  };
-
-  const navItems = [
-    { id: 'home', label: '首页' },
-    { id: 'culture', label: '北京文化' },
-    { id: 'specialties', label: '地方特产' },
-    { id: 'scenic', label: '名胜古迹' },
-    { id: 'heritage', label: '非物质文化遗产' },
+  const quickLinks = [
+    { path: '/', label: '首页' },
+    { path: '/culture', label: '北京文化' },
+    { path: '/specialties', label: '地方特产' },
+    { path: '/scenic', label: '名胜古迹' },
+    { path: '/heritage', label: '非物质文化遗产' },
+    { path: '/guestbook', label: '留言板' },
   ];
 
   return (
-    <>
-      <motion.header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled
-            ? 'bg-white/80 backdrop-blur-md shadow-lg'
-            : 'bg-transparent'
-        }`}
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 md:h-20">
-            <motion.div
-              className="flex items-center space-x-3 cursor-pointer"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => scrollToSection('home')}
-            >
+    <footer className="bg-gray-900 text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <div className="flex items-center space-x-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg">
                 <span className="text-white font-bold text-lg">京</span>
               </div>
-              <span className={`text-xl font-semibold tracking-tight ${
-                isScrolled ? 'text-gray-900' : 'text-white'
-              }`}>
-                北京旅游
-              </span>
-            </motion.div>
+              <span className="text-xl font-semibold">北京旅游</span>
+            </div>
+            <p className="text-gray-400 text-sm leading-relaxed">
+              探索千年古都的魅力，感受历史与现代的完美交融。北京旅游，带你发现不一样的北京。
+            </p>
+          </motion.div>
 
-            <nav className="hidden md:flex items-center space-x-1">
-              {navItems.map((item) => (
-                <motion.button
-                  key={item.id}
-                  onClick={() => scrollToSection(item.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                    isScrolled
-                      ? 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                      : 'text-white/90 hover:bg-white/20 hover:text-white'
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+          >
+            <h3 className="text-lg font-semibold mb-4">快速导航</h3>
+            <nav className="grid grid-cols-2 gap-2">
+              {quickLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className="text-gray-400 hover:text-white text-sm transition-colors"
                 >
-                  {item.label}
-                </motion.button>
+                  {link.label}
+                </Link>
               ))}
             </nav>
+          </motion.div>
 
-            <div className="flex items-center space-x-2">
-              <motion.button
-                onClick={() => setIsMusicPlaying(!isMusicPlaying)}
-                className={`p-2 rounded-full transition-all duration-300 ${
-                  isScrolled
-                    ? 'text-gray-700 hover:bg-gray-100'
-                    : 'text-white/90 hover:bg-white/20'
-                }`}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                {isMusicPlaying ? (
-                  <Pause className="w-5 h-5" />
-                ) : (
-                  <Music className="w-5 h-5" />
-                )}
-              </motion.button>
-
-              <motion.button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className={`md:hidden p-2 rounded-full transition-all duration-300 ${
-                  isScrolled
-                    ? 'text-gray-700 hover:bg-gray-100'
-                    : 'text-white/90 hover:bg-white/20'
-                }`}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </motion.button>
-            </div>
-          </div>
-        </div>
-      </motion.header>
-
-      <AnimatePresence>
-        {isMenuOpen && (
           <motion.div
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsMenuOpen(false)}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div
-            className="fixed top-0 right-0 bottom-0 w-64 z-50 bg-white shadow-2xl"
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
           >
-            <div className="p-6 pt-20">
-              <nav className="space-y-2">
-                {navItems.map((item, index) => (
-                  <motion.button
-                    key={item.id}
-                    onClick={() => scrollToSection(item.id)}
-                    className="w-full text-left px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-medium transition-colors"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    {item.label}
-                  </motion.button>
-                ))}
-              </nav>
+            <h3 className="text-lg font-semibold mb-4">联系方式</h3>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-gray-400 text-sm">
+                <MapPin className="w-4 h-4 text-orange-500" />
+                <span>北京市东城区</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-400 text-sm">
+                <Phone className="w-4 h-4 text-orange-500" />
+                <span>400-123-4567</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-400 text-sm">
+                <Mail className="w-4 h-4 text-orange-500" />
+                <span>info@beijingwalk.com</span>
+              </div>
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+          >
+            <h3 className="text-lg font-semibold mb-4">热门景点</h3>
+            <div className="space-y-2 text-sm text-gray-400">
+              <div className="flex items-center gap-2">
+                <Map className="w-4 h-4 text-orange-500" />
+                <span>故宫博物院</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Map className="w-4 h-4 text-orange-500" />
+                <span>颐和园</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Map className="w-4 h-4 text-orange-500" />
+                <span>天坛公园</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Map className="w-4 h-4 text-orange-500" />
+                <span>明十三陵</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        <div className="border-t border-gray-800 mt-10 pt-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-gray-500 text-sm">
+              © {currentYear} 北京旅游. All rights reserved.
+            </p>
+            <p className="text-gray-500 text-sm flex items-center gap-1">
+              Made with <Heart className="w-4 h-4 text-red-500 fill-current" /> for Beijing
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
   );
 };
 
-export default Header;
+export default Footer;
