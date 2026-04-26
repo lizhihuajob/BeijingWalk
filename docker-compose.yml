@@ -39,7 +39,6 @@ services:
       - ./backend:/app
     command: >
       sh -c "
-        flask db upgrade 2>/dev/null || python -c 'from app import create_app, db; app = create_app(); app.app_context().push(); db.create_all()' &&
         python init_db.py &&
         gunicorn --bind 0.0.0.0:8001 --workers 4 --threads 2 run:app
       "

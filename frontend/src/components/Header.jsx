@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Music, Pause, Volume2, VolumeX, AlertCircle } from 'lucide-react';
 
 const Header = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -114,37 +113,21 @@ const Header = () => {
     setIsMuted(!isMuted);
   };
 
-  const handleNavClick = (item) => {
-    setIsMenuOpen(false);
-    
-    if (item.type === 'route') {
-      navigate(item.path);
-    } else {
-      if (location.pathname !== '/') {
-        navigate('/');
-        setTimeout(() => {
-          const element = document.getElementById(item.id);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-          }
-        }, 100);
-      } else {
-        const element = document.getElementById(item.id);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
-      }
-    }
-  };
-
   const navItems = [
-    { id: 'home', label: '首页', type: 'anchor' },
-    { id: 'culture', label: '北京文化', type: 'anchor' },
-    { id: 'specialties', label: '地方特产', type: 'anchor' },
-    { id: 'scenic', label: '名胜古迹', type: 'anchor' },
-    { id: 'heritage', label: '非物质文化遗产', type: 'anchor' },
-    { path: '/guestbook', label: '留言板', type: 'route' },
+    { path: '/', label: '首页' },
+    { path: '/culture', label: '北京文化' },
+    { path: '/specialties', label: '地方特产' },
+    { path: '/scenic', label: '名胜古迹' },
+    { path: '/heritage', label: '非物质文化遗产' },
+    { path: '/guestbook', label: '留言板' },
   ];
+
+  const isActive = (path) => {
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <>
@@ -160,38 +143,50 @@ const Header = () => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
-            <motion.div
-              className="flex items-center space-x-3 cursor-pointer"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleNavClick({ id: 'home', type: 'anchor' })}
-            >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-lg">京</span>
-              </div>
-              <span className={`text-xl font-semibold tracking-tight ${
-                isScrolled ? 'text-gray-900' : 'text-white'
-              }`}>
-                北京旅游
-              </span>
-            </motion.div>
+            <Link to="/">
+              <motion.div
+                className="flex items-center space-x-3"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-lg">京</span>
+                </div>
+                <span className={`text-xl font-semibold tracking-tight ${
+                  isScrolled ? 'text-gray-900' : 'text-white'
+                }`}>
+                  北京旅游
+                </span>
+              </motion.div>
+            </Link>
 
             <nav className="hidden md:flex items-center space-x-1">
-              {navItems.map((item) => (
-                <motion.button
-                  key={item.id || item.path}
-                  onClick={() => handleNavClick(item)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                    isScrolled
-                      ? 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                      : 'text-white/90 hover:bg-white/20 hover:text-white'
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {item.label}
-                </motion.button>
-              ))}
+              {navItems.map((item) => {
+                const active = isActive(item.path);
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <motion.div
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                        active
+                          ? isScrolled
+                            ? 'bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-md'
+                            : 'bg-white/20 text-white shadow-md'
+                          : isScrolled
+                            ? 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                            : 'text-white/90 hover:bg-white/20 hover:text-white'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {item.label}
+                    </motion.div>
+                  </Link>
+                );
+              })}
             </nav>
 
             <div className="flex items-center space-x-2">
@@ -286,18 +281,29 @@ const Header = () => {
           >
             <div className="p-6 pt-20">
               <nav className="space-y-2">
-                {navItems.map((item, index) => (
-                  <motion.button
-                    key={item.id || item.path}
-                    onClick={() => handleNavClick(item)}
-                    className="w-full text-left px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-medium transition-colors"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    {item.label}
-                  </motion.button>
-                ))}
+                {navItems.map((item, index) => {
+                  const active = isActive(item.path);
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <motion.div
+                        className={`w-full text-left px-4 py-3 rounded-xl font-medium transition-colors ${
+                          active
+                            ? 'bg-gradient-to-r from-orange-50 to-amber-50 text-orange-600 border border-orange-200'
+                            : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                        }`}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        {item.label}
+                      </motion.div>
+                    </Link>
+                  );
+                })}
               </nav>
 
               <div className="mt-8 pt-6 border-t border-gray-200">
