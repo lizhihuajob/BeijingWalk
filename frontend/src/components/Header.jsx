@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Music, Pause, Volume2, VolumeX, AlertCircle } from 'lucide-react';
 
 const Header = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
@@ -111,20 +114,36 @@ const Header = () => {
     setIsMuted(!isMuted);
   };
 
-  const scrollToSection = (id) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setIsMenuOpen(false);
+  const handleNavClick = (item) => {
+    setIsMenuOpen(false);
+    
+    if (item.type === 'route') {
+      navigate(item.path);
+    } else {
+      if (location.pathname !== '/') {
+        navigate('/');
+        setTimeout(() => {
+          const element = document.getElementById(item.id);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+      } else {
+        const element = document.getElementById(item.id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
     }
   };
 
   const navItems = [
-    { id: 'home', label: '首页' },
-    { id: 'culture', label: '北京文化' },
-    { id: 'specialties', label: '地方特产' },
-    { id: 'scenic', label: '名胜古迹' },
-    { id: 'heritage', label: '非物质文化遗产' },
+    { id: 'home', label: '首页', type: 'anchor' },
+    { id: 'culture', label: '北京文化', type: 'anchor' },
+    { id: 'specialties', label: '地方特产', type: 'anchor' },
+    { id: 'scenic', label: '名胜古迹', type: 'anchor' },
+    { id: 'heritage', label: '非物质文化遗产', type: 'anchor' },
+    { path: '/guestbook', label: '留言板', type: 'route' },
   ];
 
   return (
@@ -145,7 +164,7 @@ const Header = () => {
               className="flex items-center space-x-3 cursor-pointer"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => scrollToSection('home')}
+              onClick={() => handleNavClick({ id: 'home', type: 'anchor' })}
             >
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg">
                 <span className="text-white font-bold text-lg">京</span>
@@ -160,8 +179,8 @@ const Header = () => {
             <nav className="hidden md:flex items-center space-x-1">
               {navItems.map((item) => (
                 <motion.button
-                  key={item.id}
-                  onClick={() => scrollToSection(item.id)}
+                  key={item.id || item.path}
+                  onClick={() => handleNavClick(item)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                     isScrolled
                       ? 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
@@ -269,8 +288,8 @@ const Header = () => {
               <nav className="space-y-2">
                 {navItems.map((item, index) => (
                   <motion.button
-                    key={item.id}
-                    onClick={() => scrollToSection(item.id)}
+                    key={item.id || item.path}
+                    onClick={() => handleNavClick(item)}
                     className="w-full text-left px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-medium transition-colors"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}

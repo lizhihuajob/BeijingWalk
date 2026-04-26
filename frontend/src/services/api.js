@@ -77,4 +77,19 @@ export const getAllData = async () => {
   return response.data;
 };
 
+export const getGuestbooks = async () => {
+  const response = await apiClient.get('/guestbooks');
+  return response.data;
+};
+
+export const getGuestbookById = async (id) => {
+  const response = await apiClient.get(`/guestbooks/${id}`);
+  return response.data;
+};
+
+export const createGuestbook = async (data) => {
+  const response = await apiClient.post('/guestbooks', data);
+  return response.data;
+};
+
 export default apiClient;

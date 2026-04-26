@@ -1,8 +1,16 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Scroll, ArrowRight } from 'lucide-react';
 
 const CultureSection = ({ cultures, loading }) => {
+  const navigate = useNavigate();
+
+  const truncateText = (text, maxLength = 100) => {
+    if (!text || text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
   if (loading) {
     return (
       <section id="culture" className="py-20 bg-gray-50">
@@ -80,15 +88,16 @@ const CultureSection = ({ cultures, loading }) => {
                 <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 tracking-tight">
                   {culture.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  {culture.description}
+                <p className="text-gray-600 leading-relaxed mb-4 line-clamp-3">
+                  {truncateText(culture.description, 120)}
                 </p>
                 {culture.details && (
-                  <p className="text-gray-500 leading-relaxed mb-6">
-                    {culture.details}
+                  <p className="text-gray-500 leading-relaxed mb-6 line-clamp-2">
+                    {truncateText(culture.details, 80)}
                   </p>
                 )}
                 <motion.button
+                  onClick={() => navigate(`/culture/${culture.id}`)}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-white text-orange-600 font-semibold rounded-full border border-orange-200 hover:bg-orange-50 transition-colors shadow-sm"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}

@@ -1,8 +1,16 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
 
 const HeritageSection = ({ heritages, loading }) => {
+  const navigate = useNavigate();
+
+  const truncateText = (text, maxLength = 50) => {
+    if (!text || text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
   if (loading) {
     return (
       <section id="heritage" className="py-20 bg-white">
@@ -78,10 +86,11 @@ const HeritageSection = ({ heritages, loading }) => {
                   <h3 className="text-lg font-bold text-gray-900 mb-3">
                     {heritage.name}
                   </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed mb-4 flex-1">
-                    {heritage.description}
+                  <p className="text-gray-600 text-sm leading-relaxed mb-4 flex-1 line-clamp-3">
+                    {truncateText(heritage.description, 50)}
                   </p>
                   <motion.button
+                    onClick={() => navigate(`/heritage/${heritage.id}`)}
                     className="text-amber-600 hover:text-amber-700 text-sm font-medium flex items-center gap-1 transition-colors mt-auto"
                     whileHover={{ x: 3 }}
                   >

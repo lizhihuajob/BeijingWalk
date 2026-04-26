@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from app import db
-from app.models.models import Banner, Culture, Specialty, ScenicSpot, Heritage
+from app.models.models import Banner, Culture, Specialty, ScenicSpot, Heritage, Guestbook
 
 api_bp = Blueprint('api', __name__)
 
@@ -78,3 +78,35 @@ def get_all_data():
         'scenic_spots': [spot.to_dict() for spot in scenic_spots],
         'heritages': [heritage.to_dict() for heritage in heritages]
     }), 200
+
+@api_bp.route('/guestbooks', methods=['GET'])
+def get_guestbooks():
+    guestbooks = Guestbook.query.filter_by(is_approved=True).order_by(Guestbook.created_at.desc()).all()
+    return jsonify([guestbook.to_dict() for guestbook in guestbooks]), 200
+
+@api_bp.route('/guestbooks', methods=['POST'])
+def create_guestbook():
+    data = request.get_json()
+    
+    if not data or not data.get('name') or not data.get('message'):
+        return jsonify({'error': '姓名和留言内容不能为空'}), 400
+    
+    guestbook = Guestbook(
+        name=data.get('name'),
+        email=data.get('email'),
+        message=data.get('message'),
+        is_approved=True
+    )
+    
+    try:
+        db.session.add(guestbook)
+        db.session.commit()
+        return jsonify(guestbook.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@api_bp.route('/guestbooks/<int:id>', methods=['GET'])
+def get_guestbook(id):
+    guestbook = Guestbook.query.get_or_404(id)
+    return jsonify(guestbook.to_dict()), 200
