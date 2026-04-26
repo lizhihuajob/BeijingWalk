@@ -31,7 +31,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-beijingwalk}:${POSTGRES_PASSWORD:-beijingwalk123}@postgres:5432/${POSTGRES_DB:-beijingwalk}
       SECRET_KEY: ${SECRET_KEY:-your-secret-key-here}
     ports:
-      - "5000:5000"
+      - "8001:8001"
     depends_on:
       postgres:
         condition: service_healthy
@@ -41,7 +41,7 @@ services:
       sh -c "
         flask db upgrade 2>/dev/null || python -c 'from app import create_app, db; app = create_app(); app.app_context().push(); db.create_all()' &&
         python init_db.py &&
-        gunicorn --bind 0.0.0.0:5000 --workers 4 --threads 2 run:app
+        gunicorn --bind 0.0.0.0:8001 --workers 4 --threads 2 run:app
       "
 
   frontend:
@@ -51,9 +51,9 @@ services:
     container_name: beijingwalk_frontend
     restart: unless-stopped
     environment:
-      - VITE_API_URL=${VITE_API_URL:-http://localhost:5000/api}
+      - VITE_API_URL=${VITE_API_URL:-/api}
     ports:
-      - "3000:80"
+      - "3001:80"
     depends_on:
       - backend
 

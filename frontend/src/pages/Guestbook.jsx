@@ -226,8 +226,8 @@ const Guestbook = () => {
                     type="submit"
                     disabled={submitting}
                     className="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    whileHover={!submitting ? { scale: 1.02 } : {}}
-                    whileTap={!submitting ? { scale: 0.98 } : {}}
+                    whileHover={!submitting ? { scale: 1.02 } : undefined}
+                    whileTap={!submitting ? { scale: 0.98 } : undefined}
                   >
                     {submitting ? (
                       <>
@@ -337,7 +337,6 @@ const Guestbook = () => {
               </div>
             ) : (
               <div className="space-y-6">
-                <AnimatePresence>
                   {guestbooks.map((guestbook, index) => (
                     <motion.div
                       key={guestbook.id}
@@ -375,7 +374,6 @@ const Guestbook = () => {
                       </div>
                     </motion.div>
                   ))}
-                </AnimatePresence>
               </div>
             )}
           </motion.div>
