@@ -14,7 +14,19 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { dashboardApi } from '../services/api';
 
 function Dashboard() {
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState({
+    total_visits: 0,
+    today_visits: 0,
+    total_content_views: 0,
+    total_content: {
+      banners: 0,
+      cultures: 0,
+      specialties: 0,
+      scenic_spots: 0,
+      heritages: 0,
+      guestbooks: 0
+    }
+  });
   const [trending, setTrending] = useState([]);
   const [visitTrend, setVisitTrend] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,20 +38,31 @@ function Dashboard() {
 
   const fetchData = async () => {
     setLoading(true);
+    
     try {
-      const [statsRes, trendingRes, visitRes] = await Promise.all([
-        dashboardApi.getStats(),
-        dashboardApi.getTrending(),
-        dashboardApi.getVisitTrend(days),
-      ]);
-      setStats(statsRes.data);
-      setTrending(trendingRes.data);
-      setVisitTrend(visitRes.data);
+      const statsRes = await dashboardApi.getStats();
+      if (statsRes.data) {
+        setStats(statsRes.data);
+      }
     } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
-    } finally {
-      setLoading(false);
+      console.error('Failed to fetch stats:', error);
     }
+    
+    try {
+      const trendingRes = await dashboardApi.getTrending();
+      setTrending(trendingRes.data || []);
+    } catch (error) {
+      console.error('Failed to fetch trending:', error);
+    }
+    
+    try {
+      const visitRes = await dashboardApi.getVisitTrend(days);
+      setVisitTrend(visitRes.data || []);
+    } catch (error) {
+      console.error('Failed to fetch visit trend:', error);
+    }
+    
+    setLoading(false);
   };
 
   const statCards = [

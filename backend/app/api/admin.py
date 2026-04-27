@@ -15,11 +15,16 @@ def admin_required(fn):
     @wraps(fn)
     @jwt_required()
     def wrapper(*args, **kwargs):
-        current_user_id = get_jwt_identity()
-        admin = AdminUser.query.get(current_user_id)
-        if not admin or not admin.is_active:
-            return jsonify({'error': '无权限访问'}), 403
-        return fn(*args, **kwargs)
+        try:
+            current_user_id = get_jwt_identity()
+            admin = AdminUser.query.get(current_user_id)
+            if not admin or not admin.is_active:
+                return jsonify({'error': '无权限访问'}), 403
+            return fn(*args, **kwargs)
+        except Exception as e:
+            print(f"Error in admin_required: {e}")
+            db.session.rollback()
+            return jsonify({'error': '服务器错误'}), 500
     return wrapper
 
 @admin_bp.route('/login', methods=['POST'])
@@ -57,11 +62,27 @@ def get_profile():
 @admin_bp.route('/dashboard/stats', methods=['GET'])
 @admin_required
 def get_dashboard_stats():
-    total_visits = db.session.query(func.count(VisitLog.id)).scalar() or 0
-    today = datetime.utcnow().date()
-    today_visits = db.session.query(func.count(VisitLog.id)).filter(
-        func.date(VisitLog.created_at) == today
-    ).scalar() or 0
+    total_visits = 0
+    today_visits = 0
+    total_content_views = 0
+    
+    try:
+        total_visits = db.session.query(func.count(VisitLog.id)).scalar() or 0
+    except Exception as e:
+        print(f"Error querying VisitLog: {e}")
+    
+    try:
+        today = datetime.utcnow().date()
+        today_visits = db.session.query(func.count(VisitLog.id)).filter(
+            func.date(VisitLog.created_at) == today
+        ).scalar() or 0
+    except Exception as e:
+        print(f"Error querying today's visits: {e}")
+    
+    try:
+        total_content_views = db.session.query(func.sum(ContentView.view_count)).scalar() or 0
+    except Exception as e:
+        print(f"Error querying ContentView: {e}")
     
     total_banners = db.session.query(func.count(Banner.id)).scalar() or 0
     total_cultures = db.session.query(func.count(Culture.id)).scalar() or 0
@@ -69,8 +90,6 @@ def get_dashboard_stats():
     total_scenic = db.session.query(func.count(ScenicSpot.id)).scalar() or 0
     total_heritages = db.session.query(func.count(Heritage.id)).scalar() or 0
     total_guestbooks = db.session.query(func.count(Guestbook.id)).scalar() or 0
-    
-    total_content_views = db.session.query(func.sum(ContentView.view_count)).scalar() or 0
     
     return jsonify({
         'total_visits': total_visits,
@@ -89,63 +108,70 @@ def get_dashboard_stats():
 @admin_bp.route('/dashboard/trending', methods=['GET'])
 @admin_required
 def get_trending_content():
-    trending = db.session.query(ContentView).order_by(
-        ContentView.view_count.desc()
-    ).limit(10).all()
-    
     content_details = []
-    for cv in trending:
-        content = None
-        title = None
+    try:
+        trending = db.session.query(ContentView).order_by(
+            ContentView.view_count.desc()
+        ).limit(10).all()
         
-        if cv.content_type == 'banner':
-            content = Banner.query.get(cv.content_id)
-            title = content.title if content else None
-        elif cv.content_type == 'culture':
-            content = Culture.query.get(cv.content_id)
-            title = content.title if content else None
-        elif cv.content_type == 'specialty':
-            content = Specialty.query.get(cv.content_id)
-            title = content.name if content else None
-        elif cv.content_type == 'scenic_spot':
-            content = ScenicSpot.query.get(cv.content_id)
-            title = content.name if content else None
-        elif cv.content_type == 'heritage':
-            content = Heritage.query.get(cv.content_id)
-            title = content.name if content else None
-        
-        if content:
-            content_details.append({
-                'id': cv.id,
-                'content_type': cv.content_type,
-                'content_id': cv.content_id,
-                'title': title,
-                'view_count': cv.view_count,
-                'unique_visitors': cv.unique_visitors,
-                'last_viewed_at': cv.last_viewed_at.isoformat() if cv.last_viewed_at else None
-            })
+        for cv in trending:
+            content = None
+            title = None
+            
+            if cv.content_type == 'banner':
+                content = Banner.query.get(cv.content_id)
+                title = content.title if content else None
+            elif cv.content_type == 'culture':
+                content = Culture.query.get(cv.content_id)
+                title = content.title if content else None
+            elif cv.content_type == 'specialty':
+                content = Specialty.query.get(cv.content_id)
+                title = content.name if content else None
+            elif cv.content_type == 'scenic_spot':
+                content = ScenicSpot.query.get(cv.content_id)
+                title = content.name if content else None
+            elif cv.content_type == 'heritage':
+                content = Heritage.query.get(cv.content_id)
+                title = content.name if content else None
+            
+            if content:
+                content_details.append({
+                    'id': cv.id,
+                    'content_type': cv.content_type,
+                    'content_id': cv.content_id,
+                    'title': title,
+                    'view_count': cv.view_count,
+                    'unique_visitors': cv.unique_visitors,
+                    'last_viewed_at': cv.last_viewed_at.isoformat() if cv.last_viewed_at else None
+                })
+    except Exception as e:
+        print(f"Error querying trending content: {e}")
     
     return jsonify(content_details), 200
 
 @admin_bp.route('/dashboard/visit-trend', methods=['GET'])
 @admin_required
 def get_visit_trend():
-    days = request.args.get('days', 7, type=int)
-    end_date = datetime.utcnow()
-    start_date = end_date - timedelta(days=days)
-    
-    visits = db.session.query(
-        func.date(VisitLog.created_at).label('date'),
-        func.count(VisitLog.id).label('count')
-    ).filter(
-        VisitLog.created_at >= start_date
-    ).group_by(
-        func.date(VisitLog.created_at)
-    ).order_by(
-        func.date(VisitLog.created_at)
-    ).all()
-    
-    trend_data = [{'date': str(v.date), 'count': v.count} for v in visits]
+    trend_data = []
+    try:
+        days = request.args.get('days', 7, type=int)
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=days)
+        
+        visits = db.session.query(
+            func.date(VisitLog.created_at).label('date'),
+            func.count(VisitLog.id).label('count')
+        ).filter(
+            VisitLog.created_at >= start_date
+        ).group_by(
+            func.date(VisitLog.created_at)
+        ).order_by(
+            func.date(VisitLog.created_at)
+        ).all()
+        
+        trend_data = [{'date': str(v.date), 'count': v.count} for v in visits]
+    except Exception as e:
+        print(f"Error querying visit trend: {e}")
     
     return jsonify(trend_data), 200
 
