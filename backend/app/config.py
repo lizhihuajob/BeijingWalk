@@ -13,6 +13,8 @@ class Config:
     
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS') or '*'
     
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'jwt-secret-key-change-in-production'
+    
     @staticmethod
     def init_app(app):
         pass

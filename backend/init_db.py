@@ -1,5 +1,5 @@
 from app import create_app, db
-from app.models.models import Banner, Culture, Specialty, ScenicSpot, Heritage, Guestbook
+from app.models.models import Banner, Culture, Specialty, ScenicSpot, Heritage, Guestbook, AdminUser
 
 app = create_app()
 
@@ -186,6 +186,17 @@ def init_database():
                 )
             ]
             db.session.add_all(guestbooks)
+        
+        if AdminUser.query.first() is None:
+            default_admin = AdminUser(
+                username='admin',
+                email='admin@beijingwalk.com',
+                is_active=True,
+                is_superuser=True
+            )
+            default_admin.set_password('admin123')
+            db.session.add(default_admin)
+            print('Default admin user created: username=admin, password=admin123')
         
         try:
             db.session.commit()
