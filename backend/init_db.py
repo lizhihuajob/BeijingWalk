@@ -1,5 +1,10 @@
 from app import create_app, db
-from app.models.models import Banner, Culture, Specialty, ScenicSpot, Heritage, Guestbook, AdminUser
+from app.models.models import (
+    Banner, Culture, Specialty, ScenicSpot, Heritage, 
+    Guestbook, AdminUser, VisitLog, ContentView
+)
+from datetime import datetime, timedelta
+import random
 
 app = create_app()
 
@@ -197,6 +202,66 @@ def init_database():
             default_admin.set_password('admin123')
             db.session.add(default_admin)
             print('Default admin user created: username=admin, password=admin123')
+        
+        if VisitLog.query.first() is None:
+            page_types = ['all_data', 'banner_list', 'culture_list', 'specialty_list', 
+                          'scenic_list', 'heritage_list', 'guestbook_list',
+                          'culture_detail', 'specialty_detail', 'scenic_detail']
+            
+            for i in range(150):
+                random_days = random.randint(0, 30)
+                random_hours = random.randint(0, 23)
+                random_minutes = random.randint(0, 59)
+                
+                visit_time = datetime.utcnow() - timedelta(
+                    days=random_days, 
+                    hours=random_hours, 
+                    minutes=random_minutes
+                )
+                
+                visit_log = VisitLog(
+                    page_url=f'/api/{random.choice(page_types)}',
+                    page_type=random.choice(page_types),
+                    item_id=random.randint(1, 5) if 'detail' in random.choice(page_types) else None,
+                    ip_address=f'192.168.{random.randint(1, 10)}.{random.randint(1, 254)}',
+                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                    session_id=f'session_{random.randint(1000, 9999)}',
+                    created_at=visit_time
+                )
+                db.session.add(visit_log)
+            print('Sample visit logs created')
+        
+        if ContentView.query.first() is None:
+            content_data = [
+                ('banner', 1, 156),
+                ('banner', 2, 132),
+                ('banner', 3, 98),
+                ('banner', 4, 76),
+                ('culture', 1, 245),
+                ('culture', 2, 189),
+                ('specialty', 1, 312),
+                ('specialty', 2, 256),
+                ('specialty', 3, 178),
+                ('scenic_spot', 1, 423),
+                ('scenic_spot', 2, 289),
+                ('scenic_spot', 3, 234),
+                ('scenic_spot', 4, 156),
+                ('heritage', 1, 198),
+                ('heritage', 2, 167),
+                ('heritage', 3, 134),
+                ('heritage', 4, 98),
+            ]
+            
+            for content_type, content_id, view_count in content_data:
+                content_view = ContentView(
+                    content_type=content_type,
+                    content_id=content_id,
+                    view_count=view_count,
+                    unique_visitors=random.randint(view_count // 3, view_count),
+                    last_viewed_at=datetime.utcnow() - timedelta(hours=random.randint(1, 24))
+                )
+                db.session.add(content_view)
+            print('Sample content views created')
         
         try:
             db.session.commit()
