@@ -5,6 +5,7 @@ import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import GuestbooksPage from './pages/GuestbooksPage';
 import UsersPage from './pages/UsersPage';
+import Profile from './pages/Profile';
 import Login from './pages/Login';
 import { Loader2 } from 'lucide-react';
 
@@ -35,6 +36,7 @@ function App() {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/guestbooks" element={<GuestbooksPage />} />
                 <Route path="/users" element={<UsersPage />} />
+                <Route path="/profile" element={<Profile />} />
               </Routes>
             </Layout>
           </PrivateRoute>

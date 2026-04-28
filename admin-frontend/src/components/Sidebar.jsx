@@ -3,18 +3,29 @@ import {
   LayoutDashboard, 
   MessageSquare, 
   Users,
+  User,
   LogOut
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
-const menuItems = [
+const baseMenuItems = [
   { path: '/', icon: LayoutDashboard, label: '仪表盘' },
   { path: '/guestbooks', icon: MessageSquare, label: '留言管理' },
-  { path: '/users', icon: Users, label: '管理员管理' },
+  { path: '/profile', icon: User, label: '个人中心' },
 ];
 
 function Sidebar() {
   const { user, logout } = useAuth();
+
+  const getMenuItems = () => {
+    const items = [...baseMenuItems];
+    if (user?.is_superuser) {
+      items.push({ path: '/users', icon: Users, label: '员工管理' });
+    }
+    return items;
+  };
+
+  const menuItems = getMenuItems();
 
   return (
     <aside className="w-64 bg-sidebar-bg min-h-screen flex flex-col">
