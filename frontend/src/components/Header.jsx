@@ -6,6 +6,8 @@ import { Menu, X, Music, Pause, Volume2, VolumeX, AlertCircle } from 'lucide-rea
 const Header = () => {
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
+  const isHomePage = location.pathname === '/';
+  const showScrolledStyle = isScrolled || !isHomePage;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -135,7 +137,9 @@ const Header = () => {
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
             ? 'bg-white/80 backdrop-blur-md shadow-lg'
-            : 'bg-transparent'
+            : isHomePage
+              ? 'bg-transparent'
+              : 'bg-white/80 backdrop-blur-md shadow-lg'
         }`}
         initial={{ y: -100 }}
         animate={{ y: 0 }}
@@ -153,7 +157,7 @@ const Header = () => {
                   <span className="text-white font-bold text-lg">京</span>
                 </div>
                 <span className={`text-xl font-semibold tracking-tight ${
-                  isScrolled ? 'text-gray-900' : 'text-white'
+                  showScrolledStyle ? 'text-gray-900' : 'text-white'
                 }`}>
                   北京旅游
                 </span>
@@ -172,10 +176,10 @@ const Header = () => {
                     <motion.div
                       className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                         active
-                          ? isScrolled
+                          ? showScrolledStyle
                             ? 'bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-md'
                             : 'bg-white/20 text-white shadow-md'
-                          : isScrolled
+                          : showScrolledStyle
                             ? 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                             : 'text-white/90 hover:bg-white/20 hover:text-white'
                       }`}
@@ -198,7 +202,7 @@ const Header = () => {
                     exit={{ opacity: 0, scale: 0.5 }}
                     onClick={toggleMute}
                     className={`p-2 rounded-full transition-all duration-300 ${
-                      isScrolled
+                      showScrolledStyle
                         ? 'text-gray-700 hover:bg-gray-100'
                         : 'text-white/90 hover:bg-white/20'
                     }`}
@@ -217,7 +221,7 @@ const Header = () => {
               <motion.button
                 onClick={toggleMusic}
                 className={`p-2 rounded-full transition-all duration-300 ${
-                  isScrolled
+                  showScrolledStyle
                     ? 'text-gray-700 hover:bg-gray-100'
                     : 'text-white/90 hover:bg-white/20'
                 } ${
@@ -244,7 +248,7 @@ const Header = () => {
               <motion.button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className={`md:hidden p-2 rounded-full transition-all duration-300 ${
-                  isScrolled
+                  showScrolledStyle
                     ? 'text-gray-700 hover:bg-gray-100'
                     : 'text-white/90 hover:bg-white/20'
                 }`}

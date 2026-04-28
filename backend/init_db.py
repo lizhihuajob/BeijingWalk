@@ -3,8 +3,35 @@ from app.models.models import (
     Banner, Culture, Specialty, ScenicSpot, Heritage, 
     Guestbook, AdminUser
 )
+from sqlalchemy import text
 
 app = create_app()
+
+def migrate_guestbook_table():
+    with app.app_context():
+        inspector = db.inspect(db.engine)
+        
+        if 'guestbooks' in inspector.get_table_names():
+            columns = [c['name'] for c in inspector.get_columns('guestbooks')]
+            
+            migrations = []
+            if 'phone' not in columns:
+                migrations.append('ALTER TABLE guestbooks ADD COLUMN IF NOT EXISTS phone VARCHAR(20)')
+            if 'country' not in columns:
+                migrations.append('ALTER TABLE guestbooks ADD COLUMN IF NOT EXISTS country VARCHAR(100)')
+            if 'province' not in columns:
+                migrations.append('ALTER TABLE guestbooks ADD COLUMN IF NOT EXISTS province VARCHAR(100)')
+            
+            for migration in migrations:
+                try:
+                    db.session.execute(text(migration))
+                    print(f'Executed migration: {migration}')
+                except Exception as e:
+                    print(f'Migration skipped: {migration}, Error: {e}')
+            
+            if migrations:
+                db.session.commit()
+                print('Guestbook table migrated successfully!')
 
 def init_database():
     with app.app_context():
@@ -209,4 +236,5 @@ def init_database():
             print(f'Error initializing database: {e}')
 
 if __name__ == '__main__':
+    migrate_guestbook_table()
     init_database()

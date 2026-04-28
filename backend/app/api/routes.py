@@ -231,6 +231,9 @@ def create_guestbook():
     guestbook = Guestbook(
         name=data.get('name'),
         email=data.get('email'),
+        phone=data.get('phone'),
+        country=data.get('country'),
+        province=data.get('province'),
         message=data.get('message'),
         is_approved=True
     )
