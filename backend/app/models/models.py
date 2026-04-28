@@ -262,6 +262,9 @@ class Guestbook(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(200))
+    phone = db.Column(db.String(20))
+    country = db.Column(db.String(100))
+    province = db.Column(db.String(100))
     message = db.Column(db.Text, nullable=False)
     is_approved = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -272,6 +275,9 @@ class Guestbook(db.Model):
             'id': self.id,
             'name': self.name,
             'email': self.email,
+            'phone': self.phone,
+            'country': self.country,
+            'province': self.province,
             'message': self.message,
             'is_approved': self.is_approved,
             'created_at': self.created_at.isoformat() if self.created_at else None
