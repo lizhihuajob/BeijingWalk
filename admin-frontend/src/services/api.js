@@ -37,6 +37,7 @@ api.interceptors.response.use(
 export const authApi = {
   login: (credentials) => api.post('/admin/login', credentials),
   getProfile: () => api.get('/admin/profile'),
+  updateProfile: (data) => api.put('/admin/profile', data),
 };
 
 export const dashboardApi = {

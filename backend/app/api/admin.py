@@ -72,6 +72,29 @@ def get_profile():
     admin = AdminUser.query.get(current_user_id)
     return jsonify(admin.to_dict()), 200
 
+@admin_bp.route('/profile', methods=['PUT'])
+@admin_required
+def update_profile():
+    current_user_id = get_current_admin_id()
+    admin = AdminUser.query.get(current_user_id)
+    data = get_request_data()
+    
+    if 'username' in data and data.get('username') != admin.username:
+        if AdminUser.query.filter_by(username=data.get('username')).first():
+            return jsonify({'error': '用户名已存在'}), 400
+        admin.username = data.get('username')
+    
+    if 'email' in data and data.get('email') != admin.email:
+        if AdminUser.query.filter_by(email=data.get('email')).first():
+            return jsonify({'error': '邮箱已存在'}), 400
+        admin.email = data.get('email')
+    
+    if data.get('password'):
+        admin.set_password(data.get('password'))
+    
+    db.session.commit()
+    return jsonify(admin.to_dict()), 200
+
 @admin_bp.route('/dashboard/stats', methods=['GET'])
 @admin_required
 def get_dashboard_stats():
