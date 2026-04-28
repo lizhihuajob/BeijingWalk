@@ -37,7 +37,8 @@ BeijingWalk/
 │   ├── app/
 │   │   ├── api/               # API 路由
 │   │   │   ├── __init__.py
-│   │   │   └── routes.py
+│   │   │   ├── routes.py      # 公共 API
+│   │   │   └── admin.py       # 后台管理 API
 │   │   ├── models/            # 数据库模型
 │   │   │   ├── __init__.py
 │   │   │   └── models.py
@@ -49,26 +50,50 @@ BeijingWalk/
 │   ├── requirements.txt       # Python 依赖
 │   ├── run.py                 # 应用入口
 │   └── init_db.py             # 数据初始化脚本
-├── frontend/                   # 前端代码目录
+├── frontend/                   # 前端代码目录（普通用户端）
 │   ├── src/
 │   │   ├── components/        # React 组件
-│   │   │   ├── Header.jsx
-│   │   │   ├── Banner.jsx
-│   │   │   ├── CultureSection.jsx
-│   │   │   ├── SpecialtiesSection.jsx
-│   │   │   ├── ScenicSection.jsx
-│   │   │   ├── HeritageSection.jsx
-│   │   │   └── Footer.jsx
+│   │   ├── pages/             # 页面组件
 │   │   ├── services/          # API 服务
-│   │   │   └── api.js
 │   │   ├── App.jsx            # 主应用组件
 │   │   ├── main.jsx           # 入口文件
 │   │   └── index.css          # 全局样式
-│   ├── .env.example           # 环境变量示例
-│   ├── Dockerfile             # 前端 Docker 配置
-│   ├── package.json           # 前端依赖
-│   ├── vite.config.js         # Vite 配置
-│   └── index.html             # HTML 模板
+│   ├── .env.example
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── nginx.conf
+│   └── index.html
+├── admin-frontend/             # 后台管理前端（独立端口）
+│   ├── src/
+│   │   ├── components/        # 组件
+│   │   │   ├── Layout.jsx
+│   │   │   ├── Sidebar.jsx
+│   │   │   └── ContentModal.jsx
+│   │   ├── pages/             # 页面
+│   │   │   ├── Login.jsx
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── BannersPage.jsx
+│   │   │   ├── CulturesPage.jsx
+│   │   │   ├── SpecialtiesPage.jsx
+│   │   │   ├── ScenicSpotsPage.jsx
+│   │   │   ├── HeritagesPage.jsx
+│   │   │   ├── GuestbooksPage.jsx
+│   │   │   └── UsersPage.jsx
+│   │   ├── services/          # API 服务
+│   │   │   └── api.js
+│   │   ├── contexts/          # 上下文
+│   │   │   └── AuthContext.jsx
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── tailwind.config.js
+│   ├── postcss.config.js
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── index.html
 ├── .env.example               # 根目录环境变量示例
 ├── docker-compose.yml         # Docker Compose 配置
 └── README.md                  # 项目说明文档

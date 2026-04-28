@@ -5,6 +5,7 @@ import { ArrowLeft, Calendar, MapPin, Star, Play, Loader2, Pause, Volume2, Volum
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getCultureById } from '../services/api';
+import { trackContentView } from '../services/analytics';
 
 const CultureDetail = () => {
   const { id } = useParams();
@@ -22,6 +23,11 @@ const CultureDetail = () => {
         setLoading(true);
         const data = await getCultureById(id);
         setCulture(data);
+        void trackContentView({
+          contentType: 'culture',
+          contentId: Number(id),
+          pageUrl: `/culture/${id}`,
+        });
         setError(null);
       } catch (err) {
         console.error('Failed to fetch culture:', err);

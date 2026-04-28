@@ -5,6 +5,7 @@ import { ArrowLeft, Sparkles, Calendar, Award, Users, Play, Loader2, Pause, Volu
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getHeritageById } from '../services/api';
+import { trackContentView } from '../services/analytics';
 
 const HeritageDetail = () => {
   const { id } = useParams();
@@ -22,6 +23,11 @@ const HeritageDetail = () => {
         setLoading(true);
         const data = await getHeritageById(id);
         setHeritage(data);
+        void trackContentView({
+          contentType: 'heritage',
+          contentId: Number(id),
+          pageUrl: `/heritage/${id}`,
+        });
         setError(null);
       } catch (err) {
         console.error('Failed to fetch heritage:', err);

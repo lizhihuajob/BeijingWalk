@@ -56,5 +56,18 @@ services:
     depends_on:
       - backend
 
+  admin-frontend:
+    build:
+      context: ./admin-frontend
+      dockerfile: Dockerfile
+    container_name: beijingwalk_admin_frontend
+    restart: unless-stopped
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-/api}
+    ports:
+      - "3002:80"
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
