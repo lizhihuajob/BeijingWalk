@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, MapPin, Clock, Star, Ticket, Calendar, Play, Loader2, Pause, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Ticket, Calendar, Play, Loader2, Pause, Volume2, VolumeX } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getScenicSpotById } from '../services/api';
+import { trackContentView } from '../services/analytics';
 
 const ScenicSpotDetail = () => {
   const { id } = useParams();
@@ -22,6 +23,11 @@ const ScenicSpotDetail = () => {
         setLoading(true);
         const data = await getScenicSpotById(id);
         setScenicSpot(data);
+        void trackContentView({
+          contentType: 'scenic_spot',
+          contentId: Number(id),
+          pageUrl: `/scenic-spot/${id}`,
+        });
         setError(null);
       } catch (err) {
         console.error('Failed to fetch scenic spot:', err);

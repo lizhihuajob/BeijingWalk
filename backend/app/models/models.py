@@ -32,6 +32,34 @@ class AdminUser(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
+class PageView(db.Model):
+    __tablename__ = 'page_views'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    page_url = db.Column(db.String(500), nullable=False)
+    page_type = db.Column(db.String(50), nullable=False)
+    page_title = db.Column(db.String(200))
+    visitor_id = db.Column(db.String(100), nullable=False, index=True)
+    session_id = db.Column(db.String(100), nullable=False, index=True)
+    ip_address = db.Column(db.String(50))
+    user_agent = db.Column(db.String(500))
+    referrer = db.Column(db.String(500))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'page_url': self.page_url,
+            'page_type': self.page_type,
+            'page_title': self.page_title,
+            'visitor_id': self.visitor_id,
+            'session_id': self.session_id,
+            'ip_address': self.ip_address,
+            'user_agent': self.user_agent,
+            'referrer': self.referrer,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
 class VisitLog(db.Model):
     __tablename__ = 'visit_logs'
     
@@ -86,6 +114,28 @@ class ContentView(db.Model):
             'last_viewed_at': self.last_viewed_at.isoformat() if self.last_viewed_at else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class ContentViewEvent(db.Model):
+    __tablename__ = 'content_view_events'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    content_type = db.Column(db.String(50), nullable=False, index=True)
+    content_id = db.Column(db.Integer, nullable=False, index=True)
+    visitor_id = db.Column(db.String(100), nullable=False, index=True)
+    session_id = db.Column(db.String(100), nullable=False, index=True)
+    page_url = db.Column(db.String(500))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'content_type': self.content_type,
+            'content_id': self.content_id,
+            'visitor_id': self.visitor_id,
+            'session_id': self.session_id,
+            'page_url': self.page_url,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
 class Banner(db.Model):

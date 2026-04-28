@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from app import db
 from app.models.models import (
-    AdminUser, VisitLog, ContentView,
+    AdminUser, PageView, ContentView,
     Banner, Culture, Specialty, ScenicSpot, Heritage, Guestbook
 )
 from datetime import datetime, timedelta
@@ -11,12 +11,25 @@ from sqlalchemy import func
 
 admin_bp = Blueprint('admin', __name__)
 
+def get_request_data():
+    data = request.get_json(silent=True)
+    return data if isinstance(data, dict) else {}
+
+def get_current_admin_id():
+    identity = get_jwt_identity()
+    try:
+        return int(identity)
+    except (TypeError, ValueError):
+        return None
+
 def admin_required(fn):
     @wraps(fn)
     @jwt_required()
     def wrapper(*args, **kwargs):
         try:
-            current_user_id = get_jwt_identity()
+            current_user_id = get_current_admin_id()
+            if current_user_id is None:
+                return jsonify({'error': '登录状态无效'}), 401
             admin = AdminUser.query.get(current_user_id)
             if not admin or not admin.is_active:
                 return jsonify({'error': '无权限访问'}), 403
@@ -29,7 +42,7 @@ def admin_required(fn):
 
 @admin_bp.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
+    data = get_request_data()
     
     if not data or not data.get('username') or not data.get('password'):
         return jsonify({'error': '用户名和密码不能为空'}), 400
@@ -45,7 +58,7 @@ def login():
     admin.last_login = datetime.utcnow()
     db.session.commit()
     
-    access_token = create_access_token(identity=admin.id, expires_delta=timedelta(hours=24))
+    access_token = create_access_token(identity=str(admin.id), expires_delta=timedelta(hours=24))
     
     return jsonify({
         'access_token': access_token,
@@ -55,7 +68,7 @@ def login():
 @admin_bp.route('/profile', methods=['GET'])
 @admin_required
 def get_profile():
-    current_user_id = get_jwt_identity()
+    current_user_id = get_current_admin_id()
     admin = AdminUser.query.get(current_user_id)
     return jsonify(admin.to_dict()), 200
 
@@ -67,14 +80,14 @@ def get_dashboard_stats():
     total_content_views = 0
     
     try:
-        total_visits = db.session.query(func.count(VisitLog.id)).scalar() or 0
+        total_visits = db.session.query(func.count(PageView.id)).scalar() or 0
     except Exception as e:
-        print(f"Error querying VisitLog: {e}")
+        print(f"Error querying PageView: {e}")
     
     try:
         today = datetime.utcnow().date()
-        today_visits = db.session.query(func.count(VisitLog.id)).filter(
-            func.date(VisitLog.created_at) == today
+        today_visits = db.session.query(func.count(PageView.id)).filter(
+            func.date(PageView.created_at) == today
         ).scalar() or 0
     except Exception as e:
         print(f"Error querying today's visits: {e}")
@@ -159,14 +172,14 @@ def get_visit_trend():
         start_date = end_date - timedelta(days=days)
         
         visits = db.session.query(
-            func.date(VisitLog.created_at).label('date'),
-            func.count(VisitLog.id).label('count')
+            func.date(PageView.created_at).label('date'),
+            func.count(PageView.id).label('count')
         ).filter(
-            VisitLog.created_at >= start_date
+            PageView.created_at >= start_date
         ).group_by(
-            func.date(VisitLog.created_at)
+            func.date(PageView.created_at)
         ).order_by(
-            func.date(VisitLog.created_at)
+            func.date(PageView.created_at)
         ).all()
         
         trend_data = [{'date': str(v.date), 'count': v.count} for v in visits]
@@ -184,7 +197,7 @@ def get_banners_admin():
 @admin_bp.route('/banners', methods=['POST'])
 @admin_required
 def create_banner():
-    data = request.get_json()
+    data = get_request_data()
     
     if not data or not data.get('title') or not data.get('image_url'):
         return jsonify({'error': '标题和图片URL不能为空'}), 400
@@ -212,11 +225,11 @@ def get_banner_admin(id):
 @admin_required
 def update_banner(id):
     banner = Banner.query.get_or_404(id)
-    data = request.get_json()
+    data = get_request_data()
     
-    if data.get('title'):
+    if 'title' in data:
         banner.title = data.get('title')
-    if data.get('image_url'):
+    if 'image_url' in data:
         banner.image_url = data.get('image_url')
     if 'description' in data:
         banner.description = data.get('description')
@@ -245,7 +258,7 @@ def get_cultures_admin():
 @admin_bp.route('/cultures', methods=['POST'])
 @admin_required
 def create_culture():
-    data = request.get_json()
+    data = get_request_data()
     
     if not data or not data.get('title') or not data.get('image_url') or not data.get('description'):
         return jsonify({'error': '标题、图片URL和描述不能为空'}), 400
@@ -274,13 +287,13 @@ def get_culture_admin(id):
 @admin_required
 def update_culture(id):
     culture = Culture.query.get_or_404(id)
-    data = request.get_json()
+    data = get_request_data()
     
-    if data.get('title'):
+    if 'title' in data:
         culture.title = data.get('title')
-    if data.get('image_url'):
+    if 'image_url' in data:
         culture.image_url = data.get('image_url')
-    if data.get('description'):
+    if 'description' in data:
         culture.description = data.get('description')
     if 'details' in data:
         culture.details = data.get('details')
@@ -309,7 +322,7 @@ def get_specialties_admin():
 @admin_bp.route('/specialties', methods=['POST'])
 @admin_required
 def create_specialty():
-    data = request.get_json()
+    data = get_request_data()
     
     if not data or not data.get('name') or not data.get('image_url') or not data.get('description'):
         return jsonify({'error': '名称、图片URL和描述不能为空'}), 400
@@ -338,13 +351,13 @@ def get_specialty_admin(id):
 @admin_required
 def update_specialty(id):
     specialty = Specialty.query.get_or_404(id)
-    data = request.get_json()
+    data = get_request_data()
     
-    if data.get('name'):
+    if 'name' in data:
         specialty.name = data.get('name')
-    if data.get('image_url'):
+    if 'image_url' in data:
         specialty.image_url = data.get('image_url')
-    if data.get('description'):
+    if 'description' in data:
         specialty.description = data.get('description')
     if 'rating' in data:
         specialty.rating = data.get('rating')
@@ -373,7 +386,7 @@ def get_scenic_spots_admin():
 @admin_bp.route('/scenic-spots', methods=['POST'])
 @admin_required
 def create_scenic_spot():
-    data = request.get_json()
+    data = get_request_data()
     
     if not data or not data.get('name') or not data.get('image_url') or not data.get('description'):
         return jsonify({'error': '名称、图片URL和描述不能为空'}), 400
@@ -402,13 +415,13 @@ def get_scenic_spot_admin(id):
 @admin_required
 def update_scenic_spot(id):
     scenic_spot = ScenicSpot.query.get_or_404(id)
-    data = request.get_json()
+    data = get_request_data()
     
-    if data.get('name'):
+    if 'name' in data:
         scenic_spot.name = data.get('name')
-    if data.get('image_url'):
+    if 'image_url' in data:
         scenic_spot.image_url = data.get('image_url')
-    if data.get('description'):
+    if 'description' in data:
         scenic_spot.description = data.get('description')
     if 'is_featured' in data:
         scenic_spot.is_featured = data.get('is_featured')
@@ -437,7 +450,7 @@ def get_heritages_admin():
 @admin_bp.route('/heritages', methods=['POST'])
 @admin_required
 def create_heritage():
-    data = request.get_json()
+    data = get_request_data()
     
     if not data or not data.get('name') or not data.get('image_url') or not data.get('description'):
         return jsonify({'error': '名称、图片URL和描述不能为空'}), 400
@@ -466,15 +479,15 @@ def get_heritage_admin(id):
 @admin_required
 def update_heritage(id):
     heritage = Heritage.query.get_or_404(id)
-    data = request.get_json()
+    data = get_request_data()
     
-    if data.get('name'):
+    if 'name' in data:
         heritage.name = data.get('name')
-    if data.get('icon'):
+    if 'icon' in data:
         heritage.icon = data.get('icon')
-    if data.get('image_url'):
+    if 'image_url' in data:
         heritage.image_url = data.get('image_url')
-    if data.get('description'):
+    if 'description' in data:
         heritage.description = data.get('description')
     if 'order' in data:
         heritage.order = data.get('order')
@@ -502,7 +515,7 @@ def get_guestbooks_admin():
 @admin_required
 def update_guestbook(id):
     guestbook = Guestbook.query.get_or_404(id)
-    data = request.get_json()
+    data = get_request_data()
     
     if 'is_approved' in data:
         guestbook.is_approved = data.get('is_approved')
@@ -521,7 +534,7 @@ def delete_guestbook(id):
 @admin_bp.route('/users', methods=['GET'])
 @admin_required
 def get_admin_users():
-    current_user_id = get_jwt_identity()
+    current_user_id = get_current_admin_id()
     current_admin = AdminUser.query.get(current_user_id)
     
     if not current_admin.is_superuser:
@@ -533,13 +546,13 @@ def get_admin_users():
 @admin_bp.route('/users', methods=['POST'])
 @admin_required
 def create_admin_user():
-    current_user_id = get_jwt_identity()
+    current_user_id = get_current_admin_id()
     current_admin = AdminUser.query.get(current_user_id)
     
     if not current_admin.is_superuser:
         return jsonify({'error': '只有超级管理员可以创建用户'}), 403
     
-    data = request.get_json()
+    data = get_request_data()
     
     if not data or not data.get('username') or not data.get('email') or not data.get('password'):
         return jsonify({'error': '用户名、邮箱和密码不能为空'}), 400
@@ -566,21 +579,21 @@ def create_admin_user():
 @admin_bp.route('/users/<int:id>', methods=['PUT'])
 @admin_required
 def update_admin_user(id):
-    current_user_id = get_jwt_identity()
+    current_user_id = get_current_admin_id()
     current_admin = AdminUser.query.get(current_user_id)
     
     if not current_admin.is_superuser and current_user_id != id:
         return jsonify({'error': '无权限修改此用户'}), 403
     
     admin = AdminUser.query.get_or_404(id)
-    data = request.get_json()
+    data = get_request_data()
     
-    if data.get('username') and data.get('username') != admin.username:
+    if 'username' in data and data.get('username') != admin.username:
         if AdminUser.query.filter_by(username=data.get('username')).first():
             return jsonify({'error': '用户名已存在'}), 400
         admin.username = data.get('username')
     
-    if data.get('email') and data.get('email') != admin.email:
+    if 'email' in data and data.get('email') != admin.email:
         if AdminUser.query.filter_by(email=data.get('email')).first():
             return jsonify({'error': '邮箱已存在'}), 400
         admin.email = data.get('email')
@@ -600,7 +613,7 @@ def update_admin_user(id):
 @admin_bp.route('/users/<int:id>', methods=['DELETE'])
 @admin_required
 def delete_admin_user(id):
-    current_user_id = get_jwt_identity()
+    current_user_id = get_current_admin_id()
     current_admin = AdminUser.query.get(current_user_id)
     
     if not current_admin.is_superuser:

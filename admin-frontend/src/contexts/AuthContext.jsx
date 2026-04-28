@@ -20,7 +20,7 @@ export function AuthProvider({ children }) {
       setUser(response.data);
       localStorage.setItem('admin_user', JSON.stringify(response.data));
     } catch (error) {
-      if (error.response && error.response.status === 401) {
+      if (error.response && [401, 422].includes(error.response.status)) {
         logout();
       } else {
         const savedUser = localStorage.getItem('admin_user');

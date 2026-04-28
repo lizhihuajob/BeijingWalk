@@ -1,12 +1,6 @@
-import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, 
-  Image, 
-  BookOpen, 
-  UtensilsCrossed, 
-  MapPin, 
-  Palette, 
   MessageSquare, 
   Users,
   LogOut
@@ -15,11 +9,6 @@ import { useAuth } from '../contexts/AuthContext';
 
 const menuItems = [
   { path: '/', icon: LayoutDashboard, label: '仪表盘' },
-  { path: '/banners', icon: Image, label: '轮播图管理' },
-  { path: '/cultures', icon: BookOpen, label: '文化内容' },
-  { path: '/specialties', icon: UtensilsCrossed, label: '地方特产' },
-  { path: '/scenic-spots', icon: MapPin, label: '名胜古迹' },
-  { path: '/heritages', icon: Palette, label: '非物质文化遗产' },
   { path: '/guestbooks', icon: MessageSquare, label: '留言管理' },
   { path: '/users', icon: Users, label: '管理员管理' },
 ];
@@ -42,6 +31,7 @@ function Sidebar() {
           <NavLink
             key={item.path}
             to={item.path}
+            end={item.path === '/'}
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                 isActive

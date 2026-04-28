@@ -3,11 +3,6 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
-import BannersPage from './pages/BannersPage';
-import CulturesPage from './pages/CulturesPage';
-import SpecialtiesPage from './pages/SpecialtiesPage';
-import ScenicSpotsPage from './pages/ScenicSpotsPage';
-import HeritagesPage from './pages/HeritagesPage';
 import GuestbooksPage from './pages/GuestbooksPage';
 import UsersPage from './pages/UsersPage';
 import Login from './pages/Login';
@@ -38,11 +33,6 @@ function App() {
             <Layout>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/banners" element={<BannersPage />} />
-                <Route path="/cultures" element={<CulturesPage />} />
-                <Route path="/specialties" element={<SpecialtiesPage />} />
-                <Route path="/scenic-spots" element={<ScenicSpotsPage />} />
-                <Route path="/heritages" element={<HeritagesPage />} />
                 <Route path="/guestbooks" element={<GuestbooksPage />} />
                 <Route path="/users" element={<UsersPage />} />
               </Routes>

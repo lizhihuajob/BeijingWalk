@@ -7,6 +7,7 @@ function GuestbooksPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [error, setError] = useState('');
 
   useEffect(() => { fetchItems(); }, []);
 
@@ -14,7 +15,12 @@ function GuestbooksPage() {
     setLoading(true);
     try {
       const response = await guestbookApi.getAll();
-      setItems(response.data);
+      setItems(Array.isArray(response.data) ? response.data : []);
+      setError('');
+    } catch (error) {
+      setItems([]);
+      setError(error.response?.data?.error || '留言数据加载失败，请重新登录后重试');
+      console.error('Failed to fetch guestbooks:', error);
     } finally { setLoading(false); }
   };
 
@@ -43,7 +49,9 @@ function GuestbooksPage() {
       </div>
 
       <div className="space-y-4">
-        {items.length === 0 ? (
+        {error ? (
+          <div className="p-12 text-center text-red-500 admin-card">{error}</div>
+        ) : items.length === 0 ? (
           <div className="p-12 text-center text-gray-500 admin-card">暂无留言数据</div>
         ) : items.map((item) => (
           <motion.div

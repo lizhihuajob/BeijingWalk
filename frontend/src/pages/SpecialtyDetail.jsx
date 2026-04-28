@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Star, Clock, MapPin, DollarSign, Play, Loader2, Pause, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, DollarSign, Play, Loader2, Pause, Volume2, VolumeX } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getSpecialtyById } from '../services/api';
+import { trackContentView } from '../services/analytics';
 
 const SpecialtyDetail = () => {
   const { id } = useParams();
@@ -22,6 +23,11 @@ const SpecialtyDetail = () => {
         setLoading(true);
         const data = await getSpecialtyById(id);
         setSpecialty(data);
+        void trackContentView({
+          contentType: 'specialty',
+          contentId: Number(id),
+          pageUrl: `/specialty/${id}`,
+        });
         setError(null);
       } catch (err) {
         console.error('Failed to fetch specialty:', err);
