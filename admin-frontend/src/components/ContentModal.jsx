@@ -64,7 +64,7 @@ function ContentModal({ isOpen, onClose, onSubmit, title, fields, initialData = 
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+            <form id="content-modal-form" onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
               <div className="space-y-4">
                 {fields.map((field) => (
                   <div key={field.name}>
@@ -134,7 +134,7 @@ function ContentModal({ isOpen, onClose, onSubmit, title, fields, initialData = 
               </button>
               <button
                 type="submit"
-                onClick={handleSubmit}
+                form="content-modal-form"
                 disabled={loading}
                 className="admin-btn-primary flex items-center gap-2"
               >

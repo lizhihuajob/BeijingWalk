@@ -125,7 +125,7 @@ function Profile() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="admin-card"
+          className="admin-card p-6"
         >
           <div className="text-center">
             <div className="w-24 h-24 bg-primary-600 rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto mb-4">
@@ -141,17 +141,8 @@ function Profile() {
             </span>
           </div>
 
-          <div className="mt-6 pt-6 border-t border-gray-100 space-y-4">
-            <div className="flex items-center gap-3 text-sm">
-              <Calendar className="w-5 h-5 text-gray-400" />
-              <div>
-                <p className="text-gray-500">创建时间</p>
-                <p className="font-medium text-gray-900">
-                  {user.created_at ? new Date(user.created_at).toLocaleDateString('zh-CN') : '-'}
-                </p>
-              </div>
-            </div>
-            {user.last_login && (
+          {user.last_login && (
+            <div className="mt-6 pt-6 border-t border-gray-100">
               <div className="flex items-center gap-3 text-sm">
                 <Key className="w-5 h-5 text-gray-400" />
                 <div>
@@ -161,8 +152,8 @@ function Profile() {
                   </p>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </motion.div>
 
         <motion.div
@@ -171,7 +162,7 @@ function Profile() {
           transition={{ delay: 0.1 }}
           className="lg:col-span-2"
         >
-          <div className="admin-card">
+          <div className="admin-card p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-6">修改个人信息</h3>
             
             {success && (
