@@ -1,12 +1,20 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   MessageSquare, 
   Users,
   User,
-  LogOut
+  LogOut,
+  Image,
+  BookOpen,
+  ShoppingBag,
+  Landmark,
+  Palette,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useState, useEffect } from 'react';
 
 const baseMenuItems = [
   { path: '/', icon: LayoutDashboard, label: '仪表盘' },
@@ -14,8 +22,26 @@ const baseMenuItems = [
   { path: '/profile', icon: User, label: '个人中心' },
 ];
 
+const contentSubMenuItems = [
+  { path: '/content/banners', icon: Image, label: '轮播图管理' },
+  { path: '/content/cultures', icon: BookOpen, label: '北京文化' },
+  { path: '/content/specialties', icon: ShoppingBag, label: '地方特产' },
+  { path: '/content/scenic-spots', icon: Landmark, label: '名胜古迹' },
+  { path: '/content/heritages', icon: Palette, label: '非物质文化遗产' },
+];
+
 function Sidebar() {
   const { user, logout } = useAuth();
+  const location = useLocation();
+  const [contentMenuOpen, setContentMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (location.pathname.startsWith('/content/')) {
+      setContentMenuOpen(true);
+    }
+  }, [location.pathname]);
+
+  const isContentMenuActive = location.pathname.startsWith('/content/');
 
   const getMenuItems = () => {
     const items = [...baseMenuItems];
@@ -55,6 +81,48 @@ function Sidebar() {
             <span className="font-medium">{item.label}</span>
           </NavLink>
         ))}
+
+        <div>
+          <button
+            onClick={() => setContentMenuOpen(!contentMenuOpen)}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 ${
+              isContentMenuActive
+                ? 'bg-sidebar-active text-sidebar-activeText'
+                : 'text-sidebar-text hover:bg-sidebar-hover hover:text-sidebar-activeText'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <BookOpen className="w-5 h-5" />
+              <span className="font-medium">内容管理</span>
+            </div>
+            {contentMenuOpen ? (
+              <ChevronDown className="w-4 h-4" />
+            ) : (
+              <ChevronRight className="w-4 h-4" />
+            )}
+          </button>
+          
+          {contentMenuOpen && (
+            <div className="mt-1 ml-4 space-y-1 border-l-2 border-sidebar-hover pl-3">
+              {contentSubMenuItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? 'bg-sidebar-active text-sidebar-activeText'
+                        : 'text-sidebar-text hover:bg-sidebar-hover hover:text-sidebar-activeText'
+                    }`
+                  }
+                >
+                  <item.icon className="w-4 h-4" />
+                  <span className="font-medium text-sm">{item.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </div>
       </nav>
 
       <div className="p-4 border-t border-sidebar-hover">
