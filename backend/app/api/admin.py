@@ -447,7 +447,13 @@ def update_scenic_spot(id):
     if 'description' in data:
         scenic_spot.description = data.get('description')
     if 'is_featured' in data:
-        scenic_spot.is_featured = data.get('is_featured')
+        is_featured = data.get('is_featured')
+        if is_featured:
+            ScenicSpot.query.filter(
+                ScenicSpot.id != id,
+                ScenicSpot.is_featured == True
+            ).update({'is_featured': False})
+        scenic_spot.is_featured = is_featured
     if 'order' in data:
         scenic_spot.order = data.get('order')
     if 'is_active' in data:

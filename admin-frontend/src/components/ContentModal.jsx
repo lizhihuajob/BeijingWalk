@@ -116,7 +116,7 @@ function ContentModal({ isOpen, onClose, onSubmit, title, fields, initialData = 
                         className="admin-input"
                         placeholder={field.placeholder}
                         required={field.required}
-                        step={field.type === 'number' ? '0.1' : undefined}
+                        step={field.step}
                       />
                     )}
                   </div>
