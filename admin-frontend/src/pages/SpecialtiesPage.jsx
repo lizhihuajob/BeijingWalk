@@ -15,7 +15,7 @@ function SpecialtiesPage() {
     { name: 'name', label: '特产名称', type: 'text', required: true, placeholder: '请输入特产名称' },
     { name: 'image_url', label: '图片URL', type: 'text', required: true, placeholder: '请输入图片URL' },
     { name: 'description', label: '描述', type: 'textarea', rows: 4, required: true, placeholder: '请输入特产描述' },
-    { name: 'rating', label: '评分', type: 'number', defaultValue: 4.5, placeholder: '0-5 之间的小数' },
+    { name: 'rating', label: '评分', type: 'number', defaultValue: 4.5, step: '0.1', placeholder: '0-5 之间的小数' },
     { name: 'order', label: '排序', type: 'number', defaultValue: 0, placeholder: '数字越小越靠前' },
     { name: 'is_active', label: '启用状态', type: 'checkbox', checkboxLabel: '启用此内容' },
   ];
