@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, MapPin, Clock, Ticket, Calendar, Play, Loader2, Pause, Volume2, VolumeX } from 'lucide-react';
+import { 
+  ArrowLeft, MapPin, Clock, Ticket, Calendar, Play, Loader2, Pause, 
+  Volume2, VolumeX, ExternalLink, Info, DollarSign, Sun, Moon,
+  ChevronRight, AlertCircle
+} from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getScenicSpotById } from '../services/api';
@@ -55,6 +59,14 @@ const ScenicSpotDetail = () => {
     if (videoRef.current) {
       videoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
+    }
+  };
+
+  const handleBuyTicket = () => {
+    if (scenicSpot?.ticket_url) {
+      window.open(scenicSpot.ticket_url, '_blank', 'noopener,noreferrer');
+    } else {
+      navigate(`/ticket-guide/${id}`);
     }
   };
 
@@ -163,22 +175,48 @@ const ScenicSpotDetail = () => {
               <div className="w-16 h-16 rounded-2xl bg-indigo-100 flex items-center justify-center mx-auto mb-4">
                 <Clock className="w-8 h-8 text-indigo-500" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">游览时间</h3>
-              <p className="text-gray-500">建议2-3小时</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">推荐游览</h3>
+              <p className="text-gray-500">{scenicSpot.recommended_duration || '建议2-3小时'}</p>
             </div>
             <div className="bg-white rounded-3xl shadow-lg p-6 text-center">
               <div className="w-16 h-16 rounded-2xl bg-purple-100 flex items-center justify-center mx-auto mb-4">
                 <Ticket className="w-8 h-8 text-purple-500" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">门票</h3>
-              <p className="text-gray-500">需购票入场</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">门票价格</h3>
+              <p className="text-gray-500">
+                {scenicSpot.ticket_price_peak || '需购票入场'}
+              </p>
             </div>
             <div className="bg-white rounded-3xl shadow-lg p-6 text-center">
               <div className="w-16 h-16 rounded-2xl bg-violet-100 flex items-center justify-center mx-auto mb-4">
                 <Calendar className="w-8 h-8 text-violet-500" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">开放时间</h3>
-              <p className="text-gray-500">全天开放</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">开放状态</h3>
+              <p className="text-gray-500">正常开放</p>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-3xl shadow-xl p-8 mb-12"
+          >
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="text-center md:text-left">
+                <h3 className="text-2xl font-bold text-white mb-2">准备好开始您的旅程了吗？</h3>
+                <p className="text-white/80">立即预订门票，避免排队等待</p>
+              </div>
+              <motion.button
+                onClick={handleBuyTicket}
+                className="inline-flex items-center gap-3 px-8 py-4 bg-white text-indigo-600 font-bold text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Ticket className="w-6 h-6" />
+                立即购票
+                <ExternalLink className="w-5 h-5" />
+              </motion.button>
             </div>
           </motion.div>
 
@@ -186,6 +224,142 @@ const ScenicSpotDetail = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
+            className="bg-white rounded-3xl shadow-xl overflow-hidden mb-12"
+          >
+            <div className="p-8 md:p-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-4">
+                <span className="w-2 h-12 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></span>
+                门票信息
+              </h2>
+              
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div className="flex items-start gap-4 p-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl">
+                    <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+                      <Sun className="w-6 h-6 text-amber-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">旺季（4月1日-10月31日）</h4>
+                      <p className="text-2xl font-bold text-amber-600">
+                        {scenicSpot.ticket_price_peak || '请咨询景区'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-4 p-6 bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl">
+                    <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0">
+                      <Moon className="w-6 h-6 text-slate-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">淡季（11月1日-3月31日）</h4>
+                      <p className="text-2xl font-bold text-slate-600">
+                        {scenicSpot.ticket_price_off_peak || '请咨询景区'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Info className="w-5 h-5 text-blue-500" />
+                    门票说明
+                  </h3>
+                  
+                  {scenicSpot.ticket_additional_info ? (
+                    <div className="bg-gray-50 rounded-2xl p-6">
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                        {scenicSpot.ticket_additional_info}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 rounded-2xl p-6">
+                      <p className="text-gray-600">请通过官方渠道了解最新门票价格及优惠政策。</p>
+                    </div>
+                  )}
+
+                  {scenicSpot.ticket_url && (
+                    <div className="mt-4">
+                      <button
+                        onClick={handleBuyTicket}
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold rounded-full hover:shadow-lg transition-all duration-300"
+                      >
+                        <Ticket className="w-5 h-5" />
+                        查看购票指南
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="bg-white rounded-3xl shadow-xl overflow-hidden mb-12"
+          >
+            <div className="p-8 md:p-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-4">
+                <span className="w-2 h-12 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"></span>
+                开放时间
+              </h2>
+
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  {scenicSpot.opening_hours_peak && (
+                    <div className="flex items-start gap-4 p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl">
+                      <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+                        <Sun className="w-6 h-6 text-green-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-gray-900 mb-1">旺季（4月1日-10月31日）</h4>
+                        <p className="text-gray-700 leading-relaxed">
+                          {scenicSpot.opening_hours_peak}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {scenicSpot.opening_hours_off_peak && (
+                    <div className="flex items-start gap-4 p-6 bg-gradient-to-br from-slate-50 to-gray-50 rounded-2xl">
+                      <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0">
+                        <Moon className="w-6 h-6 text-slate-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-gray-900 mb-1">淡季（11月1日-3月31日）</h4>
+                        <p className="text-gray-700 leading-relaxed">
+                          {scenicSpot.opening_hours_off_peak}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  {scenicSpot.additional_opening_notes && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <h4 className="font-bold text-amber-800 mb-2">温馨提示</h4>
+                          <p className="text-amber-700 leading-relaxed">
+                            {scenicSpot.additional_opening_notes}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
             className="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-12"
           >
             <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-4">
@@ -218,7 +392,7 @@ const ScenicSpotDetail = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.45 }}
             className="bg-white rounded-3xl shadow-xl overflow-hidden mb-12"
           >
             <div className="p-8 md:p-12 pb-0">

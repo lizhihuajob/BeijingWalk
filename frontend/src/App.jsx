@@ -10,6 +10,7 @@ import SpecialtyDetail from './pages/SpecialtyDetail';
 import ScenicSpotDetail from './pages/ScenicSpotDetail';
 import HeritageDetail from './pages/HeritageDetail';
 import Guestbook from './pages/Guestbook';
+import TicketBookingGuide from './pages/TicketBookingGuide';
 import { trackPageView } from './services/analytics';
 
 function RouteAnalyticsTracker() {
@@ -38,6 +39,7 @@ function App() {
         <Route path="/specialty/:id" element={<SpecialtyDetail />} />
         <Route path="/scenic" element={<ScenicPage />} />
         <Route path="/scenic-spot/:id" element={<ScenicSpotDetail />} />
+        <Route path="/ticket-guide/:id" element={<TicketBookingGuide />} />
         <Route path="/heritage" element={<HeritagePage />} />
         <Route path="/heritage/:id" element={<HeritageDetail />} />
         <Route path="/guestbook" element={<Guestbook />} />
