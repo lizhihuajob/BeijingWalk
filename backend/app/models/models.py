@@ -218,6 +218,19 @@ class ScenicSpot(db.Model):
     is_featured = db.Column(db.Boolean, default=False)
     order = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
+    
+    ticket_price_peak = db.Column(db.String(100))
+    ticket_price_off_peak = db.Column(db.String(100))
+    ticket_additional_info = db.Column(db.Text)
+    ticket_url = db.Column(db.String(500))
+    has_direct_booking = db.Column(db.Boolean, default=False)
+    
+    opening_hours_peak = db.Column(db.String(200))
+    opening_hours_off_peak = db.Column(db.String(200))
+    additional_opening_notes = db.Column(db.Text)
+    
+    recommended_duration = db.Column(db.String(100))
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -229,7 +242,16 @@ class ScenicSpot(db.Model):
             'description': self.description,
             'is_featured': self.is_featured,
             'order': self.order,
-            'is_active': self.is_active
+            'is_active': self.is_active,
+            'ticket_price_peak': self.ticket_price_peak,
+            'ticket_price_off_peak': self.ticket_price_off_peak,
+            'ticket_additional_info': self.ticket_additional_info,
+            'ticket_url': self.ticket_url,
+            'has_direct_booking': self.has_direct_booking,
+            'opening_hours_peak': self.opening_hours_peak,
+            'opening_hours_off_peak': self.opening_hours_off_peak,
+            'additional_opening_notes': self.additional_opening_notes,
+            'recommended_duration': self.recommended_duration
         }
 
 class Heritage(db.Model):

@@ -33,6 +33,41 @@ def migrate_guestbook_table():
                 db.session.commit()
                 print('Guestbook table migrated successfully!')
 
+def migrate_scenic_spot_table():
+    with app.app_context():
+        inspector = db.inspect(db.engine)
+        
+        if 'scenic_spots' in inspector.get_table_names():
+            columns = [c['name'] for c in inspector.get_columns('scenic_spots')]
+            
+            new_columns = [
+                ('ticket_price_peak', 'VARCHAR(100)'),
+                ('ticket_price_off_peak', 'VARCHAR(100)'),
+                ('ticket_additional_info', 'TEXT'),
+                ('ticket_url', 'VARCHAR(500)'),
+                ('has_direct_booking', 'BOOLEAN DEFAULT FALSE'),
+                ('opening_hours_peak', 'VARCHAR(200)'),
+                ('opening_hours_off_peak', 'VARCHAR(200)'),
+                ('additional_opening_notes', 'TEXT'),
+                ('recommended_duration', 'VARCHAR(100)'),
+            ]
+            
+            migrations = []
+            for col_name, col_type in new_columns:
+                if col_name not in columns:
+                    migrations.append(f'ALTER TABLE scenic_spots ADD COLUMN IF NOT EXISTS {col_name} {col_type}')
+            
+            for migration in migrations:
+                try:
+                    db.session.execute(text(migration))
+                    print(f'Executed migration: {migration}')
+                except Exception as e:
+                    print(f'Migration skipped: {migration}, Error: {e}')
+            
+            if migrations:
+                db.session.commit()
+                print('ScenicSpot table migrated successfully!')
+
 def init_database():
     with app.app_context():
         db.create_all()
@@ -128,7 +163,16 @@ def init_database():
                     description='故宫又称紫禁城，是中国明清两代的皇家宫殿，位于北京中轴线的中心，是中国古代宫廷建筑之精华。故宫以三大殿为中心，占地面积72万平方米，建筑面积约15万平方米。',
                     is_featured=True,
                     order=1,
-                    is_active=True
+                    is_active=True,
+                    ticket_price_peak='60元/人',
+                    ticket_price_off_peak='40元/人',
+                    ticket_additional_info='珍宝馆：10元/人；钟表馆：10元/人。学生票（本科及以下）：旺季20元/人，淡季20元/人。60岁以上老人半价：旺季30元/人，淡季20元/人。18周岁以下未成年人免费。',
+                    ticket_url='https://ticket.dpm.org.cn/',
+                    has_direct_booking=False,
+                    opening_hours_peak='旺季（4月1日-10月31日）：8:30-17:00（16:10停止入院）',
+                    opening_hours_off_peak='淡季（11月1日-3月31日）：8:30-16:30（15:40停止入院）',
+                    additional_opening_notes='周一闭馆（法定节假日除外）。所有观众须实名预约参观，不售当日票，可提前7日20:00开始预约。',
+                    recommended_duration='3-4小时'
                 ),
                 ScenicSpot(
                     name='颐和园',
@@ -136,7 +180,16 @@ def init_database():
                     description='颐和园是中国清朝时期皇家园林，前身为清漪园，坐落在北京西郊，占地约290公顷。',
                     is_featured=False,
                     order=2,
-                    is_active=True
+                    is_active=True,
+                    ticket_price_peak='门票30元/张，联票60元/张',
+                    ticket_price_off_peak='门票20元/张，联票50元/张',
+                    ticket_additional_info='园中园：德和园5元/张，佛香阁10元/张，苏州街10元/张，颐和园博物馆20元/张。学生凭学生证半价优惠。',
+                    ticket_url='https://ticket.summerpalace-china.com/',
+                    has_direct_booking=True,
+                    opening_hours_peak='旺季（4月1日-10月31日）：6:00开园，19:00停止入园，20:00闭园',
+                    opening_hours_off_peak='淡季（11月1日-3月31日）：6:30开园，18:00停止入园，19:00闭园',
+                    additional_opening_notes='园中园（佛香阁、德和园、颐和园博物馆、苏州街）：8:00-18:00（17:30停止进入），周一闭园（法定节假日除外）。',
+                    recommended_duration='3-4小时'
                 ),
                 ScenicSpot(
                     name='天坛公园',
@@ -144,7 +197,16 @@ def init_database():
                     description='天坛是明清两代皇帝祭祀皇天、祈五谷丰登的场所，是现存中国古代规模最大、伦理等级最高的祭天建筑群。',
                     is_featured=False,
                     order=3,
-                    is_active=True
+                    is_active=True,
+                    ticket_price_peak='门票15元/张，联票34元/张',
+                    ticket_price_off_peak='门票10元/张，联票28元/张',
+                    ticket_additional_info='联票含大门票、祈年殿、圜丘、回音壁。学生凭学生证半价优惠。60岁以上老人、军人等凭证免票。',
+                    ticket_url='https://www.tiantanpark.cn/',
+                    has_direct_booking=False,
+                    opening_hours_peak='旺季（4月1日-10月31日）：公园大门6:00-22:00（21:00停止入园）；景点8:00-18:00（17:30停止入园）',
+                    opening_hours_off_peak='淡季（11月1日-3月31日）：公园大门6:30-22:00（21:00停止入园）；景点8:00-17:30（17:00停止入园）',
+                    additional_opening_notes='可通过"畅游公园"平台预约购票。',
+                    recommended_duration='2-3小时'
                 ),
                 ScenicSpot(
                     name='明十三陵',
@@ -152,7 +214,16 @@ def init_database():
                     description='明十三陵是明朝迁都北京后13位皇帝陵墓的皇家陵寝的总称，是中国现存规模最大、保存最完整的帝王陵墓群。',
                     is_featured=False,
                     order=4,
-                    is_active=True
+                    is_active=True,
+                    ticket_price_peak='长陵45元/人，定陵60元/人，昭陵30元/人，总神道30元/人',
+                    ticket_price_off_peak='长陵30元/人，定陵40元/人，昭陵20元/人，总神道20元/人',
+                    ticket_additional_info='联票98元/人（含长陵、定陵、总神道）。学生凭学生证半价优惠。60岁以上老人、残疾人、现役军人凭证免票。',
+                    ticket_url='https://www.mingshisanling.com/ticket.html',
+                    has_direct_booking=False,
+                    opening_hours_peak='旺季（4月1日-10月31日）：8:00-17:30（17:00停止入园）',
+                    opening_hours_off_peak='淡季（11月1日-3月31日）：8:30-17:00（16:30停止入园）',
+                    additional_opening_notes='可通过"昌平文旅集团"小程序预约购票。建议下午3点前进入陵区，避免赶不上深度游览。',
+                    recommended_duration='3-4小时'
                 )
             ]
             db.session.add_all(scenic_spots)
@@ -237,4 +308,5 @@ def init_database():
 
 if __name__ == '__main__':
     migrate_guestbook_table()
+    migrate_scenic_spot_table()
     init_database()
