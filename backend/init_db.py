@@ -478,31 +478,39 @@ def init_database():
         if Navigation.query.first() is None:
             navigations = [
                 Navigation(
-                    title='首页',
+                    label='首页',
                     path='/',
-                    icon=None,
                     order=1,
                     is_active=True
                 ),
                 Navigation(
-                    title='景点大全',
-                    path='/spots',
-                    icon=None,
+                    label='北京文化',
+                    path='/culture',
                     order=2,
                     is_active=True
                 ),
                 Navigation(
-                    title='特色专题',
-                    path='/special',
-                    icon=None,
+                    label='地方特产',
+                    path='/specialties',
                     order=3,
                     is_active=True
                 ),
                 Navigation(
-                    title='游记留言',
-                    path='/guestbook',
-                    icon=None,
+                    label='名胜古迹',
+                    path='/scenic',
                     order=4,
+                    is_active=True
+                ),
+                Navigation(
+                    label='非物质文化遗产',
+                    path='/heritage',
+                    order=5,
+                    is_active=True
+                ),
+                Navigation(
+                    label='留言板',
+                    path='/guestbook',
+                    order=6,
                     is_active=True
                 ),
             ]
@@ -512,46 +520,46 @@ def init_database():
         if Category.query.first() is None:
             categories = [
                 Category(
-                    name='景点导航',
-                    slug='spots-guide',
-                    icon='MapPin',
-                    bg_light='#fff5eb',
-                    border_color='#f97316',
-                    description='精选特色街区，深入胡同小巷，发现别样风景',
-                    link_to='/spots',
+                    title='北京文化',
+                    description='探索北京悠久的历史文化，感受千年古都的独特魅力',
+                    icon='Scroll',
+                    path='/culture',
+                    gradient='from-amber-400 to-orange-500',
+                    bg_light='from-amber-50 to-orange-50',
+                    border_color='border-amber-200',
                     order=1,
                     is_active=True
                 ),
                 Category(
-                    name='文化体验',
-                    slug='culture-experience',
-                    icon='Theater',
-                    bg_light='#f0fdf4',
-                    border_color='#22c55e',
-                    description='深度体验传统文化的独特魅力',
-                    link_to='/culture',
+                    title='地方特产',
+                    description='品尝北京地道美食，感受舌尖上的老北京味道',
+                    icon='Utensils',
+                    path='/specialties',
+                    gradient='from-red-400 to-pink-500',
+                    bg_light='from-red-50 to-pink-50',
+                    border_color='border-red-200',
                     order=2,
                     is_active=True
                 ),
                 Category(
-                    name='美食之旅',
-                    slug='food-tour',
-                    icon='UtensilsCrossed',
-                    bg_light='#fef2f2',
-                    border_color='#ef4444',
-                    description='品尝地道北京风味，感受舌尖上的北京',
-                    link_to='/food',
+                    title='名胜古迹',
+                    description='探索北京千年历史的著名景点，感受中华文明的博大精深',
+                    icon='Building',
+                    path='/scenic',
+                    gradient='from-blue-400 to-purple-500',
+                    bg_light='from-blue-50 to-purple-50',
+                    border_color='border-blue-200',
                     order=3,
                     is_active=True
                 ),
                 Category(
-                    name='非物质文化遗产',
-                    slug='heritage',
-                    icon='Star',
-                    bg_light='#faf5ff',
-                    border_color='#8b5cf6',
-                    description='传承千年技艺，守护文化瑰宝',
-                    link_to='/heritage',
+                    title='非物质文化遗产',
+                    description='传承千年技艺，守护文化瑰宝，感受老北京的独特魅力',
+                    icon='Sparkles',
+                    path='/heritage',
+                    gradient='from-amber-400 to-yellow-500',
+                    bg_light='from-yellow-50 to-amber-50',
+                    border_color='border-yellow-200',
                     order=4,
                     is_active=True
                 ),
