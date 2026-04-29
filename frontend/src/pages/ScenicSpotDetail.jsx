@@ -63,7 +63,7 @@ const ScenicSpotDetail = () => {
   };
 
   const handleBuyTicket = () => {
-    if (scenicSpot?.has_direct_booking && scenicSpot?.ticket_url) {
+    if (scenicSpot?.ticket_url) {
       window.open(scenicSpot.ticket_url, '_blank', 'noopener,noreferrer');
     } else {
       navigate(`/ticket-guide/${id}`);
