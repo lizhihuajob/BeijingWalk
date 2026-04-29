@@ -219,6 +219,9 @@ class ScenicSpot(db.Model):
     order = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
     
+    location = db.Column(db.String(200))
+    tips = db.Column(db.Text)
+    
     ticket_price_peak = db.Column(db.String(100))
     ticket_price_off_peak = db.Column(db.String(100))
     ticket_additional_info = db.Column(db.Text)
@@ -243,6 +246,8 @@ class ScenicSpot(db.Model):
             'is_featured': self.is_featured,
             'order': self.order,
             'is_active': self.is_active,
+            'location': self.location,
+            'tips': self.tips,
             'ticket_price_peak': self.ticket_price_peak,
             'ticket_price_off_peak': self.ticket_price_off_peak,
             'ticket_additional_info': self.ticket_additional_info,
@@ -303,4 +308,131 @@ class Guestbook(db.Model):
             'message': self.message,
             'is_approved': self.is_approved,
             'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class SiteConfig(db.Model):
+    __tablename__ = 'site_configs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    site_name = db.Column(db.String(200), default='北京旅游')
+    site_description = db.Column(db.Text)
+    site_keywords = db.Column(db.String(500))
+    
+    contact_address = db.Column(db.String(500))
+    contact_phone = db.Column(db.String(100))
+    contact_email = db.Column(db.String(200))
+    
+    copyright_text = db.Column(db.String(500))
+    footer_links = db.Column(db.Text)
+    
+    banner_title = db.Column(db.String(200), default='探索北京')
+    banner_subtitle = db.Column(db.String(500), default='千年古都')
+    banner_description = db.Column(db.String(1000), default='感受历史与现代的完美交融，体验传统文化与时尚潮流的碰撞')
+    
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'site_name': self.site_name,
+            'site_description': self.site_description,
+            'site_keywords': self.site_keywords,
+            'contact_address': self.contact_address,
+            'contact_phone': self.contact_phone,
+            'contact_email': self.contact_email,
+            'copyright_text': self.copyright_text,
+            'footer_links': self.footer_links,
+            'banner_title': self.banner_title,
+            'banner_subtitle': self.banner_subtitle,
+            'banner_description': self.banner_description,
+            'is_active': self.is_active
+        }
+
+class Navigation(db.Model):
+    __tablename__ = 'navigations'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    label = db.Column(db.String(100), nullable=False)
+    path = db.Column(db.String(500), nullable=False)
+    order = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+    is_new_tab = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'label': self.label,
+            'path': self.path,
+            'order': self.order,
+            'is_active': self.is_active,
+            'is_new_tab': self.is_new_tab
+        }
+
+class Category(db.Model):
+    __tablename__ = 'categories'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    icon = db.Column(db.String(100))
+    path = db.Column(db.String(500), nullable=False)
+    
+    gradient = db.Column(db.String(100), default='from-amber-400 to-orange-500')
+    bg_light = db.Column(db.String(100), default='from-amber-50 to-orange-50')
+    border_color = db.Column(db.String(100), default='border-amber-200')
+    
+    order = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'icon': self.icon,
+            'path': self.path,
+            'gradient': self.gradient,
+            'bg_light': self.bg_light,
+            'border_color': self.border_color,
+            'order': self.order,
+            'is_active': self.is_active
+        }
+
+class BookingGuide(db.Model):
+    __tablename__ = 'booking_guides'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    scenic_spot_id = db.Column(db.Integer, db.ForeignKey('scenic_spots.id'), nullable=False)
+    
+    title = db.Column(db.String(500), nullable=False)
+    description = db.Column(db.Text)
+    
+    steps = db.Column(db.Text)
+    important_notes = db.Column(db.Text)
+    contact_phone = db.Column(db.String(100))
+    contact_work_time = db.Column(db.String(200))
+    
+    order = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'scenic_spot_id': self.scenic_spot_id,
+            'title': self.title,
+            'description': self.description,
+            'steps': self.steps,
+            'important_notes': self.important_notes,
+            'contact_phone': self.contact_phone,
+            'contact_work_time': self.contact_work_time,
+            'order': self.order,
+            'is_active': self.is_active
         }

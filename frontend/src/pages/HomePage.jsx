@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { getBanners, getCultures, getSpecialties, getScenicSpots, getHeritages } from '../services/api';
+import { getBanners, getCultures, getSpecialties, getScenicSpots, getHeritages, getCategories } from '../services/api';
 
 function HomePage() {
   const navigate = useNavigate();
@@ -23,17 +23,60 @@ function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [categories, setCategories] = useState([
+    {
+      id: 1,
+      title: '北京文化',
+      description: '探索北京悠久的历史文化，感受千年古都的独特魅力',
+      icon: 'Scroll',
+      path: '/culture',
+      gradient: 'from-amber-400 to-orange-500',
+      bg_light: 'from-amber-50 to-orange-50',
+      border_color: 'border-amber-200',
+    },
+    {
+      id: 2,
+      title: '地方特产',
+      description: '品尝北京地道美食，感受舌尖上的老北京味道',
+      icon: 'Utensils',
+      path: '/specialties',
+      gradient: 'from-red-400 to-pink-500',
+      bg_light: 'from-red-50 to-pink-50',
+      border_color: 'border-red-200',
+    },
+    {
+      id: 3,
+      title: '名胜古迹',
+      description: '探索北京千年历史的著名景点，感受中华文明的博大精深',
+      icon: 'Building',
+      path: '/scenic',
+      gradient: 'from-blue-400 to-purple-500',
+      bg_light: 'from-blue-50 to-purple-50',
+      border_color: 'border-blue-200',
+    },
+    {
+      id: 4,
+      title: '非物质文化遗产',
+      description: '传承千年技艺，守护文化瑰宝，感受老北京的独特魅力',
+      icon: 'Sparkles',
+      path: '/heritage',
+      gradient: 'from-amber-400 to-yellow-500',
+      bg_light: 'from-yellow-50 to-amber-50',
+      border_color: 'border-yellow-200',
+    },
+  ]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [bannersData, culturesData, specialtiesData, scenicSpotsData, heritagesData] = await Promise.all([
+        const [bannersData, culturesData, specialtiesData, scenicSpotsData, heritagesData, categoriesData] = await Promise.all([
           getBanners(),
           getCultures(),
           getSpecialties(),
           getScenicSpots(),
           getHeritages(),
+          getCategories(),
         ]);
         
         setBanners(bannersData);
@@ -43,6 +86,11 @@ function HomePage() {
           scenicSpots: scenicSpotsData.filter(s => s.is_featured).slice(0, 1).concat(scenicSpotsData.filter(s => !s.is_featured).slice(0, 2)),
           heritages: heritagesData.slice(0, 4),
         });
+        
+        if (categoriesData && categoriesData.length > 0) {
+          setCategories(categoriesData);
+        }
+        
         setError(null);
       } catch (err) {
         console.error('Failed to fetch data:', err);
@@ -103,44 +151,17 @@ function HomePage() {
     return stars;
   };
 
-  const categories = [
-    {
-      title: '北京文化',
-      description: '探索北京悠久的历史文化，感受千年古都的独特魅力',
-      icon: Scroll,
-      path: '/culture',
-      gradient: 'from-amber-400 to-orange-500',
-      bgLight: 'from-amber-50 to-orange-50',
-      borderColor: 'border-amber-200',
-    },
-    {
-      title: '地方特产',
-      description: '品尝北京地道美食，感受舌尖上的老北京味道',
-      icon: Utensils,
-      path: '/specialties',
-      gradient: 'from-red-400 to-pink-500',
-      bgLight: 'from-red-50 to-pink-50',
-      borderColor: 'border-red-200',
-    },
-    {
-      title: '名胜古迹',
-      description: '探索北京千年历史的著名景点，感受中华文明的博大精深',
-      icon: Building,
-      path: '/scenic',
-      gradient: 'from-blue-400 to-purple-500',
-      bgLight: 'from-blue-50 to-purple-50',
-      borderColor: 'border-blue-200',
-    },
-    {
-      title: '非物质文化遗产',
-      description: '传承千年技艺，守护文化瑰宝，感受老北京的独特魅力',
-      icon: Sparkles,
-      path: '/heritage',
-      gradient: 'from-amber-400 to-yellow-500',
-      bgLight: 'from-yellow-50 to-amber-50',
-      borderColor: 'border-yellow-200',
-    },
-  ];
+  const iconMap = {
+    Scroll,
+    Utensils,
+    Building,
+    Sparkles,
+    MapPin,
+  };
+
+  const getIconComponent = (iconName) => {
+    return iconMap[iconName] || MapPin;
+  };
 
   if (loading) {
     return (
@@ -307,10 +328,12 @@ function HomePage() {
 
             <div className="grid md:grid-cols-2 gap-8">
               {categories.map((category, index) => {
-                const IconComponent = category.icon;
+                const IconComponent = getIconComponent(category.icon);
+                const bgLight = category.bgLight || category.bg_light || 'from-gray-50 to-gray-100';
+                const borderColor = category.borderColor || category.border_color || 'border-gray-200';
                 return (
                   <motion.div
-                    key={category.path}
+                    key={category.id || category.path}
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
@@ -319,7 +342,7 @@ function HomePage() {
                   >
                     <motion.div
                       onClick={() => navigate(category.path)}
-                      className={`bg-gradient-to-br ${category.bgLight} rounded-3xl p-8 md:p-10 border ${category.borderColor} cursor-pointer transition-all duration-500 hover:shadow-2xl`}
+                      className={`bg-gradient-to-br ${bgLight} rounded-3xl p-8 md:p-10 border ${borderColor} cursor-pointer transition-all duration-500 hover:shadow-2xl`}
                       whileHover={{ y: -8 }}
                     >
                       <div className="flex items-start gap-6">

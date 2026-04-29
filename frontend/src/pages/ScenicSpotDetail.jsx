@@ -169,7 +169,7 @@ const ScenicSpotDetail = () => {
                 <MapPin className="w-8 h-8 text-blue-500" />
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">位置</h3>
-              <p className="text-gray-500">北京市</p>
+              <p className="text-gray-500">{scenicSpot.location || '北京市'}</p>
             </div>
             <div className="bg-white rounded-3xl shadow-lg p-6 text-center">
               <div className="w-16 h-16 rounded-2xl bg-indigo-100 flex items-center justify-center mx-auto mb-4">
@@ -192,7 +192,7 @@ const ScenicSpotDetail = () => {
                 <Calendar className="w-8 h-8 text-violet-500" />
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">开放状态</h3>
-              <p className="text-gray-500">正常开放</p>
+              <p className="text-gray-500">{scenicSpot.opening_status || '正常开放'}</p>
             </div>
           </motion.div>
 
@@ -370,23 +370,38 @@ const ScenicSpotDetail = () => {
               {scenicSpot.description}
             </p>
             
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 mt-8">
-              <h3 className="font-semibold text-gray-900 mb-3 text-lg">游览小贴士</h3>
-              <ul className="space-y-2 text-gray-600">
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-1">•</span>
-                  建议提前网上预约，避开高峰期游览
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-1">•</span>
-                  穿着舒适的鞋子，景区较大
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-1">•</span>
-                  可以请导游讲解，了解更多历史故事
-                </li>
-              </ul>
-            </div>
+            {(() => {
+              let tips = [];
+              if (scenicSpot.tips) {
+                try {
+                  tips = typeof scenicSpot.tips === 'string' ? JSON.parse(scenicSpot.tips) : scenicSpot.tips;
+                } catch (e) {
+                  console.error('Failed to parse tips:', e);
+                }
+              }
+              
+              if (!tips || tips.length === 0) {
+                tips = [
+                  '建议提前网上预约，避开高峰期游览',
+                  '穿着舒适的鞋子，景区较大',
+                  '可以请导游讲解，了解更多历史故事',
+                ];
+              }
+              
+              return (
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 mt-8">
+                  <h3 className="font-semibold text-gray-900 mb-3 text-lg">游览小贴士</h3>
+                  <ul className="space-y-2 text-gray-600">
+                    {tips.map((tip, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="text-blue-500 mt-1">•</span>
+                        {tip}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })()}
           </motion.div>
 
           <motion.div

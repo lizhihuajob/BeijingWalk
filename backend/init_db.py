@@ -1,7 +1,8 @@
+import json
 from app import create_app, db
 from app.models.models import (
     Banner, Culture, Specialty, ScenicSpot, Heritage, 
-    Guestbook, AdminUser
+    Guestbook, AdminUser, SiteConfig, Navigation, Category, BookingGuide
 )
 from sqlalchemy import text
 
@@ -32,6 +33,91 @@ def migrate_guestbook_table():
             if migrations:
                 db.session.commit()
                 print('Guestbook table migrated successfully!')
+
+def migrate_config_tables():
+    with app.app_context():
+        inspector = db.inspect(db.engine)
+        tables = inspector.get_table_names()
+        
+        if 'scenic_spots' in tables:
+            columns = [c['name'] for c in inspector.get_columns('scenic_spots')]
+            
+            new_columns = [
+                ('location', 'VARCHAR(200)'),
+                ('tips', 'TEXT'),
+                ('opening_status', 'VARCHAR(100)'),
+            ]
+            
+            for col_name, col_type in new_columns:
+                if col_name not in columns:
+                    try:
+                        db.session.execute(text(f'ALTER TABLE scenic_spots ADD COLUMN IF NOT EXISTS {col_name} {col_type}'))
+                        print(f'Added column {col_name} to scenic_spots')
+                    except Exception as e:
+                        print(f'Failed to add column {col_name}: {e}')
+            
+            try:
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                print(f'Failed to commit scenic_spots migration: {e}')
+        
+        existing_spots = ScenicSpot.query.all()
+        spot_location_map = {
+            '故宫博物院': '北京市东城区景山前街4号',
+            '颐和园': '北京市海淀区新建宫门路19号',
+            '天坛公园': '北京市东城区天坛内东里7号',
+            '明十三陵': '北京市昌平区十三陵镇',
+        }
+        
+        spot_tips_map = {
+            '故宫博物院': [
+                '建议提前网上预约，避开高峰期游览',
+                '穿着舒适的鞋子，景区较大',
+                '可以请导游讲解，了解更多历史故事',
+                '周一闭馆（法定节假日除外）',
+            ],
+            '颐和园': [
+                '建议从东门或北门进入，游览路线更合理',
+                '夏季注意防晒和补水',
+                '佛香阁是最佳观景点，不要错过',
+                '可以乘坐昆明湖游船欣赏美景',
+            ],
+            '天坛公园': [
+                '建议早晨游览，空气清新，人也较少',
+                '联票包含祈年殿、圜丘、回音壁，推荐购买',
+                '回音壁有特定的听音点，注意观察指示牌',
+                '公园很大，建议租用电瓶车',
+            ],
+            '明十三陵': [
+                '定陵是唯一开放地宫的陵墓，值得一看',
+                '长陵是规模最大的陵墓，建筑宏伟',
+                '神道是进入陵区的必经之路，石像生很有特色',
+                '建议下午3点前进入陵区，避免赶不上深度游览',
+            ],
+        }
+        
+        spot_opening_status_map = {
+            '故宫博物院': '正常开放',
+            '颐和园': '正常开放',
+            '天坛公园': '正常开放',
+            '明十三陵': '正常开放',
+        }
+        
+        for spot in existing_spots:
+            if spot.name in spot_location_map and spot.location is None:
+                spot.location = spot_location_map[spot.name]
+            if spot.name in spot_tips_map and spot.tips is None:
+                spot.tips = json.dumps(spot_tips_map[spot.name], ensure_ascii=False)
+            if spot.name in spot_opening_status_map and spot.opening_status is None:
+                spot.opening_status = spot_opening_status_map[spot.name]
+        
+        try:
+            db.session.commit()
+            print('ScenicSpot additional fields updated successfully!')
+        except Exception as e:
+            db.session.rollback()
+            print(f'Error updating ScenicSpot additional fields: {e}')
 
 def get_scenic_spot_update_data():
     return {
@@ -375,6 +461,104 @@ def init_database():
             db.session.add(default_admin)
             print('Default admin user created: username=admin, password=admin123')
         
+        if SiteConfig.query.first() is None:
+            site_config = SiteConfig(
+                site_name='北京旅游',
+                logo_url=None,
+                contact_address='北京市东城区景山前街4号',
+                contact_phone='400-123-4567',
+                contact_email='info@beijingtravel.com',
+                contact_work_time='周一至周日 9:00-18:00',
+                copyright_text='© 2024 北京旅游. All rights reserved.',
+                icp_text='京ICP备12345678号-1',
+            )
+            db.session.add(site_config)
+            print('Default site config created')
+        
+        if Navigation.query.first() is None:
+            navigations = [
+                Navigation(
+                    title='首页',
+                    path='/',
+                    icon=None,
+                    order=1,
+                    is_active=True
+                ),
+                Navigation(
+                    title='景点大全',
+                    path='/spots',
+                    icon=None,
+                    order=2,
+                    is_active=True
+                ),
+                Navigation(
+                    title='特色专题',
+                    path='/special',
+                    icon=None,
+                    order=3,
+                    is_active=True
+                ),
+                Navigation(
+                    title='游记留言',
+                    path='/guestbook',
+                    icon=None,
+                    order=4,
+                    is_active=True
+                ),
+            ]
+            db.session.add_all(navigations)
+            print('Default navigations created')
+        
+        if Category.query.first() is None:
+            categories = [
+                Category(
+                    name='景点导航',
+                    slug='spots-guide',
+                    icon='MapPin',
+                    bg_light='#fff5eb',
+                    border_color='#f97316',
+                    description='精选特色街区，深入胡同小巷，发现别样风景',
+                    link_to='/spots',
+                    order=1,
+                    is_active=True
+                ),
+                Category(
+                    name='文化体验',
+                    slug='culture-experience',
+                    icon='Theater',
+                    bg_light='#f0fdf4',
+                    border_color='#22c55e',
+                    description='深度体验传统文化的独特魅力',
+                    link_to='/culture',
+                    order=2,
+                    is_active=True
+                ),
+                Category(
+                    name='美食之旅',
+                    slug='food-tour',
+                    icon='UtensilsCrossed',
+                    bg_light='#fef2f2',
+                    border_color='#ef4444',
+                    description='品尝地道北京风味，感受舌尖上的北京',
+                    link_to='/food',
+                    order=3,
+                    is_active=True
+                ),
+                Category(
+                    name='非物质文化遗产',
+                    slug='heritage',
+                    icon='Star',
+                    bg_light='#faf5ff',
+                    border_color='#8b5cf6',
+                    description='传承千年技艺，守护文化瑰宝',
+                    link_to='/heritage',
+                    order=4,
+                    is_active=True
+                ),
+            ]
+            db.session.add_all(categories)
+            print('Default categories created')
+        
         try:
             db.session.commit()
             print('Database initialized successfully!')
@@ -385,4 +569,5 @@ def init_database():
 if __name__ == '__main__':
     migrate_guestbook_table()
     migrate_scenic_spot_table()
+    migrate_config_tables()
     init_database()

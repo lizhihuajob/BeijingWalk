@@ -3,11 +3,13 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from app import db
 from app.models.models import (
     AdminUser, PageView, ContentView,
-    Banner, Culture, Specialty, ScenicSpot, Heritage, Guestbook
+    Banner, Culture, Specialty, ScenicSpot, Heritage, Guestbook,
+    SiteConfig, Navigation, Category, BookingGuide
 )
 from datetime import datetime, timedelta
 from functools import wraps
 from sqlalchemy import func
+import json
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -420,7 +422,18 @@ def create_scenic_spot():
         description=data.get('description'),
         is_featured=data.get('is_featured', False),
         order=data.get('order', 0),
-        is_active=data.get('is_active', True)
+        is_active=data.get('is_active', True),
+        location=data.get('location'),
+        tips=data.get('tips'),
+        ticket_price_peak=data.get('ticket_price_peak'),
+        ticket_price_off_peak=data.get('ticket_price_off_peak'),
+        ticket_additional_info=data.get('ticket_additional_info'),
+        ticket_url=data.get('ticket_url'),
+        has_direct_booking=data.get('has_direct_booking', False),
+        opening_hours_peak=data.get('opening_hours_peak'),
+        opening_hours_off_peak=data.get('opening_hours_off_peak'),
+        additional_opening_notes=data.get('additional_opening_notes'),
+        recommended_duration=data.get('recommended_duration')
     )
     
     db.session.add(scenic_spot)
@@ -452,6 +465,28 @@ def update_scenic_spot(id):
         scenic_spot.order = data.get('order')
     if 'is_active' in data:
         scenic_spot.is_active = data.get('is_active')
+    if 'location' in data:
+        scenic_spot.location = data.get('location')
+    if 'tips' in data:
+        scenic_spot.tips = data.get('tips')
+    if 'ticket_price_peak' in data:
+        scenic_spot.ticket_price_peak = data.get('ticket_price_peak')
+    if 'ticket_price_off_peak' in data:
+        scenic_spot.ticket_price_off_peak = data.get('ticket_price_off_peak')
+    if 'ticket_additional_info' in data:
+        scenic_spot.ticket_additional_info = data.get('ticket_additional_info')
+    if 'ticket_url' in data:
+        scenic_spot.ticket_url = data.get('ticket_url')
+    if 'has_direct_booking' in data:
+        scenic_spot.has_direct_booking = data.get('has_direct_booking')
+    if 'opening_hours_peak' in data:
+        scenic_spot.opening_hours_peak = data.get('opening_hours_peak')
+    if 'opening_hours_off_peak' in data:
+        scenic_spot.opening_hours_off_peak = data.get('opening_hours_off_peak')
+    if 'additional_opening_notes' in data:
+        scenic_spot.additional_opening_notes = data.get('additional_opening_notes')
+    if 'recommended_duration' in data:
+        scenic_spot.recommended_duration = data.get('recommended_duration')
     
     db.session.commit()
     return jsonify(scenic_spot.to_dict()), 200
@@ -647,5 +682,312 @@ def delete_admin_user(id):
     
     admin = AdminUser.query.get_or_404(id)
     db.session.delete(admin)
+    db.session.commit()
+    return jsonify({'message': '删除成功'}), 200
+
+def to_json(value):
+    if value is None:
+        return None
+    return json.dumps(value, ensure_ascii=False)
+
+@admin_bp.route('/site-config', methods=['GET'])
+@admin_required
+def get_site_config_admin():
+    config = SiteConfig.query.first()
+    if not config:
+        return jsonify({
+            'id': 0,
+            'site_name': '北京旅游',
+            'site_description': None,
+            'site_keywords': None,
+            'contact_address': None,
+            'contact_phone': None,
+            'contact_email': None,
+            'copyright_text': None,
+            'footer_links': None,
+            'banner_title': '探索北京',
+            'banner_subtitle': '千年古都',
+            'banner_description': '感受历史与现代的完美交融',
+            'is_active': True
+        }), 200
+    
+    config_dict = config.to_dict()
+    config_dict['footer_links'] = json.loads(config.footer_links) if config.footer_links else None
+    return jsonify(config_dict), 200
+
+@admin_bp.route('/site-config', methods=['POST', 'PUT'])
+@admin_required
+def save_site_config():
+    data = get_request_data()
+    config = SiteConfig.query.first()
+    
+    if not config:
+        config = SiteConfig(
+            site_name=data.get('site_name', '北京旅游'),
+            site_description=data.get('site_description'),
+            site_keywords=data.get('site_keywords'),
+            contact_address=data.get('contact_address'),
+            contact_phone=data.get('contact_phone'),
+            contact_email=data.get('contact_email'),
+            copyright_text=data.get('copyright_text'),
+            footer_links=to_json(data.get('footer_links')),
+            banner_title=data.get('banner_title', '探索北京'),
+            banner_subtitle=data.get('banner_subtitle', '千年古都'),
+            banner_description=data.get('banner_description', '感受历史与现代的完美交融'),
+            is_active=data.get('is_active', True)
+        )
+        db.session.add(config)
+    else:
+        if 'site_name' in data:
+            config.site_name = data.get('site_name')
+        if 'site_description' in data:
+            config.site_description = data.get('site_description')
+        if 'site_keywords' in data:
+            config.site_keywords = data.get('site_keywords')
+        if 'contact_address' in data:
+            config.contact_address = data.get('contact_address')
+        if 'contact_phone' in data:
+            config.contact_phone = data.get('contact_phone')
+        if 'contact_email' in data:
+            config.contact_email = data.get('contact_email')
+        if 'copyright_text' in data:
+            config.copyright_text = data.get('copyright_text')
+        if 'footer_links' in data:
+            config.footer_links = to_json(data.get('footer_links'))
+        if 'banner_title' in data:
+            config.banner_title = data.get('banner_title')
+        if 'banner_subtitle' in data:
+            config.banner_subtitle = data.get('banner_subtitle')
+        if 'banner_description' in data:
+            config.banner_description = data.get('banner_description')
+        if 'is_active' in data:
+            config.is_active = data.get('is_active')
+    
+    db.session.commit()
+    
+    config_dict = config.to_dict()
+    config_dict['footer_links'] = json.loads(config.footer_links) if config.footer_links else None
+    return jsonify(config_dict), 200
+
+@admin_bp.route('/navigations', methods=['GET'])
+@admin_required
+def get_navigations_admin():
+    navigations = Navigation.query.order_by(Navigation.order).all()
+    return jsonify([nav.to_dict() for nav in navigations]), 200
+
+@admin_bp.route('/navigations', methods=['POST'])
+@admin_required
+def create_navigation():
+    data = get_request_data()
+    
+    if not data or not data.get('label') or not data.get('path'):
+        return jsonify({'error': '标签和路径不能为空'}), 400
+    
+    navigation = Navigation(
+        label=data.get('label'),
+        path=data.get('path'),
+        order=data.get('order', 0),
+        is_active=data.get('is_active', True),
+        is_new_tab=data.get('is_new_tab', False)
+    )
+    
+    db.session.add(navigation)
+    db.session.commit()
+    
+    return jsonify(navigation.to_dict()), 201
+
+@admin_bp.route('/navigations/<int:id>', methods=['GET'])
+@admin_required
+def get_navigation_admin(id):
+    navigation = Navigation.query.get_or_404(id)
+    return jsonify(navigation.to_dict()), 200
+
+@admin_bp.route('/navigations/<int:id>', methods=['PUT'])
+@admin_required
+def update_navigation(id):
+    navigation = Navigation.query.get_or_404(id)
+    data = get_request_data()
+    
+    if 'label' in data:
+        navigation.label = data.get('label')
+    if 'path' in data:
+        navigation.path = data.get('path')
+    if 'order' in data:
+        navigation.order = data.get('order')
+    if 'is_active' in data:
+        navigation.is_active = data.get('is_active')
+    if 'is_new_tab' in data:
+        navigation.is_new_tab = data.get('is_new_tab')
+    
+    db.session.commit()
+    return jsonify(navigation.to_dict()), 200
+
+@admin_bp.route('/navigations/<int:id>', methods=['DELETE'])
+@admin_required
+def delete_navigation(id):
+    navigation = Navigation.query.get_or_404(id)
+    db.session.delete(navigation)
+    db.session.commit()
+    return jsonify({'message': '删除成功'}), 200
+
+@admin_bp.route('/categories', methods=['GET'])
+@admin_required
+def get_categories_admin():
+    categories = Category.query.order_by(Category.order).all()
+    return jsonify([cat.to_dict() for cat in categories]), 200
+
+@admin_bp.route('/categories', methods=['POST'])
+@admin_required
+def create_category():
+    data = get_request_data()
+    
+    if not data or not data.get('title') or not data.get('description') or not data.get('path'):
+        return jsonify({'error': '标题、描述和路径不能为空'}), 400
+    
+    category = Category(
+        title=data.get('title'),
+        description=data.get('description'),
+        icon=data.get('icon'),
+        path=data.get('path'),
+        gradient=data.get('gradient', 'from-amber-400 to-orange-500'),
+        bg_light=data.get('bg_light', 'from-amber-50 to-orange-50'),
+        border_color=data.get('border_color', 'border-amber-200'),
+        order=data.get('order', 0),
+        is_active=data.get('is_active', True)
+    )
+    
+    db.session.add(category)
+    db.session.commit()
+    
+    return jsonify(category.to_dict()), 201
+
+@admin_bp.route('/categories/<int:id>', methods=['GET'])
+@admin_required
+def get_category_admin(id):
+    category = Category.query.get_or_404(id)
+    return jsonify(category.to_dict()), 200
+
+@admin_bp.route('/categories/<int:id>', methods=['PUT'])
+@admin_required
+def update_category(id):
+    category = Category.query.get_or_404(id)
+    data = get_request_data()
+    
+    if 'title' in data:
+        category.title = data.get('title')
+    if 'description' in data:
+        category.description = data.get('description')
+    if 'icon' in data:
+        category.icon = data.get('icon')
+    if 'path' in data:
+        category.path = data.get('path')
+    if 'gradient' in data:
+        category.gradient = data.get('gradient')
+    if 'bg_light' in data:
+        category.bg_light = data.get('bg_light')
+    if 'border_color' in data:
+        category.border_color = data.get('border_color')
+    if 'order' in data:
+        category.order = data.get('order')
+    if 'is_active' in data:
+        category.is_active = data.get('is_active')
+    
+    db.session.commit()
+    return jsonify(category.to_dict()), 200
+
+@admin_bp.route('/categories/<int:id>', methods=['DELETE'])
+@admin_required
+def delete_category(id):
+    category = Category.query.get_or_404(id)
+    db.session.delete(category)
+    db.session.commit()
+    return jsonify({'message': '删除成功'}), 200
+
+@admin_bp.route('/booking-guides', methods=['GET'])
+@admin_required
+def get_booking_guides_admin():
+    guides = BookingGuide.query.order_by(BookingGuide.order).all()
+    result = []
+    for guide in guides:
+        guide_dict = guide.to_dict()
+        guide_dict['steps'] = json.loads(guide.steps) if guide.steps else None
+        guide_dict['important_notes'] = json.loads(guide.important_notes) if guide.important_notes else None
+        result.append(guide_dict)
+    return jsonify(result), 200
+
+@admin_bp.route('/booking-guides', methods=['POST'])
+@admin_required
+def create_booking_guide():
+    data = get_request_data()
+    
+    if not data or not data.get('scenic_spot_id') or not data.get('title'):
+        return jsonify({'error': '景点ID和标题不能为空'}), 400
+    
+    guide = BookingGuide(
+        scenic_spot_id=data.get('scenic_spot_id'),
+        title=data.get('title'),
+        description=data.get('description'),
+        steps=to_json(data.get('steps')),
+        important_notes=to_json(data.get('important_notes')),
+        contact_phone=data.get('contact_phone'),
+        contact_work_time=data.get('contact_work_time'),
+        order=data.get('order', 0),
+        is_active=data.get('is_active', True)
+    )
+    
+    db.session.add(guide)
+    db.session.commit()
+    
+    guide_dict = guide.to_dict()
+    guide_dict['steps'] = json.loads(guide.steps) if guide.steps else None
+    guide_dict['important_notes'] = json.loads(guide.important_notes) if guide.important_notes else None
+    return jsonify(guide_dict), 201
+
+@admin_bp.route('/booking-guides/<int:id>', methods=['GET'])
+@admin_required
+def get_booking_guide_admin(id):
+    guide = BookingGuide.query.get_or_404(id)
+    guide_dict = guide.to_dict()
+    guide_dict['steps'] = json.loads(guide.steps) if guide.steps else None
+    guide_dict['important_notes'] = json.loads(guide.important_notes) if guide.important_notes else None
+    return jsonify(guide_dict), 200
+
+@admin_bp.route('/booking-guides/<int:id>', methods=['PUT'])
+@admin_required
+def update_booking_guide(id):
+    guide = BookingGuide.query.get_or_404(id)
+    data = get_request_data()
+    
+    if 'scenic_spot_id' in data:
+        guide.scenic_spot_id = data.get('scenic_spot_id')
+    if 'title' in data:
+        guide.title = data.get('title')
+    if 'description' in data:
+        guide.description = data.get('description')
+    if 'steps' in data:
+        guide.steps = to_json(data.get('steps'))
+    if 'important_notes' in data:
+        guide.important_notes = to_json(data.get('important_notes'))
+    if 'contact_phone' in data:
+        guide.contact_phone = data.get('contact_phone')
+    if 'contact_work_time' in data:
+        guide.contact_work_time = data.get('contact_work_time')
+    if 'order' in data:
+        guide.order = data.get('order')
+    if 'is_active' in data:
+        guide.is_active = data.get('is_active')
+    
+    db.session.commit()
+    
+    guide_dict = guide.to_dict()
+    guide_dict['steps'] = json.loads(guide.steps) if guide.steps else None
+    guide_dict['important_notes'] = json.loads(guide.important_notes) if guide.important_notes else None
+    return jsonify(guide_dict), 200
+
+@admin_bp.route('/booking-guides/<int:id>', methods=['DELETE'])
+@admin_required
+def delete_booking_guide(id):
+    guide = BookingGuide.query.get_or_404(id)
+    db.session.delete(guide)
     db.session.commit()
     return jsonify({'message': '删除成功'}), 200
