@@ -221,6 +221,7 @@ class ScenicSpot(db.Model):
     
     location = db.Column(db.String(200))
     tips = db.Column(db.Text)
+    opening_status = db.Column(db.String(100), default='正常开放')
     
     ticket_price_peak = db.Column(db.String(100))
     ticket_price_off_peak = db.Column(db.String(100))
@@ -248,6 +249,7 @@ class ScenicSpot(db.Model):
             'is_active': self.is_active,
             'location': self.location,
             'tips': self.tips,
+            'opening_status': self.opening_status,
             'ticket_price_peak': self.ticket_price_peak,
             'ticket_price_off_peak': self.ticket_price_off_peak,
             'ticket_additional_info': self.ticket_additional_info,
@@ -318,11 +320,15 @@ class SiteConfig(db.Model):
     site_description = db.Column(db.Text)
     site_keywords = db.Column(db.String(500))
     
+    logo_url = db.Column(db.String(500))
+    
     contact_address = db.Column(db.String(500))
     contact_phone = db.Column(db.String(100))
     contact_email = db.Column(db.String(200))
+    contact_work_time = db.Column(db.String(200))
     
     copyright_text = db.Column(db.String(500))
+    icp_text = db.Column(db.String(200))
     footer_links = db.Column(db.Text)
     
     banner_title = db.Column(db.String(200), default='探索北京')
@@ -339,10 +345,13 @@ class SiteConfig(db.Model):
             'site_name': self.site_name,
             'site_description': self.site_description,
             'site_keywords': self.site_keywords,
+            'logo_url': self.logo_url,
             'contact_address': self.contact_address,
             'contact_phone': self.contact_phone,
             'contact_email': self.contact_email,
+            'contact_work_time': self.contact_work_time,
             'copyright_text': self.copyright_text,
+            'icp_text': self.icp_text,
             'footer_links': self.footer_links,
             'banner_title': self.banner_title,
             'banner_subtitle': self.banner_subtitle,
