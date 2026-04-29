@@ -7,6 +7,11 @@ import GuestbooksPage from './pages/GuestbooksPage';
 import UsersPage from './pages/UsersPage';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
+import BannersPage from './pages/BannersPage';
+import CulturesPage from './pages/CulturesPage';
+import SpecialtiesPage from './pages/SpecialtiesPage';
+import ScenicSpotsPage from './pages/ScenicSpotsPage';
+import HeritagesPage from './pages/HeritagesPage';
 import { Loader2 } from 'lucide-react';
 
 function PrivateRoute({ children }) {
@@ -37,6 +42,11 @@ function App() {
                 <Route path="/guestbooks" element={<GuestbooksPage />} />
                 <Route path="/users" element={<UsersPage />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/content/banners" element={<BannersPage />} />
+                <Route path="/content/cultures" element={<CulturesPage />} />
+                <Route path="/content/specialties" element={<SpecialtiesPage />} />
+                <Route path="/content/scenic-spots" element={<ScenicSpotsPage />} />
+                <Route path="/content/heritages" element={<HeritagesPage />} />
               </Routes>
             </Layout>
           </PrivateRoute>
