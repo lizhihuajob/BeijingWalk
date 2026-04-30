@@ -300,8 +300,13 @@ class Guestbook(db.Model):
     province = db.Column(db.String(100))
     message = db.Column(db.Text, nullable=False)
     is_approved = db.Column(db.Boolean, default=True)
+    reply_content = db.Column(db.Text)
+    reply_admin_id = db.Column(db.Integer, db.ForeignKey('admin_users.id'))
+    replied_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    reply_admin = db.relationship('AdminUser', backref='guestbook_replies')
     
     def to_dict(self):
         return {
@@ -313,6 +318,10 @@ class Guestbook(db.Model):
             'province': self.province,
             'message': self.message,
             'is_approved': self.is_approved,
+            'reply_content': self.reply_content,
+            'reply_admin_id': self.reply_admin_id,
+            'reply_admin_name': self.reply_admin.username if self.reply_admin else None,
+            'replied_at': self.replied_at.isoformat() if self.replied_at else None,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
@@ -448,4 +457,38 @@ class BookingGuide(db.Model):
             'contact_work_time': self.contact_work_time,
             'order': self.order,
             'is_active': self.is_active
+        }
+
+class OperationLog(db.Model):
+    __tablename__ = 'operation_logs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    admin_id = db.Column(db.Integer, db.ForeignKey('admin_users.id'), nullable=False)
+    admin_username = db.Column(db.String(80), nullable=False)
+    module = db.Column(db.String(50), nullable=False)
+    action = db.Column(db.String(20), nullable=False)
+    target_type = db.Column(db.String(50))
+    target_id = db.Column(db.Integer)
+    target_name = db.Column(db.String(200))
+    description = db.Column(db.Text)
+    ip_address = db.Column(db.String(50))
+    user_agent = db.Column(db.String(500))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    admin = db.relationship('AdminUser', backref='operation_logs')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'admin_id': self.admin_id,
+            'admin_username': self.admin_username,
+            'module': self.module,
+            'action': self.action,
+            'target_type': self.target_type,
+            'target_id': self.target_id,
+            'target_name': self.target_name,
+            'description': self.description,
+            'ip_address': self.ip_address,
+            'user_agent': self.user_agent,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
