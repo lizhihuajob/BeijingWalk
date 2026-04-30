@@ -432,97 +432,33 @@ const ScenicSpotDetail = () => {
                   </motion.button>
                 </div>
                 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2">
-                    <div className="relative h-64 md:h-80 rounded-2xl overflow-hidden shadow-lg cursor-pointer group"
-                      onClick={() => navigate('/map')}
-                    >
-                      <MapWrapper
-                        scenicSpots={[scenicSpot]}
-                        selectedSpot={scenicSpot}
-                        showProviderSwitch={false}
-                        className="w-full h-full"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center pointer-events-none">
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 px-6 py-3 bg-white/90 backdrop-blur-sm rounded-full shadow-lg">
-                          <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                            <Map className="w-4 h-4" />
-                            点击打开完整地图
-                          </span>
-                        </div>
-                      </div>
+                <div className="relative h-64 md:h-96 rounded-2xl overflow-hidden shadow-lg cursor-pointer group"
+                  onClick={() => navigate('/map')}
+                >
+                  <MapWrapper
+                    scenicSpots={[scenicSpot]}
+                    selectedSpot={scenicSpot}
+                    showProviderSwitch={true}
+                    className="w-full h-full"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center pointer-events-none">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 px-6 py-3 bg-white/90 backdrop-blur-sm rounded-full shadow-lg">
+                      <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <Map className="w-4 h-4" />
+                        点击打开完整地图
+                      </span>
                     </div>
                   </div>
-                  
-                  <div className="space-y-4">
-                    <motion.button
-                      whileHover={{ scale: 1.02, x: 4 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        const url = `https://uri.amap.com/marker?position=${scenicSpot.longitude},${scenicSpot.latitude}&name=${encodeURIComponent(scenicSpot.name)}`;
-                        window.open(url, '_blank');
-                      }}
-                      className="w-full flex items-center gap-4 p-4 bg-blue-50 rounded-2xl hover:bg-blue-100 transition-colors text-left"
-                    >
-                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg flex-shrink-0">
-                        <MapPin className="w-7 h-7 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900">详细地址</p>
-                        <p className="text-xs text-gray-600 mt-1 truncate">
-                          {scenicSpot.location || '北京市'}
-                        </p>
-                        <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
-                          <ExternalLink className="w-3 h-3" />
-                          点击在地图中打开
-                        </p>
-                      </div>
-                    </motion.button>
-                    
-                    <motion.button
-                      whileHover={{ scale: 1.02, x: 4 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        const url = `https://uri.amap.com/navigation?to=${scenicSpot.longitude},${scenicSpot.latitude},${encodeURIComponent(scenicSpot.name)}&mode=car&coordinate=gaode&callnative=0`;
-                        window.open(url, '_blank');
-                      }}
-                      className="w-full flex items-center gap-4 p-4 bg-green-50 rounded-2xl hover:bg-green-100 transition-colors text-left"
-                    >
-                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg flex-shrink-0">
-                        <Navigation className="w-7 h-7 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900">坐标位置</p>
-                        <p className="text-xs text-gray-600 mt-1">
-                          {scenicSpot.latitude?.toFixed(4)}°N, {scenicSpot.longitude?.toFixed(4)}°E
-                        </p>
-                        <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                          <ExternalLink className="w-3 h-3" />
-                          点击导航前往
-                        </p>
-                      </div>
-                    </motion.button>
-                    
-                    <motion.button
-                      whileHover={{ scale: 1.02, x: 4 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => navigate('/map')}
-                      className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl hover:from-purple-100 hover:to-pink-100 transition-colors text-left border-2 border-dashed border-purple-200"
-                    >
-                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg flex-shrink-0">
-                        <Layers className="w-7 h-7 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900">探索更多</p>
-                        <p className="text-xs text-gray-600 mt-1">
-                          查看所有景点地图
-                        </p>
-                        <p className="text-xs text-purple-600 mt-1 flex items-center gap-1">
-                          <ChevronRight className="w-3 h-3" />
-                          打开完整地图页面
-                        </p>
-                      </div>
-                    </motion.button>
+                </div>
+                
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-blue-500" />
+                    <span className="text-gray-700 font-medium">{scenicSpot.location || '北京市'}</span>
+                    <span className="text-gray-400">|</span>
+                    <span className="text-gray-500 text-sm">
+                      {scenicSpot.latitude?.toFixed(4)}°N, {scenicSpot.longitude?.toFixed(4)}°E
+                    </span>
                   </div>
                 </div>
               </div>
