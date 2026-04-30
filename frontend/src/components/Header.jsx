@@ -21,6 +21,7 @@ const Header = () => {
     { path: '/culture', label: '北京文化' },
     { path: '/specialties', label: '地方特产' },
     { path: '/scenic', label: '名胜古迹' },
+    { path: '/map', label: '景点地图' },
     { path: '/heritage', label: '非物质文化遗产' },
     { path: '/guestbook', label: '留言板' },
   ]);

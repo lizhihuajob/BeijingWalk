@@ -103,6 +103,8 @@ def migrate_scenic_spot_table():
                 ('additional_opening_notes', 'TEXT'),
                 ('recommended_duration', 'VARCHAR(100)'),
                 ('location', 'VARCHAR(200)'),
+                ('latitude', 'DOUBLE PRECISION'),
+                ('longitude', 'DOUBLE PRECISION'),
                 ('tips', 'TEXT'),
                 ('opening_status', 'VARCHAR(100)'),
             ]
@@ -134,6 +136,13 @@ def migrate_scenic_spot_table():
                     '颐和园': '北京市海淀区新建宫门路19号',
                     '天坛公园': '北京市东城区天坛内东里7号',
                     '明十三陵': '北京市昌平区十三陵镇',
+                }
+                
+                spot_coordinates_map = {
+                    '故宫博物院': {'latitude': 39.916667, 'longitude': 116.397222},
+                    '颐和园': {'latitude': 39.999444, 'longitude': 116.275556},
+                    '天坛公园': {'latitude': 39.888333, 'longitude': 116.4175},
+                    '明十三陵': {'latitude': 40.298611, 'longitude': 116.239722},
                 }
                 
                 spot_tips_map = {
@@ -187,6 +196,12 @@ def migrate_scenic_spot_table():
                     
                     if spot.name in spot_location_map and spot.location is None:
                         spot.location = spot_location_map[spot.name]
+                    if spot.name in spot_coordinates_map:
+                        coords = spot_coordinates_map[spot.name]
+                        if spot.latitude is None:
+                            spot.latitude = coords['latitude']
+                        if spot.longitude is None:
+                            spot.longitude = coords['longitude']
                     if spot.name in spot_tips_map and spot.tips is None:
                         spot.tips = json.dumps(spot_tips_map[spot.name], ensure_ascii=False)
                     if spot.name in spot_opening_status_map and spot.opening_status is None:
@@ -295,6 +310,13 @@ def init_database():
                 '明十三陵': '北京市昌平区十三陵镇',
             }
             
+            spot_coordinates_map = {
+                '故宫博物院': {'latitude': 39.916667, 'longitude': 116.397222},
+                '颐和园': {'latitude': 39.999444, 'longitude': 116.275556},
+                '天坛公园': {'latitude': 39.888333, 'longitude': 116.4175},
+                '明十三陵': {'latitude': 40.298611, 'longitude': 116.239722},
+            }
+            
             spot_tips_map = {
                 '故宫博物院': [
                     '建议提前网上预约，避开高峰期游览',
@@ -340,6 +362,8 @@ def init_database():
                     additional_opening_notes='周一闭馆（法定节假日除外）。所有观众须实名预约参观，不售当日票，可提前7日20:00开始预约。',
                     recommended_duration='3-4小时',
                     location=spot_location_map['故宫博物院'],
+                    latitude=spot_coordinates_map['故宫博物院']['latitude'],
+                    longitude=spot_coordinates_map['故宫博物院']['longitude'],
                     tips=json.dumps(spot_tips_map['故宫博物院'], ensure_ascii=False),
                     opening_status='正常开放'
                 ),
@@ -360,6 +384,8 @@ def init_database():
                     additional_opening_notes='园中园（佛香阁、德和园、颐和园博物馆、苏州街）：8:00-18:00（17:30停止进入），周一闭园（法定节假日除外）。',
                     recommended_duration='3-4小时',
                     location=spot_location_map['颐和园'],
+                    latitude=spot_coordinates_map['颐和园']['latitude'],
+                    longitude=spot_coordinates_map['颐和园']['longitude'],
                     tips=json.dumps(spot_tips_map['颐和园'], ensure_ascii=False),
                     opening_status='正常开放'
                 ),
@@ -380,6 +406,8 @@ def init_database():
                     additional_opening_notes='可通过"畅游公园"平台预约购票。',
                     recommended_duration='2-3小时',
                     location=spot_location_map['天坛公园'],
+                    latitude=spot_coordinates_map['天坛公园']['latitude'],
+                    longitude=spot_coordinates_map['天坛公园']['longitude'],
                     tips=json.dumps(spot_tips_map['天坛公园'], ensure_ascii=False),
                     opening_status='正常开放'
                 ),
@@ -400,6 +428,8 @@ def init_database():
                     additional_opening_notes='可通过"昌平文旅集团"小程序预约购票。建议下午3点前进入陵区，避免赶不上深度游览。',
                     recommended_duration='3-4小时',
                     location=spot_location_map['明十三陵'],
+                    latitude=spot_coordinates_map['明十三陵']['latitude'],
+                    longitude=spot_coordinates_map['明十三陵']['longitude'],
                     tips=json.dumps(spot_tips_map['明十三陵'], ensure_ascii=False),
                     opening_status='正常开放'
                 )

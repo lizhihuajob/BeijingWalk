@@ -4,10 +4,12 @@ import { motion } from 'framer-motion';
 import { 
   ArrowLeft, MapPin, Clock, Ticket, Calendar, Play, Loader2, Pause, 
   Volume2, VolumeX, ExternalLink, Info, DollarSign, Sun, Moon,
-  ChevronRight, AlertCircle
+  ChevronRight, AlertCircle, Map, Globe, Navigation, Layers, Locate
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import MapWrapper from '../components/MapWrapper';
+import NearbyRecommendations from '../components/NearbyRecommendations';
 import { getScenicSpotById } from '../services/api';
 import { trackContentView } from '../services/analytics';
 
@@ -19,6 +21,7 @@ const ScenicSpotDetail = () => {
   const [error, setError] = useState(null);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [showMap, setShowMap] = useState(true);
   const videoRef = React.useRef(null);
 
   useEffect(() => {
@@ -164,36 +167,70 @@ const ScenicSpotDetail = () => {
             transition={{ delay: 0.2 }}
             className="grid md:grid-cols-4 gap-6 mb-12"
           >
-            <div className="bg-white rounded-3xl shadow-lg p-6 text-center">
+            <motion.div
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                if (scenicSpot.latitude && scenicSpot.longitude) {
+                  const url = `https://uri.amap.com/marker?position=${scenicSpot.longitude},${scenicSpot.latitude}&name=${encodeURIComponent(scenicSpot.name)}`;
+                  window.open(url, '_blank');
+                }
+              }}
+              className="bg-white rounded-3xl shadow-lg p-6 text-center cursor-pointer hover:shadow-xl transition-all"
+            >
               <div className="w-16 h-16 rounded-2xl bg-blue-100 flex items-center justify-center mx-auto mb-4">
                 <MapPin className="w-8 h-8 text-blue-500" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">位置</h3>
-              <p className="text-gray-500">{scenicSpot.location || '北京市'}</p>
-            </div>
-            <div className="bg-white rounded-3xl shadow-lg p-6 text-center">
+              <h3 className="text-lg font-bold text-gray-900">位置</h3>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                const element = document.getElementById('nearby-recommendations');
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className="bg-white rounded-3xl shadow-lg p-6 text-center cursor-pointer hover:shadow-xl transition-all"
+            >
               <div className="w-16 h-16 rounded-2xl bg-indigo-100 flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-8 h-8 text-indigo-500" />
+                <Layers className="w-8 h-8 text-indigo-500" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">推荐游览</h3>
-              <p className="text-gray-500">{scenicSpot.recommended_duration || '建议2-3小时'}</p>
-            </div>
-            <div className="bg-white rounded-3xl shadow-lg p-6 text-center">
+              <h3 className="text-lg font-bold text-gray-900">周边推荐</h3>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                const element = document.getElementById('spot-introduction');
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className="bg-white rounded-3xl shadow-lg p-6 text-center cursor-pointer hover:shadow-xl transition-all"
+            >
               <div className="w-16 h-16 rounded-2xl bg-purple-100 flex items-center justify-center mx-auto mb-4">
-                <Ticket className="w-8 h-8 text-purple-500" />
+                <Info className="w-8 h-8 text-purple-500" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">门票价格</h3>
-              <p className="text-gray-500">
-                {scenicSpot.ticket_price_peak || '需购票入场'}
-              </p>
-            </div>
-            <div className="bg-white rounded-3xl shadow-lg p-6 text-center">
+              <h3 className="text-lg font-bold text-gray-900">景点介绍</h3>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                const element = document.getElementById('opening-hours');
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className="bg-white rounded-3xl shadow-lg p-6 text-center cursor-pointer hover:shadow-xl transition-all"
+            >
               <div className="w-16 h-16 rounded-2xl bg-violet-100 flex items-center justify-center mx-auto mb-4">
-                <Calendar className="w-8 h-8 text-violet-500" />
+                <Clock className="w-8 h-8 text-violet-500" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">开放状态</h3>
-              <p className="text-gray-500">{scenicSpot.opening_status || '正常开放'}</p>
-            </div>
+              <h3 className="text-lg font-bold text-gray-900">开放时间</h3>
+            </motion.div>
           </motion.div>
 
           <motion.div
@@ -295,6 +332,7 @@ const ScenicSpotDetail = () => {
           </motion.div>
 
           <motion.div
+            id="opening-hours"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
@@ -357,6 +395,7 @@ const ScenicSpotDetail = () => {
           </motion.div>
 
           <motion.div
+            id="spot-introduction"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
@@ -402,6 +441,25 @@ const ScenicSpotDetail = () => {
                 </div>
               );
             })()}
+          </motion.div>
+
+
+
+          <motion.div
+            id="nearby-recommendations"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.44 }}
+            className="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-12"
+          >
+            <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-4">
+              <span className="w-2 h-12 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></span>
+              周边推荐
+            </h2>
+            <p className="text-gray-500 mb-6">
+              探索「{scenicSpot.name}」周边的美食、文化场所和特色购物
+            </p>
+            <NearbyRecommendations scenicSpotId={scenicSpot.id} />
           </motion.div>
 
           <motion.div
