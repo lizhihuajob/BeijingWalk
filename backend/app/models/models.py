@@ -220,6 +220,8 @@ class ScenicSpot(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     
     location = db.Column(db.String(200))
+    latitude = db.Column(db.Float)
+    longitude = db.Column(db.Float)
     tips = db.Column(db.Text)
     opening_status = db.Column(db.String(100), default='正常开放')
     
@@ -248,6 +250,8 @@ class ScenicSpot(db.Model):
             'order': self.order,
             'is_active': self.is_active,
             'location': self.location,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
             'tips': self.tips,
             'opening_status': self.opening_status,
             'ticket_price_peak': self.ticket_price_peak,

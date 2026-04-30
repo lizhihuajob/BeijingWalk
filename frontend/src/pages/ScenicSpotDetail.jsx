@@ -4,10 +4,12 @@ import { motion } from 'framer-motion';
 import { 
   ArrowLeft, MapPin, Clock, Ticket, Calendar, Play, Loader2, Pause, 
   Volume2, VolumeX, ExternalLink, Info, DollarSign, Sun, Moon,
-  ChevronRight, AlertCircle
+  ChevronRight, AlertCircle, Map, Globe, Navigation, Layers, Locate
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import MapWrapper from '../components/MapWrapper';
+import NearbyRecommendations from '../components/NearbyRecommendations';
 import { getScenicSpotById } from '../services/api';
 import { trackContentView } from '../services/analytics';
 
@@ -19,6 +21,7 @@ const ScenicSpotDetail = () => {
   const [error, setError] = useState(null);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [showMap, setShowMap] = useState(true);
   const videoRef = React.useRef(null);
 
   useEffect(() => {
@@ -402,6 +405,99 @@ const ScenicSpotDetail = () => {
                 </div>
               );
             })()}
+          </motion.div>
+
+          {scenicSpot.latitude && scenicSpot.longitude && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.42 }}
+              className="bg-white rounded-3xl shadow-xl overflow-hidden mb-12"
+            >
+              <div className="p-8 md:p-12 pb-0">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-4">
+                    <span className="w-2 h-12 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></span>
+                    景点位置
+                  </h2>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => navigate('/map')}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-medium rounded-full hover:shadow-lg transition-all"
+                  >
+                    <Map className="w-4 h-4" />
+                    查看完整地图
+                    <ChevronRight className="w-4 h-4" />
+                  </motion.button>
+                </div>
+              </div>
+              
+              <div className="relative h-80 md:h-96">
+                <MapWrapper
+                  scenicSpots={[scenicSpot]}
+                  selectedSpot={scenicSpot}
+                  showProviderSwitch={true}
+                  className="w-full h-full"
+                />
+              </div>
+              
+              <div className="p-8 md:p-12 pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-2xl">
+                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                      <MapPin className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">详细地址</p>
+                      <p className="text-sm font-medium text-gray-700">
+                        {scenicSpot.location || '北京市'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-4 bg-green-50 rounded-2xl">
+                    <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
+                      <Navigation className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">坐标</p>
+                      <p className="text-sm font-medium text-gray-700">
+                        {scenicSpot.latitude?.toFixed(4)}°N, {scenicSpot.longitude?.toFixed(4)}°E
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-2xl">
+                    <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                      <Layers className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">地图服务</p>
+                      <p className="text-sm font-medium text-gray-700">
+                        支持高德/百度地图切换
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.44 }}
+            className="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-12"
+          >
+            <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-4">
+              <span className="w-2 h-12 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></span>
+              周边推荐
+            </h2>
+            <p className="text-gray-500 mb-6">
+              探索「{scenicSpot.name}」周边的美食、文化场所和特色购物
+            </p>
+            <NearbyRecommendations scenicSpotId={scenicSpot.id} />
           </motion.div>
 
           <motion.div

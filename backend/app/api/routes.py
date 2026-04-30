@@ -375,3 +375,145 @@ def get_all_config():
         'navigations': [nav.to_dict() for nav in navigations],
         'categories': [cat.to_dict() for cat in categories]
     }), 200
+
+@api_bp.route('/scenic-spots/map', methods=['GET'])
+def get_scenic_spots_for_map():
+    scenic_spots = ScenicSpot.query.filter_by(is_active=True).order_by(ScenicSpot.order).all()
+    
+    result = []
+    for spot in scenic_spots:
+        spot_dict = spot.to_dict()
+        if spot_dict['latitude'] and spot_dict['longitude']:
+            result.append({
+                'id': spot_dict['id'],
+                'name': spot_dict['name'],
+                'image_url': spot_dict['image_url'],
+                'location': spot_dict['location'],
+                'latitude': spot_dict['latitude'],
+                'longitude': spot_dict['longitude'],
+                'is_featured': spot_dict['is_featured'],
+                'recommended_duration': spot_dict['recommended_duration'],
+                'ticket_price_peak': spot_dict['ticket_price_peak'],
+                'opening_status': spot_dict['opening_status']
+            })
+    
+    return jsonify(result), 200
+
+@api_bp.route('/scenic-spots/<int:id>/nearby', methods=['GET'])
+def get_nearby_recommendations(id):
+    spot = ScenicSpot.query.get_or_404(id)
+    
+    spot_dict = spot.to_dict()
+    
+    if not spot_dict['latitude'] or not spot_dict['longitude']:
+        return jsonify({
+            'error': '该景点暂无坐标信息',
+            'food': [],
+            'culture': [],
+            'specialty': []
+        }), 404
+    
+    nearby_data = {
+        'spot_id': spot_dict['id'],
+        'spot_name': spot_dict['name'],
+        'spot_latitude': spot_dict['latitude'],
+        'spot_longitude': spot_dict['longitude'],
+        'food': [
+            {
+                'id': 1,
+                'name': '全聚德烤鸭店',
+                'type': 'restaurant',
+                'distance': '约500米',
+                'rating': 4.8,
+                'address': '北京市东城区前门大街30号',
+                'description': '中华老字号，以挂炉烤鸭闻名，是品尝北京烤鸭的绝佳选择。',
+                'image_url': 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traditional%20Chinese%20restaurant%20Quanjude%20Peking%20duck%20interior%20elegant%20dining%20room&image_size=square'
+            },
+            {
+                'id': 2,
+                'name': '老北京炸酱面',
+                'type': 'restaurant',
+                'distance': '约800米',
+                'rating': 4.5,
+                'address': '北京市东城区南锣鼓巷12号',
+                'description': '地道的老北京炸酱面，面条劲道，酱料香浓，搭配各种小菜。',
+                'image_url': 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traditional%20Beijing%20zhajiangmian%20noodles%20with%20soybean%20paste%20and%20vegetables&image_size=square'
+            },
+            {
+                'id': 3,
+                'name': '护国寺小吃',
+                'type': 'restaurant',
+                'distance': '约1.2公里',
+                'rating': 4.6,
+                'address': '北京市西城区护国寺大街93号',
+                'description': '汇集北京各种传统小吃，驴打滚、豌豆黄、艾窝窝等应有尽有。',
+                'image_url': 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traditional%20Chinese%20snacks%20Beijing%20Huguosi%20style%20assorted%20desserts%20and%20pastries&image_size=square'
+            }
+        ],
+        'culture': [
+            {
+                'id': 1,
+                'name': '国家博物馆',
+                'type': 'museum',
+                'distance': '约2公里',
+                'rating': 4.9,
+                'address': '北京市东城区东长安街16号',
+                'description': '中国最大的综合性博物馆，收藏了大量珍贵文物，展示中华文明五千年历史。',
+                'image_url': 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=National%20Museum%20of%20China%20Beijing%20grand%20building%20exhibition%20halls%20ancient%20artifacts&image_size=square'
+            },
+            {
+                'id': 2,
+                'name': '北京老舍茶馆',
+                'type': 'culture',
+                'distance': '约1.5公里',
+                'rating': 4.7,
+                'address': '北京市西城区前门西大街正阳市场3号楼',
+                'description': '以著名作家老舍命名的茶馆，可以品茶、欣赏京剧、相声等传统表演。',
+                'image_url': 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traditional%20Chinese%20teahouse%20LaoShe%20Beijing%20style%20interior%20with%20tea%20ceremony&image_size=square'
+            },
+            {
+                'id': 3,
+                'name': '北京自然博物馆',
+                'type': 'museum',
+                'distance': '约3公里',
+                'rating': 4.6,
+                'address': '北京市东城区天桥南大街126号',
+                'description': '展示自然历史和生物进化的博物馆，适合家庭参观，有恐龙骨架等精彩展品。',
+                'image_url': 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=natural%20history%20museum%20Beijing%20dinosaur%20skeletons%20exhibition%20interior&image_size=square'
+            }
+        ],
+        'specialty': [
+            {
+                'id': 1,
+                'name': '北京同仁堂',
+                'type': 'specialty',
+                'distance': '约1公里',
+                'rating': 4.8,
+                'address': '北京市东城区大栅栏24号',
+                'description': '中华老字号中药店，可以购买到正宗的中药材和中成药，还有保健品等。',
+                'image_url': 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traditional%20Chinese%20medicine%20shop%20Tongrentang%20Beijing%20herbs%20and%20remedies&image_size=square'
+            },
+            {
+                'id': 2,
+                'name': '内联升鞋店',
+                'type': 'specialty',
+                'distance': '约800米',
+                'rating': 4.5,
+                'address': '北京市西城区大栅栏街34号',
+                'description': '中华老字号鞋店，以手工制作布鞋闻名，穿着舒适，是北京特色纪念品。',
+                'image_url': 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traditional%20Chinese%20shoe%20shop%20Neiliansheng%20Beijing%20handmade%20cloth%20shoes&image_size=square'
+            },
+            {
+                'id': 3,
+                'name': '瑞蚨祥丝绸店',
+                'type': 'specialty',
+                'distance': '约900米',
+                'rating': 4.7,
+                'address': '北京市西城区大栅栏街5号',
+                'description': '中华老字号丝绸店，提供各种优质丝绸面料和成衣，是购买丝绸制品的好去处。',
+                'image_url': 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traditional%20Chinese%20silk%20shop%20Ruifuxiang%20Beijing%20colorful%20silk%20fabrics%20and%20garments&image_size=square'
+            }
+        ]
+    }
+    
+    return jsonify(nearby_data), 200

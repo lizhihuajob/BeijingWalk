@@ -11,6 +11,8 @@ import ScenicSpotDetail from './pages/ScenicSpotDetail';
 import HeritageDetail from './pages/HeritageDetail';
 import Guestbook from './pages/Guestbook';
 import TicketBookingGuide from './pages/TicketBookingGuide';
+import MapPage from './pages/MapPage';
+import { MapProvider } from './contexts/MapContext';
 import { trackPageView } from './services/analytics';
 
 function RouteAnalyticsTracker() {
@@ -29,7 +31,7 @@ function RouteAnalyticsTracker() {
 
 function App() {
   return (
-    <>
+    <MapProvider>
       <RouteAnalyticsTracker />
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -43,8 +45,9 @@ function App() {
         <Route path="/heritage" element={<HeritagePage />} />
         <Route path="/heritage/:id" element={<HeritageDetail />} />
         <Route path="/guestbook" element={<Guestbook />} />
+        <Route path="/map" element={<MapPage />} />
       </Routes>
-    </>
+    </MapProvider>
   );
 }
 
