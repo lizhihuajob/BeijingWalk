@@ -99,4 +99,34 @@ export const userApi = {
   delete: (id) => api.delete(`/admin/users/${id}`),
 };
 
+export const siteConfigApi = {
+  get: () => api.get('/admin/site-config'),
+  save: (data) => api.post('/admin/site-config', data),
+};
+
+export const navigationApi = {
+  getAll: () => api.get('/admin/navigations'),
+  getById: (id) => api.get(`/admin/navigations/${id}`),
+  create: (data) => api.post('/admin/navigations', data),
+  update: (id, data) => api.put(`/admin/navigations/${id}`, data),
+  delete: (id) => api.delete(`/admin/navigations/${id}`),
+};
+
+export const categoryApi = {
+  getAll: () => api.get('/admin/categories'),
+  getById: (id) => api.get(`/admin/categories/${id}`),
+  create: (data) => api.post('/admin/categories', data),
+  update: (id, data) => api.put(`/admin/categories/${id}`, data),
+  delete: (id) => api.delete(`/admin/categories/${id}`),
+};
+
+export const bookingGuideApi = {
+  getAll: () => api.get('/admin/booking-guides'),
+  getById: (id) => api.get(`/admin/booking-guides/${id}`),
+  getBySpot: (spotId) => api.get(`/admin/booking-guides/spot/${spotId}`),
+  create: (data) => api.post('/admin/booking-guides', data),
+  update: (id, data) => api.put(`/admin/booking-guides/${id}`, data),
+  delete: (id) => api.delete(`/admin/booking-guides/${id}`),
+};
+
 export default api;

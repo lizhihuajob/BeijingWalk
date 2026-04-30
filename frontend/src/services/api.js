@@ -92,4 +92,29 @@ export const createGuestbook = async (data) => {
   return response.data;
 };
 
+export const getSiteConfig = async () => {
+  const response = await apiClient.get('/site-config');
+  return response.data;
+};
+
+export const getNavigations = async () => {
+  const response = await apiClient.get('/navigations');
+  return response.data;
+};
+
+export const getCategories = async () => {
+  const response = await apiClient.get('/categories');
+  return response.data;
+};
+
+export const getBookingGuideByScenicSpot = async (scenicSpotId) => {
+  const response = await apiClient.get(`/booking-guides/${scenicSpotId}`);
+  return response.data;
+};
+
+export const getAllConfig = async () => {
+  const response = await apiClient.get('/config/all');
+  return response.data;
+};
+
 export default apiClient;

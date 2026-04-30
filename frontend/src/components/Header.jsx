@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Music, Pause, Volume2, VolumeX, AlertCircle } from 'lucide-react';
+import { getNavigations, getSiteConfig } from '../services/api';
 
 const Header = () => {
   const location = useLocation();
@@ -15,6 +16,17 @@ const Header = () => {
   const [audioError, setAudioError] = useState(null);
   const [showErrorToast, setShowErrorToast] = useState(false);
   const audioRef = useRef(null);
+  const [navItems, setNavItems] = useState([
+    { path: '/', label: '首页' },
+    { path: '/culture', label: '北京文化' },
+    { path: '/specialties', label: '地方特产' },
+    { path: '/scenic', label: '名胜古迹' },
+    { path: '/heritage', label: '非物质文化遗产' },
+    { path: '/guestbook', label: '留言板' },
+  ]);
+  const [siteConfig, setSiteConfig] = useState({
+    site_name: '北京旅游'
+  });
 
   useEffect(() => {
     const audio = new Audio();
@@ -51,6 +63,28 @@ const Header = () => {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const [navigationsData, siteConfigData] = await Promise.all([
+          getNavigations(),
+          getSiteConfig(),
+        ]);
+        
+        if (navigationsData && navigationsData.length > 0) {
+          setNavItems(navigationsData);
+        }
+        if (siteConfigData) {
+          setSiteConfig(siteConfigData);
+        }
+      } catch (err) {
+        console.error('Failed to fetch config:', err);
+      }
+    };
+
+    fetchConfig();
   }, []);
 
   const showError = (message) => {
@@ -115,15 +149,6 @@ const Header = () => {
     setIsMuted(!isMuted);
   };
 
-  const navItems = [
-    { path: '/', label: '首页' },
-    { path: '/culture', label: '北京文化' },
-    { path: '/specialties', label: '地方特产' },
-    { path: '/scenic', label: '名胜古迹' },
-    { path: '/heritage', label: '非物质文化遗产' },
-    { path: '/guestbook', label: '留言板' },
-  ];
-
   const isActive = (path) => {
     if (path === '/') {
       return location.pathname === '/';
@@ -159,7 +184,7 @@ const Header = () => {
                 <span className={`text-xl font-semibold tracking-tight ${
                   showScrolledStyle ? 'text-gray-900' : 'text-white'
                 }`}>
-                  北京旅游
+                  {siteConfig.site_name || '北京旅游'}
                 </span>
               </motion.div>
             </Link>

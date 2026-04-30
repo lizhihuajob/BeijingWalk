@@ -1,7 +1,8 @@
+import json
 from app import create_app, db
 from app.models.models import (
     Banner, Culture, Specialty, ScenicSpot, Heritage, 
-    Guestbook, AdminUser
+    Guestbook, AdminUser, SiteConfig, Navigation, Category, BookingGuide
 )
 from sqlalchemy import text
 
@@ -10,8 +11,9 @@ app = create_app()
 def migrate_guestbook_table():
     with app.app_context():
         inspector = db.inspect(db.engine)
+        tables = inspector.get_table_names()
         
-        if 'guestbooks' in inspector.get_table_names():
+        if 'guestbooks' in tables:
             columns = [c['name'] for c in inspector.get_columns('guestbooks')]
             
             migrations = []
@@ -84,9 +86,10 @@ def get_scenic_spot_update_data():
 def migrate_scenic_spot_table():
     with app.app_context():
         inspector = db.inspect(db.engine)
+        tables = inspector.get_table_names()
         needs_data_update = False
         
-        if 'scenic_spots' in inspector.get_table_names():
+        if 'scenic_spots' in tables:
             columns = [c['name'] for c in inspector.get_columns('scenic_spots')]
             
             new_columns = [
@@ -99,6 +102,9 @@ def migrate_scenic_spot_table():
                 ('opening_hours_off_peak', 'VARCHAR(200)'),
                 ('additional_opening_notes', 'TEXT'),
                 ('recommended_duration', 'VARCHAR(100)'),
+                ('location', 'VARCHAR(200)'),
+                ('tips', 'TEXT'),
+                ('opening_status', 'VARCHAR(100)'),
             ]
             
             migrations = []
@@ -118,35 +124,85 @@ def migrate_scenic_spot_table():
                 db.session.commit()
                 print('ScenicSpot table migrated successfully!')
         
-        if needs_data_update or ScenicSpot.query.first() is not None:
+        if 'scenic_spots' in tables:
             existing_spots = ScenicSpot.query.all()
-            update_data = get_scenic_spot_update_data()
-            
-            for spot in existing_spots:
-                if spot.name in update_data:
-                    data = update_data[spot.name]
-                    if spot.ticket_price_peak is None:
-                        spot.ticket_price_peak = data['ticket_price_peak']
-                        spot.ticket_price_off_peak = data['ticket_price_off_peak']
-                        spot.ticket_additional_info = data['ticket_additional_info']
-                        spot.ticket_url = data['ticket_url']
-                        spot.has_direct_booking = data['has_direct_booking']
-                        spot.opening_hours_peak = data['opening_hours_peak']
-                        spot.opening_hours_off_peak = data['opening_hours_off_peak']
-                        spot.additional_opening_notes = data['additional_opening_notes']
-                        spot.recommended_duration = data['recommended_duration']
-                        print(f'Updated data for scenic spot: {spot.name}')
-            
-            try:
-                db.session.commit()
-                print('ScenicSpot data updated successfully!')
-            except Exception as e:
-                db.session.rollback()
-                print(f'Error updating ScenicSpot data: {e}')
+            if existing_spots:
+                update_data = get_scenic_spot_update_data()
+                
+                spot_location_map = {
+                    '故宫博物院': '北京市东城区景山前街4号',
+                    '颐和园': '北京市海淀区新建宫门路19号',
+                    '天坛公园': '北京市东城区天坛内东里7号',
+                    '明十三陵': '北京市昌平区十三陵镇',
+                }
+                
+                spot_tips_map = {
+                    '故宫博物院': [
+                        '建议提前网上预约，避开高峰期游览',
+                        '穿着舒适的鞋子，景区较大',
+                        '可以请导游讲解，了解更多历史故事',
+                        '周一闭馆（法定节假日除外）',
+                    ],
+                    '颐和园': [
+                        '建议从东门或北门进入，游览路线更合理',
+                        '夏季注意防晒和补水',
+                        '佛香阁是最佳观景点，不要错过',
+                        '可以乘坐昆明湖游船欣赏美景',
+                    ],
+                    '天坛公园': [
+                        '建议早晨游览，空气清新，人也较少',
+                        '联票包含祈年殿、圜丘、回音壁，推荐购买',
+                        '回音壁有特定的听音点，注意观察指示牌',
+                        '公园很大，建议租用电瓶车',
+                    ],
+                    '明十三陵': [
+                        '定陵是唯一开放地宫的陵墓，值得一看',
+                        '长陵是规模最大的陵墓，建筑宏伟',
+                        '神道是进入陵区的必经之路，石像生很有特色',
+                        '建议下午3点前进入陵区，避免赶不上深度游览',
+                    ],
+                }
+                
+                spot_opening_status_map = {
+                    '故宫博物院': '正常开放',
+                    '颐和园': '正常开放',
+                    '天坛公园': '正常开放',
+                    '明十三陵': '正常开放',
+                }
+                
+                for spot in existing_spots:
+                    if spot.name in update_data:
+                        data = update_data[spot.name]
+                        if spot.ticket_price_peak is None:
+                            spot.ticket_price_peak = data['ticket_price_peak']
+                            spot.ticket_price_off_peak = data['ticket_price_off_peak']
+                            spot.ticket_additional_info = data['ticket_additional_info']
+                            spot.ticket_url = data['ticket_url']
+                            spot.has_direct_booking = data['has_direct_booking']
+                            spot.opening_hours_peak = data['opening_hours_peak']
+                            spot.opening_hours_off_peak = data['opening_hours_off_peak']
+                            spot.additional_opening_notes = data['additional_opening_notes']
+                            spot.recommended_duration = data['recommended_duration']
+                            print(f'Updated ticket data for scenic spot: {spot.name}')
+                    
+                    if spot.name in spot_location_map and spot.location is None:
+                        spot.location = spot_location_map[spot.name]
+                    if spot.name in spot_tips_map and spot.tips is None:
+                        spot.tips = json.dumps(spot_tips_map[spot.name], ensure_ascii=False)
+                    if spot.name in spot_opening_status_map and spot.opening_status is None:
+                        spot.opening_status = spot_opening_status_map[spot.name]
+                
+                try:
+                    db.session.commit()
+                    print('ScenicSpot data updated successfully!')
+                except Exception as e:
+                    db.session.rollback()
+                    print(f'Error updating ScenicSpot data: {e}')
 
 def init_database():
     with app.app_context():
         db.create_all()
+        print('Database tables created successfully!')
         
         if Banner.query.first() is None:
             banners = [
@@ -232,6 +288,40 @@ def init_database():
             db.session.add_all(specialties)
         
         if ScenicSpot.query.first() is None:
+            spot_location_map = {
+                '故宫博物院': '北京市东城区景山前街4号',
+                '颐和园': '北京市海淀区新建宫门路19号',
+                '天坛公园': '北京市东城区天坛内东里7号',
+                '明十三陵': '北京市昌平区十三陵镇',
+            }
+            
+            spot_tips_map = {
+                '故宫博物院': [
+                    '建议提前网上预约，避开高峰期游览',
+                    '穿着舒适的鞋子，景区较大',
+                    '可以请导游讲解，了解更多历史故事',
+                    '周一闭馆（法定节假日除外）',
+                ],
+                '颐和园': [
+                    '建议从东门或北门进入，游览路线更合理',
+                    '夏季注意防晒和补水',
+                    '佛香阁是最佳观景点，不要错过',
+                    '可以乘坐昆明湖游船欣赏美景',
+                ],
+                '天坛公园': [
+                    '建议早晨游览，空气清新，人也较少',
+                    '联票包含祈年殿、圜丘、回音壁，推荐购买',
+                    '回音壁有特定的听音点，注意观察指示牌',
+                    '公园很大，建议租用电瓶车',
+                ],
+                '明十三陵': [
+                    '定陵是唯一开放地宫的陵墓，值得一看',
+                    '长陵是规模最大的陵墓，建筑宏伟',
+                    '神道是进入陵区的必经之路，石像生很有特色',
+                    '建议下午3点前进入陵区，避免赶不上深度游览',
+                ],
+            }
+            
             scenic_spots = [
                 ScenicSpot(
                     name='故宫博物院',
@@ -248,7 +338,10 @@ def init_database():
                     opening_hours_peak='旺季（4月1日-10月31日）：8:30-17:00（16:10停止入院）',
                     opening_hours_off_peak='淡季（11月1日-3月31日）：8:30-16:30（15:40停止入院）',
                     additional_opening_notes='周一闭馆（法定节假日除外）。所有观众须实名预约参观，不售当日票，可提前7日20:00开始预约。',
-                    recommended_duration='3-4小时'
+                    recommended_duration='3-4小时',
+                    location=spot_location_map['故宫博物院'],
+                    tips=json.dumps(spot_tips_map['故宫博物院'], ensure_ascii=False),
+                    opening_status='正常开放'
                 ),
                 ScenicSpot(
                     name='颐和园',
@@ -265,7 +358,10 @@ def init_database():
                     opening_hours_peak='旺季（4月1日-10月31日）：6:00开园，19:00停止入园，20:00闭园',
                     opening_hours_off_peak='淡季（11月1日-3月31日）：6:30开园，18:00停止入园，19:00闭园',
                     additional_opening_notes='园中园（佛香阁、德和园、颐和园博物馆、苏州街）：8:00-18:00（17:30停止进入），周一闭园（法定节假日除外）。',
-                    recommended_duration='3-4小时'
+                    recommended_duration='3-4小时',
+                    location=spot_location_map['颐和园'],
+                    tips=json.dumps(spot_tips_map['颐和园'], ensure_ascii=False),
+                    opening_status='正常开放'
                 ),
                 ScenicSpot(
                     name='天坛公园',
@@ -282,7 +378,10 @@ def init_database():
                     opening_hours_peak='旺季（4月1日-10月31日）：公园大门6:00-22:00（21:00停止入园）；景点8:00-18:00（17:30停止入园）',
                     opening_hours_off_peak='淡季（11月1日-3月31日）：公园大门6:30-22:00（21:00停止入园）；景点8:00-17:30（17:00停止入园）',
                     additional_opening_notes='可通过"畅游公园"平台预约购票。',
-                    recommended_duration='2-3小时'
+                    recommended_duration='2-3小时',
+                    location=spot_location_map['天坛公园'],
+                    tips=json.dumps(spot_tips_map['天坛公园'], ensure_ascii=False),
+                    opening_status='正常开放'
                 ),
                 ScenicSpot(
                     name='明十三陵',
@@ -299,7 +398,10 @@ def init_database():
                     opening_hours_peak='旺季（4月1日-10月31日）：8:00-17:30（17:00停止入园）',
                     opening_hours_off_peak='淡季（11月1日-3月31日）：8:30-17:00（16:30停止入园）',
                     additional_opening_notes='可通过"昌平文旅集团"小程序预约购票。建议下午3点前进入陵区，避免赶不上深度游览。',
-                    recommended_duration='3-4小时'
+                    recommended_duration='3-4小时',
+                    location=spot_location_map['明十三陵'],
+                    tips=json.dumps(spot_tips_map['明十三陵'], ensure_ascii=False),
+                    opening_status='正常开放'
                 )
             ]
             db.session.add_all(scenic_spots)
@@ -375,6 +477,112 @@ def init_database():
             db.session.add(default_admin)
             print('Default admin user created: username=admin, password=admin123')
         
+        if SiteConfig.query.first() is None:
+            site_config = SiteConfig(
+                site_name='北京旅游',
+                logo_url=None,
+                contact_address='北京市东城区景山前街4号',
+                contact_phone='400-123-4567',
+                contact_email='info@beijingtravel.com',
+                contact_work_time='周一至周日 9:00-18:00',
+                copyright_text='© 2024 北京旅游. All rights reserved.',
+                icp_text='京ICP备12345678号-1',
+            )
+            db.session.add(site_config)
+            print('Default site config created')
+        
+        if Navigation.query.first() is None:
+            navigations = [
+                Navigation(
+                    label='首页',
+                    path='/',
+                    order=1,
+                    is_active=True
+                ),
+                Navigation(
+                    label='北京文化',
+                    path='/culture',
+                    order=2,
+                    is_active=True
+                ),
+                Navigation(
+                    label='地方特产',
+                    path='/specialties',
+                    order=3,
+                    is_active=True
+                ),
+                Navigation(
+                    label='名胜古迹',
+                    path='/scenic',
+                    order=4,
+                    is_active=True
+                ),
+                Navigation(
+                    label='非物质文化遗产',
+                    path='/heritage',
+                    order=5,
+                    is_active=True
+                ),
+                Navigation(
+                    label='留言板',
+                    path='/guestbook',
+                    order=6,
+                    is_active=True
+                ),
+            ]
+            db.session.add_all(navigations)
+            print('Default navigations created')
+        
+        if Category.query.first() is None:
+            categories = [
+                Category(
+                    title='北京文化',
+                    description='探索北京悠久的历史文化，感受千年古都的独特魅力',
+                    icon='Scroll',
+                    path='/culture',
+                    gradient='from-amber-400 to-orange-500',
+                    bg_light='from-amber-50 to-orange-50',
+                    border_color='border-amber-200',
+                    order=1,
+                    is_active=True
+                ),
+                Category(
+                    title='地方特产',
+                    description='品尝北京地道美食，感受舌尖上的老北京味道',
+                    icon='Utensils',
+                    path='/specialties',
+                    gradient='from-red-400 to-pink-500',
+                    bg_light='from-red-50 to-pink-50',
+                    border_color='border-red-200',
+                    order=2,
+                    is_active=True
+                ),
+                Category(
+                    title='名胜古迹',
+                    description='探索北京千年历史的著名景点，感受中华文明的博大精深',
+                    icon='Building',
+                    path='/scenic',
+                    gradient='from-blue-400 to-purple-500',
+                    bg_light='from-blue-50 to-purple-50',
+                    border_color='border-blue-200',
+                    order=3,
+                    is_active=True
+                ),
+                Category(
+                    title='非物质文化遗产',
+                    description='传承千年技艺，守护文化瑰宝，感受老北京的独特魅力',
+                    icon='Sparkles',
+                    path='/heritage',
+                    gradient='from-amber-400 to-yellow-500',
+                    bg_light='from-yellow-50 to-amber-50',
+                    border_color='border-yellow-200',
+                    order=4,
+                    is_active=True
+                ),
+            ]
+            db.session.add_all(categories)
+            print('Default categories created')
+        
         try:
             db.session.commit()
             print('Database initialized successfully!')
@@ -383,6 +591,10 @@ def init_database():
             print(f'Error initializing database: {e}')
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+        print('Database tables created/verified')
+    
     migrate_guestbook_table()
     migrate_scenic_spot_table()
     init_database()

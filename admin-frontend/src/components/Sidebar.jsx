@@ -4,13 +4,21 @@ import {
   MessageSquare, 
   Users,
   User,
-  LogOut
+  LogOut,
+  Settings,
+  Menu,
+  Layers,
+  Ticket
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const baseMenuItems = [
   { path: '/', icon: LayoutDashboard, label: '仪表盘' },
   { path: '/guestbooks', icon: MessageSquare, label: '留言管理' },
+  { path: '/site-config', icon: Settings, label: '网站配置' },
+  { path: '/navigations', icon: Menu, label: '导航菜单' },
+  { path: '/categories', icon: Layers, label: '首页分类' },
+  { path: '/booking-guides', icon: Ticket, label: '购票指南' },
   { path: '/profile', icon: User, label: '个人中心' },
 ];
 
@@ -20,7 +28,10 @@ function Sidebar() {
   const getMenuItems = () => {
     const items = [...baseMenuItems];
     if (user?.is_superuser) {
-      items.push({ path: '/users', icon: Users, label: '员工管理' });
+      const usersIndex = items.findIndex(item => item.path === '/profile');
+      if (usersIndex !== -1) {
+        items.splice(usersIndex, 0, { path: '/users', icon: Users, label: '员工管理' });
+      }
     }
     return items;
   };

@@ -4,145 +4,105 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Ticket, Smartphone, Calendar, Clock, AlertCircle, ExternalLink, CheckCircle } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { getScenicSpotById } from '../services/api';
+import { getScenicSpotById, getBookingGuideByScenicSpot } from '../services/api';
 
 const TicketBookingGuide = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [scenicSpot, setScenicSpot] = useState(null);
+  const [bookingGuide, setBookingGuide] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchScenicSpot = async () => {
+    const fetchData = async () => {
       if (!id) {
         setLoading(false);
         return;
       }
       try {
         setLoading(true);
-        const data = await getScenicSpotById(id);
-        setScenicSpot(data);
+        const [scenicSpotData, guideData] = await Promise.all([
+          getScenicSpotById(id),
+          getBookingGuideByScenicSpot(id),
+        ]);
+        
+        setScenicSpot(scenicSpotData);
+        if (guideData) {
+          setBookingGuide(guideData);
+        }
         setError(null);
       } catch (err) {
-        console.error('Failed to fetch scenic spot:', err);
-        setError('加载景点信息失败，请稍后重试');
+        console.error('Failed to fetch data:', err);
+        setError('加载数据失败，请稍后重试');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchScenicSpot();
+    fetchData();
   }, [id]);
 
-  const getBookingGuide = (spotName) => {
-    const guides = {
-      '故宫博物院': {
-        title: '故宫博物院购票指南',
-        description: '故宫博物院实行全体观众实名制预约参观，不售当日票，请提前预约。',
-        steps: [
-          {
-            title: '方式一：微信小程序预约（推荐）',
-            content: '1. 打开微信，搜索"故宫博物院"小程序\n2. 点击"购票预约" → "在线订票"\n3. 选择参观日期和门票类型\n4. 填写个人身份信息\n5. 完成支付，获得预约凭证',
-            note: '这是最便捷的购票方式，建议提前7天预约'
-          },
-          {
-            title: '方式二：官方网站预约',
-            content: '1. 访问故宫博物院官方订票网站：https://ticket.dpm.org.cn/\n2. 点击"个人订票"按钮\n3. 注册/登录账号\n4. 选择参观日期和门票类型\n5. 填写身份信息并完成支付',
-            note: '网站与小程序共享库存，预约时间相同'
-          }
-        ],
-        importantNotes: [
-          '门票提前7天20:00开售，建议提前预约',
-          '所有观众须实名预约，同一证件每个参观日仅能预约一张门票',
-          '周一闭馆（法定节假日除外），请避开周一参观',
-          '未使用的门票可于参观前一日24:00前通过原渠道退票',
-          '参观当日20:00前仍可退票，但计为1次爽约',
-          '半年内累计爽约3次，60日内将无法购买门票'
-        ],
-        contactInfo: {
-          phone: '010-86489090',
-          workTime: '08:00-20:00（全年无休）'
-        }
-      },
-      '天坛公园': {
-        title: '天坛公园购票指南',
-        description: '天坛公园可通过"畅游公园"平台或现场购票，建议提前预约避免排队。',
-        steps: [
-          {
-            title: '方式一：畅游公园平台预约',
-            content: '1. 打开微信，搜索"畅游公园"公众号或小程序\n2. 选择"天坛公园"\n3. 选择门票类型（大门票或联票）\n4. 填写预约信息\n5. 完成支付',
-            note: '联票包含大门票、祈年殿、圜丘、回音壁，推荐购买'
-          },
-          {
-            title: '方式二：现场购票',
-            content: '1. 前往公园南门、东门、西门、北门售票处\n2. 选择门票类型\n3. 现金或扫码支付\n4. 获取门票入园',
-            note: '旺季建议提前网上预约，避免现场排队'
-          }
-        ],
-        importantNotes: [
-          '旺季（4月1日-10月31日）：大门票15元，联票34元',
-          '淡季（11月1日-3月31日）：大门票10元，联票28元',
-          '学生凭学生证半价优惠',
-          '60岁以上老人、军人等凭证免票',
-          '公园开放时间：6:00-22:00，景点开放时间：8:00-18:00'
-        ],
-        contactInfo: {
-          phone: '010-67028866',
-          workTime: '工作时间咨询'
-        }
-      },
-      '明十三陵': {
-        title: '明十三陵购票指南',
-        description: '明十三陵可通过"昌平文旅集团"小程序或官方网站预约购票。',
-        steps: [
-          {
-            title: '方式一：微信小程序预约（推荐）',
-            content: '1. 打开微信，搜索"昌平文旅集团"小程序\n2. 选择"明十三陵"景区\n3. 选择要参观的景点（长陵、定陵、昭陵、神道）\n4. 选择参观日期和门票类型\n5. 填写个人信息并完成支付',
-            note: '购买联票更划算，包含多个景点'
-          },
-          {
-            title: '方式二：官方网站购票',
-            content: '1. 访问明十三陵官方网站：https://www.mingshisanling.com/ticket.html\n2. 点击"在线预订"\n3. 选择景点和门票类型\n4. 填写预约信息\n5. 完成支付',
-            note: '各景点分开售票，也可购买联票'
-          }
-        ],
-        importantNotes: [
-          '联票98元/人（含长陵、定陵、总神道）',
-          '单票：长陵45元、定陵60元、昭陵30元、总神道30元（旺季价格）',
-          '学生凭学生证半价优惠',
-          '60岁以上老人、残疾人、现役军人凭证免票',
-          '旺季开放时间：8:00-17:30，淡季：8:30-17:00',
-          '建议下午3点前进入陵区，避免赶不上深度游览'
-        ],
-        contactInfo: {
-          phone: '010-60761005',
-          workTime: '工作时间咨询'
-        }
+  const getDefaultGuideData = () => ({
+    title: `${scenicSpot?.name || '景点'}购票指南`,
+    description: '请通过官方渠道购买门票，确保顺利入园。',
+    steps: [
+      {
+        title: '官方渠道购票',
+        content: '请访问景点官方网站或关注官方公众号/小程序进行购票。\n\n避免通过非官方渠道购票，以免造成损失。',
+        note: '建议提前3-7天预约，避免门票售罄'
       }
-    };
+    ],
+    importantNotes: [
+      '请携带购票时使用的有效身份证件原件',
+      '建议提前了解景区开放时间和限流政策',
+      '如有疑问，请联系景区官方客服'
+    ],
+    contactInfo: null
+  });
 
-    return guides[spotName] || {
-      title: `${spotName || '景点'}购票指南`,
-      description: '请通过官方渠道购买门票，确保顺利入园。',
-      steps: [
-        {
-          title: '官方渠道购票',
-          content: '请访问景点官方网站或关注官方公众号/小程序进行购票。\n\n避免通过非官方渠道购票，以免造成损失。',
-          note: '建议提前3-7天预约，避免门票售罄'
-        }
-      ],
-      importantNotes: [
-        '请携带购票时使用的有效身份证件原件',
-        '建议提前了解景区开放时间和限流政策',
-        '如有疑问，请联系景区官方客服'
-      ],
-      contactInfo: null
+  const getGuideData = () => {
+    if (!bookingGuide) {
+      return getDefaultGuideData();
+    }
+
+    let steps = [];
+    if (bookingGuide.steps) {
+      try {
+        steps = typeof bookingGuide.steps === 'string' ? JSON.parse(bookingGuide.steps) : bookingGuide.steps;
+      } catch (e) {
+        console.error('Failed to parse steps:', e);
+      }
+    }
+
+    let importantNotes = [];
+    if (bookingGuide.important_notes) {
+      try {
+        importantNotes = typeof bookingGuide.important_notes === 'string' ? JSON.parse(bookingGuide.important_notes) : bookingGuide.important_notes;
+      } catch (e) {
+        console.error('Failed to parse important_notes:', e);
+      }
+    }
+
+    let contactInfo = null;
+    if (bookingGuide.contact_phone || bookingGuide.contact_work_time) {
+      contactInfo = {
+        phone: bookingGuide.contact_phone,
+        workTime: bookingGuide.contact_work_time
+      };
+    }
+
+    return {
+      title: bookingGuide.title || getDefaultGuideData().title,
+      description: bookingGuide.description || getDefaultGuideData().description,
+      steps: steps.length > 0 ? steps : getDefaultGuideData().steps,
+      importantNotes: importantNotes.length > 0 ? importantNotes : getDefaultGuideData().importantNotes,
+      contactInfo: contactInfo
     };
   };
 
-  const guideData = scenicSpot ? getBookingGuide(scenicSpot.name) : getBookingGuide('');
+  const guideData = getGuideData();
 
   if (loading) {
     return (

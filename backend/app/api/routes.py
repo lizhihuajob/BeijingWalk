@@ -2,9 +2,11 @@ from flask import Blueprint, jsonify, request
 from app import db
 from app.models.models import (
     Banner, Culture, Specialty, ScenicSpot, Heritage, 
-    Guestbook, PageView, ContentView, ContentViewEvent
+    Guestbook, PageView, ContentView, ContentViewEvent,
+    SiteConfig, Navigation, Category, BookingGuide
 )
 from datetime import datetime
+import json
 
 api_bp = Blueprint('api', __name__)
 
@@ -250,3 +252,126 @@ def create_guestbook():
 def get_guestbook(id):
     guestbook = Guestbook.query.get_or_404(id)
     return jsonify(guestbook.to_dict()), 200
+
+def parse_json_field(value, default=None):
+    if value is None:
+        return default
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except (json.JSONDecodeError, ValueError):
+            return default
+    return value
+
+@api_bp.route('/site-config', methods=['GET'])
+def get_site_config():
+    config = SiteConfig.query.filter_by(is_active=True).first()
+    if not config:
+        default_config = {
+            'id': 0,
+            'site_name': '北京旅游',
+            'site_description': '探索千年古都的魅力',
+            'site_keywords': '',
+            'contact_address': '北京市东城区',
+            'contact_phone': '400-123-4567',
+            'contact_email': 'info@beijingwalk.com',
+            'copyright_text': '',
+            'footer_links': None,
+            'banner_title': '探索北京',
+            'banner_subtitle': '千年古都',
+            'banner_description': '感受历史与现代的完美交融，体验传统文化与时尚潮流的碰撞',
+            'is_active': True
+        }
+        return jsonify(default_config), 200
+    
+    config_dict = config.to_dict()
+    config_dict['footer_links'] = parse_json_field(config.footer_links)
+    return jsonify(config_dict), 200
+
+@api_bp.route('/navigations', methods=['GET'])
+def get_navigations():
+    navigations = Navigation.query.filter_by(is_active=True).order_by(Navigation.order).all()
+    return jsonify([nav.to_dict() for nav in navigations]), 200
+
+@api_bp.route('/categories', methods=['GET'])
+def get_categories():
+    categories = Category.query.filter_by(is_active=True).order_by(Category.order).all()
+    return jsonify([cat.to_dict() for cat in categories]), 200
+
+@api_bp.route('/booking-guides', methods=['GET'])
+def get_booking_guides():
+    guides = BookingGuide.query.filter_by(is_active=True).order_by(BookingGuide.order).all()
+    result = []
+    for guide in guides:
+        guide_dict = guide.to_dict()
+        guide_dict['steps'] = parse_json_field(guide.steps)
+        guide_dict['important_notes'] = parse_json_field(guide.important_notes)
+        result.append(guide_dict)
+    return jsonify(result), 200
+
+@api_bp.route('/booking-guides/<int:scenic_spot_id>', methods=['GET'])
+def get_booking_guide_by_spot(scenic_spot_id):
+    guide = BookingGuide.query.filter_by(
+        scenic_spot_id=scenic_spot_id, 
+        is_active=True
+    ).first()
+    
+    if not guide:
+        return jsonify({
+            'id': 0,
+            'scenic_spot_id': scenic_spot_id,
+            'title': '景点购票指南',
+            'description': '请通过官方渠道购买门票，确保顺利入园。',
+            'steps': [{
+                'title': '官方渠道购票',
+                'content': '请访问景点官方网站或关注官方公众号/小程序进行购票。\n\n避免通过非官方渠道购票，以免造成损失。',
+                'note': '建议提前3-7天预约，避免门票售罄'
+            }],
+            'important_notes': [
+                '请携带购票时使用的有效身份证件原件',
+                '建议提前了解景区开放时间和限流政策',
+                '如有疑问，请联系景区官方客服'
+            ],
+            'contact_phone': None,
+            'contact_work_time': None,
+            'order': 0,
+            'is_active': True
+        }), 200
+    
+    guide_dict = guide.to_dict()
+    guide_dict['steps'] = parse_json_field(guide.steps)
+    guide_dict['important_notes'] = parse_json_field(guide.important_notes)
+    return jsonify(guide_dict), 200
+
+@api_bp.route('/config/all', methods=['GET'])
+def get_all_config():
+    config = SiteConfig.query.filter_by(is_active=True).first()
+    navigations = Navigation.query.filter_by(is_active=True).order_by(Navigation.order).all()
+    categories = Category.query.filter_by(is_active=True).order_by(Category.order).all()
+    
+    config_dict = None
+    if config:
+        config_dict = config.to_dict()
+        config_dict['footer_links'] = parse_json_field(config.footer_links)
+    else:
+        config_dict = {
+            'id': 0,
+            'site_name': '北京旅游',
+            'site_description': '探索千年古都的魅力',
+            'site_keywords': '',
+            'contact_address': '北京市东城区',
+            'contact_phone': '400-123-4567',
+            'contact_email': 'info@beijingwalk.com',
+            'copyright_text': '',
+            'footer_links': None,
+            'banner_title': '探索北京',
+            'banner_subtitle': '千年古都',
+            'banner_description': '感受历史与现代的完美交融，体验传统文化与时尚潮流的碰撞',
+            'is_active': True
+        }
+    
+    return jsonify({
+        'site_config': config_dict,
+        'navigations': [nav.to_dict() for nav in navigations],
+        'categories': [cat.to_dict() for cat in categories]
+    }), 200
