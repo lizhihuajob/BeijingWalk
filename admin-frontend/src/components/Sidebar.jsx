@@ -8,12 +8,14 @@ import {
   Settings,
   Menu,
   Layers,
-  Ticket
+  Ticket,
+  Image
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const baseMenuItems = [
   { path: '/', icon: LayoutDashboard, label: '仪表盘' },
+  { path: '/content', icon: Image, label: '内容管理' },
   { path: '/guestbooks', icon: MessageSquare, label: '留言管理' },
   { path: '/site-config', icon: Settings, label: '网站配置' },
   { path: '/navigations', icon: Menu, label: '导航菜单' },

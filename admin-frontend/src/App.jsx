@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
+import ContentPage from './pages/ContentPage';
 import GuestbooksPage from './pages/GuestbooksPage';
 import UsersPage from './pages/UsersPage';
 import Profile from './pages/Profile';
@@ -38,6 +39,7 @@ function App() {
             <Layout>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
+                <Route path="/content" element={<ContentPage />} />
                 <Route path="/guestbooks" element={<GuestbooksPage />} />
                 <Route path="/users" element={<UsersPage />} />
                 <Route path="/site-config" element={<SiteConfigPage />} />
