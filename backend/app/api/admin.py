@@ -1358,9 +1358,9 @@ def get_operation_logs():
     )
     
     return jsonify({
-        'logs': [log.to_dict() for log in pagination.items],
+        'items': [log.to_dict() for log in pagination.items],
         'total': pagination.total,
-        'pages': pagination.pages,
+        'total_pages': pagination.pages,
         'current_page': page,
         'per_page': per_page
     }), 200
