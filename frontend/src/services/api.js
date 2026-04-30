@@ -117,4 +117,14 @@ export const getAllConfig = async () => {
   return response.data;
 };
 
+export const getScenicSpotsForMap = async () => {
+  const response = await apiClient.get('/scenic-spots/map');
+  return response.data;
+};
+
+export const getNearbyRecommendations = async (scenicSpotId) => {
+  const response = await apiClient.get(`/scenic-spots/${scenicSpotId}/nearby`);
+  return response.data;
+};
+
 export default apiClient;
