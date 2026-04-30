@@ -2,7 +2,7 @@ import json
 from app import create_app, db
 from app.models.models import (
     Banner, Culture, Specialty, ScenicSpot, Heritage, 
-    Guestbook, AdminUser, SiteConfig, Navigation, Category, BookingGuide
+    Guestbook, AdminUser, SiteConfig, Navigation, Category, BookingGuide, OperationLog
 )
 from sqlalchemy import text
 
@@ -23,6 +23,12 @@ def migrate_guestbook_table():
                 migrations.append('ALTER TABLE guestbooks ADD COLUMN IF NOT EXISTS country VARCHAR(100)')
             if 'province' not in columns:
                 migrations.append('ALTER TABLE guestbooks ADD COLUMN IF NOT EXISTS province VARCHAR(100)')
+            if 'reply_content' not in columns:
+                migrations.append('ALTER TABLE guestbooks ADD COLUMN IF NOT EXISTS reply_content TEXT')
+            if 'reply_admin_id' not in columns:
+                migrations.append('ALTER TABLE guestbooks ADD COLUMN IF NOT EXISTS reply_admin_id INTEGER')
+            if 'replied_at' not in columns:
+                migrations.append('ALTER TABLE guestbooks ADD COLUMN IF NOT EXISTS replied_at TIMESTAMP')
             
             for migration in migrations:
                 try:

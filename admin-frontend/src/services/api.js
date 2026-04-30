@@ -90,6 +90,7 @@ export const guestbookApi = {
   getAll: () => api.get('/admin/guestbooks'),
   update: (id, data) => api.put(`/admin/guestbooks/${id}`, data),
   delete: (id) => api.delete(`/admin/guestbooks/${id}`),
+  reply: (id, data) => api.post(`/admin/guestbooks/${id}/reply`, data),
 };
 
 export const userApi = {
@@ -127,6 +128,14 @@ export const bookingGuideApi = {
   create: (data) => api.post('/admin/booking-guides', data),
   update: (id, data) => api.put(`/admin/booking-guides/${id}`, data),
   delete: (id) => api.delete(`/admin/booking-guides/${id}`),
+};
+
+export const operationLogApi = {
+  getAll: (params) => {
+    const queryString = new URLSearchParams(params).toString();
+    return api.get(`/admin/operation-logs${queryString ? '?' + queryString : ''}`);
+  },
+  getById: (id) => api.get(`/admin/operation-logs/${id}`),
 };
 
 export default api;

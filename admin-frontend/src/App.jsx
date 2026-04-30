@@ -10,7 +10,7 @@ import Profile from './pages/Profile';
 import SiteConfigPage from './pages/SiteConfigPage';
 import NavigationsPage from './pages/NavigationsPage';
 import CategoriesPage from './pages/CategoriesPage';
-import BookingGuidesPage from './pages/BookingGuidesPage';
+import OperationLogsPage from './pages/OperationLogsPage';
 import Login from './pages/Login';
 import { Loader2 } from 'lucide-react';
 
@@ -45,7 +45,7 @@ function App() {
                 <Route path="/site-config" element={<SiteConfigPage />} />
                 <Route path="/navigations" element={<NavigationsPage />} />
                 <Route path="/categories" element={<CategoriesPage />} />
-                <Route path="/booking-guides" element={<BookingGuidesPage />} />
+                <Route path="/operation-logs" element={<OperationLogsPage />} />
                 <Route path="/profile" element={<Profile />} />
               </Routes>
             </Layout>

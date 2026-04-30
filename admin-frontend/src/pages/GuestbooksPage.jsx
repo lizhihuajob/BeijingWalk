@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Loader2, Check, X, Mail, User, Calendar } from 'lucide-react';
+import { Trash2, Loader2, Check, X, Mail, User, Calendar, MessageSquare, Send } from 'lucide-react';
 import { guestbookApi } from '../services/api';
 
 function GuestbooksPage() {
@@ -8,6 +8,9 @@ function GuestbooksPage() {
   const [loading, setLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [error, setError] = useState('');
+  const [replyModal, setReplyModal] = useState(null);
+  const [replyContent, setReplyContent] = useState('');
+  const [replySaving, setReplySaving] = useState(false);
 
   useEffect(() => { fetchItems(); }, []);
 
@@ -37,6 +40,33 @@ function GuestbooksPage() {
     await guestbookApi.delete(id);
     setDeleteConfirm(null);
     fetchItems();
+  };
+
+  const openReplyModal = (item) => {
+    setReplyModal(item);
+    setReplyContent(item.reply_content || '');
+  };
+
+  const handleReply = async () => {
+    if (!replyContent.trim()) return;
+    
+    setReplySaving(true);
+    try {
+      await guestbookApi.reply(replyModal.id, { reply_content: replyContent.trim() });
+      setReplyModal(null);
+      setReplyContent('');
+      fetchItems();
+    } catch (error) {
+      console.error('Failed to reply guestbook:', error);
+      alert(error.response?.data?.error || '回复失败');
+    } finally {
+      setReplySaving(false);
+    }
+  };
+
+  const formatTime = (timeStr) => {
+    if (!timeStr) return '-';
+    return new Date(timeStr).toLocaleString('zh-CN');
   };
 
   if (loading) return <div className="flex items-center justify-center h-96"><Loader2 className="w-8 h-8 animate-spin text-primary-600" /></div>;
@@ -75,7 +105,7 @@ function GuestbooksPage() {
                   )}
                   <div className="flex items-center gap-1 text-gray-400 text-sm">
                     <Calendar className="w-3 h-3" />
-                    <span>{new Date(item.created_at).toLocaleString('zh-CN')}</span>
+                    <span>{formatTime(item.created_at)}</span>
                   </div>
                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
                     item.is_approved ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
@@ -85,8 +115,26 @@ function GuestbooksPage() {
                   </span>
                 </div>
                 <p className="text-gray-700 whitespace-pre-wrap">{item.message}</p>
+                
+                {item.reply_content && (
+                  <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MessageSquare className="w-4 h-4 text-purple-600" />
+                      <span className="text-sm font-medium text-purple-800">管理员回复</span>
+                      <span className="text-xs text-purple-500">{formatTime(item.replied_at)}</span>
+                    </div>
+                    <p className="text-gray-700 whitespace-pre-wrap">{item.reply_content}</p>
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => openReplyModal(item)}
+                  className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                  title={item.reply_content ? '编辑回复' : '回复留言'}
+                >
+                  <MessageSquare className="w-4 h-4" />
+                </button>
                 <button
                   onClick={() => toggleApproval(item)}
                   className={`p-2 rounded-lg transition-colors ${
@@ -122,6 +170,74 @@ function GuestbooksPage() {
               <div className="flex items-center justify-end gap-3">
                 <button onClick={() => setDeleteConfirm(null)} className="admin-btn-secondary">取消</button>
                 <button onClick={() => handleDelete(deleteConfirm.id)} className="admin-btn-danger">确认删除</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {replyModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
+              onClick={() => setReplyModal(null)} 
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} 
+              animate={{ opacity: 1, scale: 1 }} 
+              exit={{ opacity: 0, scale: 0.95 }} 
+              className="relative bg-white rounded-2xl shadow-2xl p-6 max-w-lg w-full"
+            >
+              <h3 className="text-lg font-bold text-gray-900 mb-4">
+                {replyModal.reply_content ? '编辑回复' : '回复留言'}
+              </h3>
+              
+              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <User className="w-4 h-4 text-gray-400" />
+                  <span className="font-medium text-gray-700">{replyModal.name}</span>
+                  <span className="text-xs text-gray-400">{formatTime(replyModal.created_at)}</span>
+                </div>
+                <p className="text-gray-600 text-sm">{replyModal.message}</p>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  回复内容
+                </label>
+                <textarea
+                  value={replyContent}
+                  onChange={(e) => setReplyContent(e.target.value)}
+                  placeholder="请输入回复内容..."
+                  rows={5}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3">
+                <button 
+                  onClick={() => setReplyModal(null)} 
+                  className="admin-btn-secondary"
+                  disabled={replySaving}
+                >
+                  取消
+                </button>
+                <button 
+                  onClick={handleReply} 
+                  className="admin-btn-primary flex items-center gap-2"
+                  disabled={replySaving || !replyContent.trim()}
+                >
+                  {replySaving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                  {replySaving ? '发送中...' : '发送回复'}
+                </button>
               </div>
             </motion.div>
           </div>

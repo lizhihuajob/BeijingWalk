@@ -4,11 +4,11 @@ from app import db
 from app.models.models import (
     AdminUser, PageView, ContentView,
     Banner, Culture, Specialty, ScenicSpot, Heritage, Guestbook,
-    SiteConfig, Navigation, Category, BookingGuide
+    SiteConfig, Navigation, Category, BookingGuide, OperationLog
 )
 from datetime import datetime, timedelta
 from functools import wraps
-from sqlalchemy import func
+from sqlalchemy import func, desc
 import json
 
 admin_bp = Blueprint('admin', __name__)
@@ -23,6 +23,42 @@ def get_current_admin_id():
         return int(identity)
     except (TypeError, ValueError):
         return None
+
+def get_client_ip():
+    if request.headers.getlist('X-Forwarded-For'):
+        return request.headers.getlist('X-Forwarded-For')[0]
+    elif request.headers.get('X-Real-IP'):
+        return request.headers.get('X-Real-IP')
+    else:
+        return request.remote_addr
+
+def log_operation(module, action, target_type=None, target_id=None, target_name=None, description=None):
+    try:
+        current_user_id = get_current_admin_id()
+        if current_user_id is None:
+            return
+        
+        admin = AdminUser.query.get(current_user_id)
+        if not admin:
+            return
+        
+        log_entry = OperationLog(
+            admin_id=admin.id,
+            admin_username=admin.username,
+            module=module,
+            action=action,
+            target_type=target_type,
+            target_id=target_id,
+            target_name=str(target_name) if target_name else None,
+            description=description,
+            ip_address=get_client_ip(),
+            user_agent=request.headers.get('User-Agent')
+        )
+        db.session.add(log_entry)
+        db.session.commit()
+    except Exception as e:
+        print(f"Error logging operation: {e}")
+        db.session.rollback()
 
 def admin_required(fn):
     @wraps(fn)
@@ -238,6 +274,15 @@ def create_banner():
     db.session.add(banner)
     db.session.commit()
     
+    log_operation(
+        module='内容管理',
+        action='create',
+        target_type='Banner',
+        target_id=banner.id,
+        target_name=banner.title,
+        description=f'创建轮播图: {banner.title}'
+    )
+    
     return jsonify(banner.to_dict()), 201
 
 @admin_bp.route('/banners/<int:id>', methods=['GET'])
@@ -250,6 +295,7 @@ def get_banner_admin(id):
 @admin_required
 def update_banner(id):
     banner = Banner.query.get_or_404(id)
+    old_title = banner.title
     data = get_request_data()
     
     if 'title' in data:
@@ -264,14 +310,35 @@ def update_banner(id):
         banner.is_active = data.get('is_active')
     
     db.session.commit()
+    
+    log_operation(
+        module='内容管理',
+        action='update',
+        target_type='Banner',
+        target_id=id,
+        target_name=banner.title,
+        description=f'更新轮播图: {old_title} -> {banner.title}' if old_title != banner.title else f'更新轮播图: {banner.title}'
+    )
+    
     return jsonify(banner.to_dict()), 200
 
 @admin_bp.route('/banners/<int:id>', methods=['DELETE'])
 @admin_required
 def delete_banner(id):
     banner = Banner.query.get_or_404(id)
+    banner_title = banner.title
     db.session.delete(banner)
     db.session.commit()
+    
+    log_operation(
+        module='内容管理',
+        action='delete',
+        target_type='Banner',
+        target_id=id,
+        target_name=banner_title,
+        description=f'删除轮播图: {banner_title}'
+    )
+    
     return jsonify({'message': '删除成功'}), 200
 
 @admin_bp.route('/cultures', methods=['GET'])
@@ -300,6 +367,15 @@ def create_culture():
     db.session.add(culture)
     db.session.commit()
     
+    log_operation(
+        module='内容管理',
+        action='create',
+        target_type='Culture',
+        target_id=culture.id,
+        target_name=culture.title,
+        description=f'创建文化内容: {culture.title}'
+    )
+    
     return jsonify(culture.to_dict()), 201
 
 @admin_bp.route('/cultures/<int:id>', methods=['GET'])
@@ -312,6 +388,7 @@ def get_culture_admin(id):
 @admin_required
 def update_culture(id):
     culture = Culture.query.get_or_404(id)
+    old_title = culture.title
     data = get_request_data()
     
     if 'title' in data:
@@ -328,14 +405,35 @@ def update_culture(id):
         culture.is_active = data.get('is_active')
     
     db.session.commit()
+    
+    log_operation(
+        module='内容管理',
+        action='update',
+        target_type='Culture',
+        target_id=id,
+        target_name=culture.title,
+        description=f'更新文化内容: {old_title}'
+    )
+    
     return jsonify(culture.to_dict()), 200
 
 @admin_bp.route('/cultures/<int:id>', methods=['DELETE'])
 @admin_required
 def delete_culture(id):
     culture = Culture.query.get_or_404(id)
+    culture_title = culture.title
     db.session.delete(culture)
     db.session.commit()
+    
+    log_operation(
+        module='内容管理',
+        action='delete',
+        target_type='Culture',
+        target_id=id,
+        target_name=culture_title,
+        description=f'删除文化内容: {culture_title}'
+    )
+    
     return jsonify({'message': '删除成功'}), 200
 
 @admin_bp.route('/specialties', methods=['GET'])
@@ -364,6 +462,15 @@ def create_specialty():
     db.session.add(specialty)
     db.session.commit()
     
+    log_operation(
+        module='内容管理',
+        action='create',
+        target_type='Specialty',
+        target_id=specialty.id,
+        target_name=specialty.name,
+        description=f'创建特产: {specialty.name}'
+    )
+    
     return jsonify(specialty.to_dict()), 201
 
 @admin_bp.route('/specialties/<int:id>', methods=['GET'])
@@ -376,6 +483,7 @@ def get_specialty_admin(id):
 @admin_required
 def update_specialty(id):
     specialty = Specialty.query.get_or_404(id)
+    old_name = specialty.name
     data = get_request_data()
     
     if 'name' in data:
@@ -392,14 +500,35 @@ def update_specialty(id):
         specialty.is_active = data.get('is_active')
     
     db.session.commit()
+    
+    log_operation(
+        module='内容管理',
+        action='update',
+        target_type='Specialty',
+        target_id=id,
+        target_name=specialty.name,
+        description=f'更新特产: {old_name}'
+    )
+    
     return jsonify(specialty.to_dict()), 200
 
 @admin_bp.route('/specialties/<int:id>', methods=['DELETE'])
 @admin_required
 def delete_specialty(id):
     specialty = Specialty.query.get_or_404(id)
+    specialty_name = specialty.name
     db.session.delete(specialty)
     db.session.commit()
+    
+    log_operation(
+        module='内容管理',
+        action='delete',
+        target_type='Specialty',
+        target_id=id,
+        target_name=specialty_name,
+        description=f'删除特产: {specialty_name}'
+    )
+    
     return jsonify({'message': '删除成功'}), 200
 
 @admin_bp.route('/scenic-spots', methods=['GET'])
@@ -439,6 +568,15 @@ def create_scenic_spot():
     db.session.add(scenic_spot)
     db.session.commit()
     
+    log_operation(
+        module='内容管理',
+        action='create',
+        target_type='ScenicSpot',
+        target_id=scenic_spot.id,
+        target_name=scenic_spot.name,
+        description=f'创建景点: {scenic_spot.name}'
+    )
+    
     return jsonify(scenic_spot.to_dict()), 201
 
 @admin_bp.route('/scenic-spots/<int:id>', methods=['GET'])
@@ -451,6 +589,7 @@ def get_scenic_spot_admin(id):
 @admin_required
 def update_scenic_spot(id):
     scenic_spot = ScenicSpot.query.get_or_404(id)
+    old_name = scenic_spot.name
     data = get_request_data()
     
     if 'name' in data:
@@ -489,14 +628,35 @@ def update_scenic_spot(id):
         scenic_spot.recommended_duration = data.get('recommended_duration')
     
     db.session.commit()
+    
+    log_operation(
+        module='内容管理',
+        action='update',
+        target_type='ScenicSpot',
+        target_id=id,
+        target_name=scenic_spot.name,
+        description=f'更新景点: {old_name}'
+    )
+    
     return jsonify(scenic_spot.to_dict()), 200
 
 @admin_bp.route('/scenic-spots/<int:id>', methods=['DELETE'])
 @admin_required
 def delete_scenic_spot(id):
     scenic_spot = ScenicSpot.query.get_or_404(id)
+    spot_name = scenic_spot.name
     db.session.delete(scenic_spot)
     db.session.commit()
+    
+    log_operation(
+        module='内容管理',
+        action='delete',
+        target_type='ScenicSpot',
+        target_id=id,
+        target_name=spot_name,
+        description=f'删除景点: {spot_name}'
+    )
+    
     return jsonify({'message': '删除成功'}), 200
 
 @admin_bp.route('/heritages', methods=['GET'])
@@ -525,6 +685,15 @@ def create_heritage():
     db.session.add(heritage)
     db.session.commit()
     
+    log_operation(
+        module='内容管理',
+        action='create',
+        target_type='Heritage',
+        target_id=heritage.id,
+        target_name=heritage.name,
+        description=f'创建非物质文化遗产: {heritage.name}'
+    )
+    
     return jsonify(heritage.to_dict()), 201
 
 @admin_bp.route('/heritages/<int:id>', methods=['GET'])
@@ -537,6 +706,7 @@ def get_heritage_admin(id):
 @admin_required
 def update_heritage(id):
     heritage = Heritage.query.get_or_404(id)
+    old_name = heritage.name
     data = get_request_data()
     
     if 'name' in data:
@@ -553,14 +723,35 @@ def update_heritage(id):
         heritage.is_active = data.get('is_active')
     
     db.session.commit()
+    
+    log_operation(
+        module='内容管理',
+        action='update',
+        target_type='Heritage',
+        target_id=id,
+        target_name=heritage.name,
+        description=f'更新非物质文化遗产: {old_name}'
+    )
+    
     return jsonify(heritage.to_dict()), 200
 
 @admin_bp.route('/heritages/<int:id>', methods=['DELETE'])
 @admin_required
 def delete_heritage(id):
     heritage = Heritage.query.get_or_404(id)
+    heritage_name = heritage.name
     db.session.delete(heritage)
     db.session.commit()
+    
+    log_operation(
+        module='内容管理',
+        action='delete',
+        target_type='Heritage',
+        target_id=id,
+        target_name=heritage_name,
+        description=f'删除非物质文化遗产: {heritage_name}'
+    )
+    
     return jsonify({'message': '删除成功'}), 200
 
 @admin_bp.route('/guestbooks', methods=['GET'])
@@ -573,20 +764,42 @@ def get_guestbooks_admin():
 @admin_required
 def update_guestbook(id):
     guestbook = Guestbook.query.get_or_404(id)
+    old_approved = guestbook.is_approved
     data = get_request_data()
     
     if 'is_approved' in data:
         guestbook.is_approved = data.get('is_approved')
     
     db.session.commit()
+    
+    log_operation(
+        module='留言管理',
+        action='update',
+        target_type='Guestbook',
+        target_id=id,
+        target_name=guestbook.name,
+        description=f'更新留言审核状态: {guestbook.name} - {"已通过" if guestbook.is_approved else "待审核"}'
+    )
+    
     return jsonify(guestbook.to_dict()), 200
 
 @admin_bp.route('/guestbooks/<int:id>', methods=['DELETE'])
 @admin_required
 def delete_guestbook(id):
     guestbook = Guestbook.query.get_or_404(id)
+    guestbook_name = guestbook.name
     db.session.delete(guestbook)
     db.session.commit()
+    
+    log_operation(
+        module='留言管理',
+        action='delete',
+        target_type='Guestbook',
+        target_id=id,
+        target_name=guestbook_name,
+        description=f'删除留言: {guestbook_name}'
+    )
+    
     return jsonify({'message': '删除成功'}), 200
 
 @admin_bp.route('/users', methods=['GET'])
@@ -632,6 +845,15 @@ def create_admin_user():
     db.session.add(new_admin)
     db.session.commit()
     
+    log_operation(
+        module='用户管理',
+        action='create',
+        target_type='AdminUser',
+        target_id=new_admin.id,
+        target_name=new_admin.username,
+        description=f'创建管理员用户: {new_admin.username}'
+    )
+    
     return jsonify(new_admin.to_dict()), 201
 
 @admin_bp.route('/users/<int:id>', methods=['PUT'])
@@ -644,6 +866,7 @@ def update_admin_user(id):
         return jsonify({'error': '无权限修改此用户'}), 403
     
     admin = AdminUser.query.get_or_404(id)
+    old_username = admin.username
     data = get_request_data()
     
     if 'username' in data and data.get('username') != admin.username:
@@ -666,6 +889,16 @@ def update_admin_user(id):
             admin.is_superuser = data.get('is_superuser')
     
     db.session.commit()
+    
+    log_operation(
+        module='用户管理',
+        action='update',
+        target_type='AdminUser',
+        target_id=id,
+        target_name=admin.username,
+        description=f'更新管理员用户: {old_username}'
+    )
+    
     return jsonify(admin.to_dict()), 200
 
 @admin_bp.route('/users/<int:id>', methods=['DELETE'])
@@ -681,8 +914,19 @@ def delete_admin_user(id):
         return jsonify({'error': '不能删除自己的账户'}), 400
     
     admin = AdminUser.query.get_or_404(id)
+    admin_username = admin.username
     db.session.delete(admin)
     db.session.commit()
+    
+    log_operation(
+        module='用户管理',
+        action='delete',
+        target_type='AdminUser',
+        target_id=id,
+        target_name=admin_username,
+        description=f'删除管理员用户: {admin_username}'
+    )
+    
     return jsonify({'message': '删除成功'}), 200
 
 def to_json(value):
@@ -765,6 +1009,15 @@ def save_site_config():
     
     db.session.commit()
     
+    log_operation(
+        module='网站配置',
+        action='update',
+        target_type='SiteConfig',
+        target_id=config.id,
+        target_name=config.site_name,
+        description=f'更新网站配置: {config.site_name}'
+    )
+    
     config_dict = config.to_dict()
     config_dict['footer_links'] = json.loads(config.footer_links) if config.footer_links else None
     return jsonify(config_dict), 200
@@ -794,6 +1047,15 @@ def create_navigation():
     db.session.add(navigation)
     db.session.commit()
     
+    log_operation(
+        module='导航菜单',
+        action='create',
+        target_type='Navigation',
+        target_id=navigation.id,
+        target_name=navigation.label,
+        description=f'创建导航菜单: {navigation.label}'
+    )
+    
     return jsonify(navigation.to_dict()), 201
 
 @admin_bp.route('/navigations/<int:id>', methods=['GET'])
@@ -806,6 +1068,7 @@ def get_navigation_admin(id):
 @admin_required
 def update_navigation(id):
     navigation = Navigation.query.get_or_404(id)
+    old_label = navigation.label
     data = get_request_data()
     
     if 'label' in data:
@@ -820,14 +1083,35 @@ def update_navigation(id):
         navigation.is_new_tab = data.get('is_new_tab')
     
     db.session.commit()
+    
+    log_operation(
+        module='导航菜单',
+        action='update',
+        target_type='Navigation',
+        target_id=id,
+        target_name=navigation.label,
+        description=f'更新导航菜单: {old_label}'
+    )
+    
     return jsonify(navigation.to_dict()), 200
 
 @admin_bp.route('/navigations/<int:id>', methods=['DELETE'])
 @admin_required
 def delete_navigation(id):
     navigation = Navigation.query.get_or_404(id)
+    nav_label = navigation.label
     db.session.delete(navigation)
     db.session.commit()
+    
+    log_operation(
+        module='导航菜单',
+        action='delete',
+        target_type='Navigation',
+        target_id=id,
+        target_name=nav_label,
+        description=f'删除导航菜单: {nav_label}'
+    )
+    
     return jsonify({'message': '删除成功'}), 200
 
 @admin_bp.route('/categories', methods=['GET'])
@@ -859,6 +1143,15 @@ def create_category():
     db.session.add(category)
     db.session.commit()
     
+    log_operation(
+        module='首页分类',
+        action='create',
+        target_type='Category',
+        target_id=category.id,
+        target_name=category.title,
+        description=f'创建首页分类: {category.title}'
+    )
+    
     return jsonify(category.to_dict()), 201
 
 @admin_bp.route('/categories/<int:id>', methods=['GET'])
@@ -871,6 +1164,7 @@ def get_category_admin(id):
 @admin_required
 def update_category(id):
     category = Category.query.get_or_404(id)
+    old_title = category.title
     data = get_request_data()
     
     if 'title' in data:
@@ -893,14 +1187,35 @@ def update_category(id):
         category.is_active = data.get('is_active')
     
     db.session.commit()
+    
+    log_operation(
+        module='首页分类',
+        action='update',
+        target_type='Category',
+        target_id=id,
+        target_name=category.title,
+        description=f'更新首页分类: {old_title}'
+    )
+    
     return jsonify(category.to_dict()), 200
 
 @admin_bp.route('/categories/<int:id>', methods=['DELETE'])
 @admin_required
 def delete_category(id):
     category = Category.query.get_or_404(id)
+    category_title = category.title
     db.session.delete(category)
     db.session.commit()
+    
+    log_operation(
+        module='首页分类',
+        action='delete',
+        target_type='Category',
+        target_id=id,
+        target_name=category_title,
+        description=f'删除首页分类: {category_title}'
+    )
+    
     return jsonify({'message': '删除成功'}), 200
 
 @admin_bp.route('/booking-guides', methods=['GET'])
@@ -938,6 +1253,15 @@ def create_booking_guide():
     db.session.add(guide)
     db.session.commit()
     
+    log_operation(
+        module='购票指南',
+        action='create',
+        target_type='BookingGuide',
+        target_id=guide.id,
+        target_name=guide.title,
+        description=f'创建购票指南: {guide.title}'
+    )
+    
     guide_dict = guide.to_dict()
     guide_dict['steps'] = json.loads(guide.steps) if guide.steps else None
     guide_dict['important_notes'] = json.loads(guide.important_notes) if guide.important_notes else None
@@ -956,6 +1280,7 @@ def get_booking_guide_admin(id):
 @admin_required
 def update_booking_guide(id):
     guide = BookingGuide.query.get_or_404(id)
+    old_title = guide.title
     data = get_request_data()
     
     if 'scenic_spot_id' in data:
@@ -979,6 +1304,15 @@ def update_booking_guide(id):
     
     db.session.commit()
     
+    log_operation(
+        module='购票指南',
+        action='update',
+        target_type='BookingGuide',
+        target_id=id,
+        target_name=guide.title,
+        description=f'更新购票指南: {old_title}'
+    )
+    
     guide_dict = guide.to_dict()
     guide_dict['steps'] = json.loads(guide.steps) if guide.steps else None
     guide_dict['important_notes'] = json.loads(guide.important_notes) if guide.important_notes else None
@@ -988,6 +1322,81 @@ def update_booking_guide(id):
 @admin_required
 def delete_booking_guide(id):
     guide = BookingGuide.query.get_or_404(id)
+    guide_title = guide.title
     db.session.delete(guide)
     db.session.commit()
+    log_operation(
+        module='购票指南',
+        action='delete',
+        target_type='BookingGuide',
+        target_id=id,
+        target_name=guide_title,
+        description=f'删除购票指南: {guide_title}'
+    )
     return jsonify({'message': '删除成功'}), 200
+
+@admin_bp.route('/operation-logs', methods=['GET'])
+@admin_required
+def get_operation_logs():
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    module = request.args.get('module')
+    action = request.args.get('action')
+    admin_username = request.args.get('admin_username')
+    
+    query = OperationLog.query
+    
+    if module:
+        query = query.filter(OperationLog.module == module)
+    if action:
+        query = query.filter(OperationLog.action == action)
+    if admin_username:
+        query = query.filter(OperationLog.admin_username.ilike(f'%{admin_username}%'))
+    
+    pagination = query.order_by(desc(OperationLog.created_at)).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    
+    return jsonify({
+        'items': [log.to_dict() for log in pagination.items],
+        'total': pagination.total,
+        'total_pages': pagination.pages,
+        'current_page': page,
+        'per_page': per_page
+    }), 200
+
+@admin_bp.route('/operation-logs/<int:id>', methods=['GET'])
+@admin_required
+def get_operation_log(id):
+    log_entry = OperationLog.query.get_or_404(id)
+    return jsonify(log_entry.to_dict()), 200
+
+@admin_bp.route('/guestbooks/<int:id>/reply', methods=['POST', 'PUT'])
+@admin_required
+def reply_guestbook(id):
+    guestbook = Guestbook.query.get_or_404(id)
+    data = get_request_data()
+    
+    reply_content = data.get('reply_content')
+    if not reply_content or not reply_content.strip():
+        return jsonify({'error': '回复内容不能为空'}), 400
+    
+    current_user_id = get_current_admin_id()
+    admin = AdminUser.query.get(current_user_id)
+    
+    guestbook.reply_content = reply_content.strip()
+    guestbook.reply_admin_id = current_user_id
+    guestbook.replied_at = datetime.utcnow()
+    
+    db.session.commit()
+    
+    log_operation(
+        module='留言管理',
+        action='reply',
+        target_type='Guestbook',
+        target_id=id,
+        target_name=guestbook.name,
+        description=f'回复留言: {guestbook.name} - {reply_content[:100]}...' if len(reply_content) > 100 else f'回复留言: {guestbook.name}'
+    )
+    
+    return jsonify(guestbook.to_dict()), 200

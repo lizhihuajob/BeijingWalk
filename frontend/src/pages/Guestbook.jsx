@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Send, User, Mail, Phone, MapPin, Loader2, CheckCircle, Clock, X, ChevronDown } from 'lucide-react';
+import { MessageSquare, Send, User, Mail, Phone, MapPin, Loader2, CheckCircle, Clock, X, ChevronDown, MessageCircle } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getGuestbooks, createGuestbook } from '../services/api';
@@ -283,7 +283,7 @@ const Guestbook = () => {
                         <p className="text-gray-600 leading-relaxed mb-3">
                           {guestbook.message}
                         </p>
-                        <div className="flex items-center gap-4 text-xs text-gray-400">
+                        <div className="flex items-center gap-4 text-xs text-gray-400 mb-4">
                           {guestbook.email && (
                             <span className="flex items-center gap-1">
                               <Mail className="w-3 h-3" />
@@ -297,6 +297,29 @@ const Guestbook = () => {
                             </span>
                           )}
                         </div>
+                        
+                        {guestbook.reply_content && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-200"
+                          >
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-amber-500 to-orange-500">
+                                <MessageCircle className="w-3.5 h-3.5 text-white" />
+                              </div>
+                              <span className="font-semibold text-amber-800 text-sm">管理员回复</span>
+                              {guestbook.replied_at && (
+                                <span className="text-xs text-amber-500">
+                                  {formatDate(guestbook.replied_at)}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-gray-700 text-sm leading-relaxed pl-8">
+                              {guestbook.reply_content}
+                            </p>
+                          </motion.div>
+                        )}
                       </div>
                     </div>
                   </motion.div>
