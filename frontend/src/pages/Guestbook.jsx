@@ -4,61 +4,63 @@ import { MessageSquare, Send, User, Mail, Phone, MapPin, Loader2, CheckCircle, C
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getGuestbooks, createGuestbook } from '../services/api';
+import { useI18n } from '../i18n';
 
 const countries = [
-  { value: '', label: '请选择国家' },
-  { value: '中国', label: '中国' },
-  { value: '美国', label: '美国' },
-  { value: '日本', label: '日本' },
-  { value: '韩国', label: '韩国' },
-  { value: '英国', label: '英国' },
-  { value: '法国', label: '法国' },
-  { value: '德国', label: '德国' },
-  { value: '加拿大', label: '加拿大' },
-  { value: '澳大利亚', label: '澳大利亚' },
-  { value: '其他', label: '其他' },
+  { value: '', labelKey: 'guestbook.pleaseSelectCountry' },
+  { value: '中国', labelKey: 'guestbook.countries.china' },
+  { value: '美国', labelKey: 'guestbook.countries.usa' },
+  { value: '日本', labelKey: 'guestbook.countries.japan' },
+  { value: '韩国', labelKey: 'guestbook.countries.korea' },
+  { value: '英国', labelKey: 'guestbook.countries.uk' },
+  { value: '法国', labelKey: 'guestbook.countries.france' },
+  { value: '德国', labelKey: 'guestbook.countries.germany' },
+  { value: '加拿大', labelKey: 'guestbook.countries.canada' },
+  { value: '澳大利亚', labelKey: 'guestbook.countries.australia' },
+  { value: '其他', labelKey: 'guestbook.countries.other' },
 ];
 
 const provinces = [
-  { value: '', label: '请选择省市' },
-  { value: '北京市', label: '北京市' },
-  { value: '上海市', label: '上海市' },
-  { value: '广东省', label: '广东省' },
-  { value: '浙江省', label: '浙江省' },
-  { value: '江苏省', label: '江苏省' },
-  { value: '四川省', label: '四川省' },
-  { value: '湖北省', label: '湖北省' },
-  { value: '湖南省', label: '湖南省' },
-  { value: '河南省', label: '河南省' },
-  { value: '河北省', label: '河北省' },
-  { value: '山东省', label: '山东省' },
-  { value: '山西省', label: '山西省' },
-  { value: '陕西省', label: '陕西省' },
-  { value: '福建省', label: '福建省' },
-  { value: '安徽省', label: '安徽省' },
-  { value: '江西省', label: '江西省' },
-  { value: '广西壮族自治区', label: '广西壮族自治区' },
-  { value: '云南省', label: '云南省' },
-  { value: '贵州省', label: '贵州省' },
-  { value: '重庆市', label: '重庆市' },
-  { value: '天津市', label: '天津市' },
-  { value: '辽宁省', label: '辽宁省' },
-  { value: '吉林省', label: '吉林省' },
-  { value: '黑龙江省', label: '黑龙江省' },
-  { value: '甘肃省', label: '甘肃省' },
-  { value: '青海省', label: '青海省' },
-  { value: '海南省', label: '海南省' },
-  { value: '台湾省', label: '台湾省' },
-  { value: '内蒙古自治区', label: '内蒙古自治区' },
-  { value: '新疆维吾尔自治区', label: '新疆维吾尔自治区' },
-  { value: '西藏自治区', label: '西藏自治区' },
-  { value: '宁夏回族自治区', label: '宁夏回族自治区' },
-  { value: '香港特别行政区', label: '香港特别行政区' },
-  { value: '澳门特别行政区', label: '澳门特别行政区' },
-  { value: '其他', label: '其他' },
+  { value: '', labelKey: 'guestbook.pleaseSelectProvince' },
+  { value: '北京市', labelKey: 'guestbook.provinces.beijing' },
+  { value: '上海市', labelKey: 'guestbook.provinces.shanghai' },
+  { value: '广东省', labelKey: 'guestbook.provinces.guangdong' },
+  { value: '浙江省', labelKey: 'guestbook.provinces.zhejiang' },
+  { value: '江苏省', labelKey: 'guestbook.provinces.jiangsu' },
+  { value: '四川省', labelKey: 'guestbook.provinces.sichuan' },
+  { value: '湖北省', labelKey: 'guestbook.provinces.hubei' },
+  { value: '湖南省', labelKey: 'guestbook.provinces.hunan' },
+  { value: '河南省', labelKey: 'guestbook.provinces.henan' },
+  { value: '河北省', labelKey: 'guestbook.provinces.hebei' },
+  { value: '山东省', labelKey: 'guestbook.provinces.shandong' },
+  { value: '山西省', labelKey: 'guestbook.provinces.shanxi' },
+  { value: '陕西省', labelKey: 'guestbook.provinces.shaanxi' },
+  { value: '福建省', labelKey: 'guestbook.provinces.fujian' },
+  { value: '安徽省', labelKey: 'guestbook.provinces.anhui' },
+  { value: '江西省', labelKey: 'guestbook.provinces.jiangxi' },
+  { value: '广西壮族自治区', labelKey: 'guestbook.provinces.guangxi' },
+  { value: '云南省', labelKey: 'guestbook.provinces.yunnan' },
+  { value: '贵州省', labelKey: 'guestbook.provinces.guizhou' },
+  { value: '重庆市', labelKey: 'guestbook.provinces.chongqing' },
+  { value: '天津市', labelKey: 'guestbook.provinces.tianjin' },
+  { value: '辽宁省', labelKey: 'guestbook.provinces.liaoning' },
+  { value: '吉林省', labelKey: 'guestbook.provinces.jilin' },
+  { value: '黑龙江省', labelKey: 'guestbook.provinces.heilongjiang' },
+  { value: '甘肃省', labelKey: 'guestbook.provinces.gansu' },
+  { value: '青海省', labelKey: 'guestbook.provinces.qinghai' },
+  { value: '海南省', labelKey: 'guestbook.provinces.hainan' },
+  { value: '台湾省', labelKey: 'guestbook.provinces.taiwan' },
+  { value: '内蒙古自治区', labelKey: 'guestbook.provinces.innerMongolia' },
+  { value: '新疆维吾尔自治区', labelKey: 'guestbook.provinces.xinjiang' },
+  { value: '西藏自治区', labelKey: 'guestbook.provinces.tibet' },
+  { value: '宁夏回族自治区', labelKey: 'guestbook.provinces.ningxia' },
+  { value: '香港特别行政区', labelKey: 'guestbook.provinces.hongkong' },
+  { value: '澳门特别行政区', labelKey: 'guestbook.provinces.macau' },
+  { value: '其他', labelKey: 'guestbook.countries.other' },
 ];
 
 const Guestbook = () => {
+  const { t, language } = useI18n();
   const [guestbooks, setGuestbooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -83,14 +85,14 @@ const Guestbook = () => {
         setError(null);
       } catch (err) {
         console.error('Failed to fetch guestbooks:', err);
-        setError('加载留言失败，请稍后重试');
+        setError(t('guestbook.loadFailed'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchGuestbooks();
-  }, []);
+  }, [language, t]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -104,7 +106,7 @@ const Guestbook = () => {
     e.preventDefault();
     
     if (!formData.name.trim() || !formData.message.trim()) {
-      setError('请填写姓名和留言内容');
+      setError(t('guestbook.pleaseFill'));
       return;
     }
 
@@ -131,16 +133,18 @@ const Guestbook = () => {
       }, 3000);
     } catch (err) {
       console.error('Failed to submit guestbook:', err);
-      setError(err.response?.data?.error || '提交留言失败，请稍后重试');
+      setError(err.response?.data?.error || t('guestbook.submitFailed'));
     } finally {
       setSubmitting(false);
     }
   };
 
+  const localeMap = { zh: 'zh-CN', en: 'en-US', ja: 'ja-JP', ko: 'ko-KR' };
+
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('zh-CN', {
+    return date.toLocaleDateString(localeMap[language] || 'zh-CN', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -179,10 +183,10 @@ const Guestbook = () => {
                 <MessageSquare className="w-10 h-10 text-white" />
               </div>
               <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 tracking-tight">
-                留言板
+                {t('guestbook.title')}
               </h1>
               <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto">
-                留下您的宝贵意见和建议，分享您的北京之旅感受
+                {t('guestbook.subtitle')}
               </p>
             </motion.div>
           </div>
@@ -198,7 +202,7 @@ const Guestbook = () => {
                 className="mb-8 p-4 bg-green-50 border border-green-200 rounded-2xl flex items-center gap-3"
               >
                 <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                <p className="text-green-700 font-medium">留言提交成功！感谢您的留言。</p>
+                <p className="text-green-700 font-medium">{t('guestbook.submitSuccess')}</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -212,7 +216,7 @@ const Guestbook = () => {
               <div className="flex items-center gap-3">
                 <div className="w-1 h-8 bg-gradient-to-b from-orange-500 to-amber-500 rounded-full"></div>
                 <h2 className="text-2xl font-bold text-gray-900">
-                  最新留言
+                  {t('guestbook.latestMessages')}
                 </h2>
               </div>
               <motion.button
@@ -222,7 +226,7 @@ const Guestbook = () => {
                 whileTap={{ scale: 0.95 }}
               >
                 <MessageSquare className="w-5 h-5" />
-                我要留言
+                {t('guestbook.leaveMessage')}
               </motion.button>
             </div>
 
@@ -244,7 +248,7 @@ const Guestbook = () => {
             ) : guestbooks.length === 0 ? (
               <div className="bg-white rounded-2xl p-12 shadow-lg text-center">
                 <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">暂无留言，快来发表第一条留言吧！</p>
+                <p className="text-gray-500 text-lg">{t('guestbook.noMessages')}</p>
               </div>
             ) : (
               <div className="space-y-6">
@@ -308,7 +312,7 @@ const Guestbook = () => {
                               <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-amber-500 to-orange-500">
                                 <MessageCircle className="w-3.5 h-3.5 text-white" />
                               </div>
-                              <span className="font-semibold text-amber-800 text-sm">管理员回复</span>
+                              <span className="font-semibold text-amber-800 text-sm">{t('guestbook.adminReply')}</span>
                               {guestbook.replied_at && (
                                 <span className="text-xs text-amber-500">
                                   {formatDate(guestbook.replied_at)}
@@ -351,7 +355,7 @@ const Guestbook = () => {
                 <div className="bg-gradient-to-r from-orange-400 to-amber-500 px-6 py-4 flex items-center justify-between">
                   <h3 className="text-xl font-bold text-white flex items-center gap-2">
                     <MessageSquare className="w-6 h-6" />
-                    发表留言
+                    {t('guestbook.postMessage')}
                   </h3>
                   <button
                     onClick={() => setShowModal(false)}
@@ -373,14 +377,14 @@ const Guestbook = () => {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           <User className="w-4 h-4 inline mr-1" />
-                          姓名 <span className="text-red-500">*</span>
+                          {t('guestbook.name')} <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           name="name"
                           value={formData.name}
                           onChange={handleInputChange}
-                          placeholder="请输入您的姓名"
+                          placeholder={t('guestbook.enterName')}
                           className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all"
                           required
                         />
@@ -388,14 +392,14 @@ const Guestbook = () => {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           <Mail className="w-4 h-4 inline mr-1" />
-                          邮箱（可选）
+                          {t('guestbook.email')}
                         </label>
                         <input
                           type="email"
                           name="email"
                           value={formData.email}
                           onChange={handleInputChange}
-                          placeholder="请输入您的邮箱"
+                          placeholder={t('guestbook.enterEmail')}
                           className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all"
                         />
                       </div>
@@ -403,15 +407,15 @@ const Guestbook = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <Phone className="w-4 h-4 inline mr-1" />
-                        手机号（可选）
-                      </label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        placeholder="请输入您的手机号"
+                          <Phone className="w-4 h-4 inline mr-1" />
+                          {t('guestbook.phone')}
+                        </label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          placeholder={t('guestbook.enterPhone')}
                         className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all"
                       />
                     </div>
@@ -420,7 +424,7 @@ const Guestbook = () => {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           <MapPin className="w-4 h-4 inline mr-1" />
-                          国家（可选）
+                          {t('guestbook.country')}
                         </label>
                         <div className="relative">
                           <select
@@ -430,7 +434,7 @@ const Guestbook = () => {
                             className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all appearance-none bg-white pr-10"
                           >
                             {countries.map(c => (
-                              <option key={c.value} value={c.value}>{c.label}</option>
+                              <option key={c.value} value={c.value}>{t(c.labelKey)}</option>
                             ))}
                           </select>
                           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
@@ -439,7 +443,7 @@ const Guestbook = () => {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           <MapPin className="w-4 h-4 inline mr-1" />
-                          省市（可选）
+                          {t('guestbook.province')}
                         </label>
                         <div className="relative">
                           <select
@@ -449,7 +453,7 @@ const Guestbook = () => {
                             className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all appearance-none bg-white pr-10"
                           >
                             {provinces.map(p => (
-                              <option key={p.value} value={p.value}>{p.label}</option>
+                              <option key={p.value} value={p.value}>{t(p.labelKey)}</option>
                             ))}
                           </select>
                           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
@@ -460,19 +464,19 @@ const Guestbook = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         <MessageSquare className="w-4 h-4 inline mr-1" />
-                        留言内容 <span className="text-red-500">*</span>
+                        {t('guestbook.message')} <span className="text-red-500">*</span>
                       </label>
                       <textarea
                         name="message"
                         value={formData.message}
                         onChange={handleInputChange}
-                        placeholder="请输入您想说的话..."
+                        placeholder={t('guestbook.enterMessage')}
                         rows={5}
                         className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all resize-none"
                         required
                       />
                       <p className="text-xs text-gray-400 mt-2">
-                        字符数：{formData.message.length} 字
+                        {t('guestbook.charCount', { count: formData.message.length })}
                       </p>
                     </div>
 
@@ -484,7 +488,7 @@ const Guestbook = () => {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        取消
+                        {t('common.cancel')}
                       </motion.button>
                       <motion.button
                         type="submit"
@@ -496,12 +500,12 @@ const Guestbook = () => {
                         {submitting ? (
                           <>
                             <Loader2 className="w-5 h-5 animate-spin" />
-                            提交中...
+                            {t('guestbook.submitting')}
                           </>
                         ) : (
                           <>
                             <Send className="w-5 h-5" />
-                            提交留言
+                            {t('guestbook.submitMessage')}
                           </>
                         )}
                       </motion.button>

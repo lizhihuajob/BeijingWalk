@@ -3,25 +3,27 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MapPin, Phone, Mail, Heart, Map } from 'lucide-react';
 import { getSiteConfig, getNavigations } from '../services/api';
+import { useI18n } from '../i18n';
 
 const Footer = () => {
+  const { t } = useI18n();
   const currentYear = new Date().getFullYear();
   const [siteConfig, setSiteConfig] = useState({
-    site_name: '北京旅游',
-    site_description: '探索千年古都的魅力，感受历史与现代的完美交融。',
-    contact_address: '北京市东城区',
+    site_name: t('header.siteName'),
+    site_description: t('footer.defaultDescription'),
+    contact_address: t('footer.defaultAddress'),
     contact_phone: '400-123-4567',
     contact_email: 'info@beijingwalk.com',
     copyright_text: '',
     footer_links: null,
   });
   const [quickLinks, setQuickLinks] = useState([
-    { path: '/', label: '首页' },
-    { path: '/culture', label: '北京文化' },
-    { path: '/specialties', label: '地方特产' },
-    { path: '/scenic', label: '名胜古迹' },
-    { path: '/heritage', label: '非物质文化遗产' },
-    { path: '/guestbook', label: '留言板' },
+    { path: '/', labelKey: 'nav.home' },
+    { path: '/culture', labelKey: 'nav.culture' },
+    { path: '/specialties', labelKey: 'nav.specialties' },
+    { path: '/scenic', labelKey: 'nav.scenic' },
+    { path: '/heritage', labelKey: 'nav.heritage' },
+    { path: '/guestbook', labelKey: 'nav.guestbook' },
   ]);
 
   useEffect(() => {
@@ -59,10 +61,10 @@ const Footer = () => {
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg">
                 <span className="text-white font-bold text-lg">京</span>
               </div>
-              <span className="text-xl font-semibold">{siteConfig.site_name || '北京旅游'}</span>
+              <span className="text-xl font-semibold">{siteConfig.site_name || t('header.siteName')}</span>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed">
-              {siteConfig.site_description || '探索千年古都的魅力，感受历史与现代的完美交融。北京旅游，带你发现不一样的北京。'}
+              {siteConfig.site_description || t('footer.defaultDescription')}
             </p>
           </motion.div>
 
@@ -72,7 +74,7 @@ const Footer = () => {
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
           >
-            <h3 className="text-lg font-semibold mb-4">快速导航</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('footer.quickNav')}</h3>
             <nav className="grid grid-cols-2 gap-2">
               {quickLinks.map((link) => (
                 <Link
@@ -80,7 +82,7 @@ const Footer = () => {
                   to={link.path}
                   className="text-gray-400 hover:text-white text-sm transition-colors"
                 >
-                  {link.label}
+                  {link.labelKey ? t(link.labelKey) : link.label}
                 </Link>
               ))}
             </nav>
@@ -92,7 +94,7 @@ const Footer = () => {
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
           >
-            <h3 className="text-lg font-semibold mb-4">联系方式</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('footer.contact')}</h3>
             <div className="space-y-3">
               {siteConfig.contact_address && (
                 <div className="flex items-center gap-2 text-gray-400 text-sm">
@@ -116,7 +118,7 @@ const Footer = () => {
                 <>
                   <div className="flex items-center gap-2 text-gray-400 text-sm">
                     <MapPin className="w-4 h-4 text-orange-500" />
-                    <span>北京市东城区</span>
+                    <span>{t('footer.defaultAddress')}</span>
                   </div>
                   <div className="flex items-center gap-2 text-gray-400 text-sm">
                     <Phone className="w-4 h-4 text-orange-500" />
@@ -137,23 +139,23 @@ const Footer = () => {
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
           >
-            <h3 className="text-lg font-semibold mb-4">热门景点</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('footer.hotSpots')}</h3>
             <div className="space-y-2 text-sm text-gray-400">
               <div className="flex items-center gap-2">
                 <Map className="w-4 h-4 text-orange-500" />
-                <span>故宫博物院</span>
+                <span>{t('footer.forbiddenCity')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Map className="w-4 h-4 text-orange-500" />
-                <span>颐和园</span>
+                <span>{t('footer.summerPalace')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Map className="w-4 h-4 text-orange-500" />
-                <span>天坛公园</span>
+                <span>{t('footer.templeOfHeaven')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Map className="w-4 h-4 text-orange-500" />
-                <span>明十三陵</span>
+                <span>{t('footer.mingTombs')}</span>
               </div>
             </div>
           </motion.div>
@@ -162,7 +164,7 @@ const Footer = () => {
         <div className="border-t border-gray-800 mt-10 pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-gray-500 text-sm">
-              {siteConfig.copyright_text || `© ${currentYear} ${siteConfig.site_name || '北京旅游'}. All rights reserved.`}
+              {siteConfig.copyright_text || t('footer.copyright', { year: currentYear, siteName: siteConfig.site_name || t('header.siteName') })}
             </p>
             <p className="text-gray-500 text-sm flex items-center gap-1">
               Made with <Heart className="w-4 h-4 text-red-500 fill-current" /> for Beijing

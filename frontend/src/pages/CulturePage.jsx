@@ -5,9 +5,11 @@ import { Scroll, ArrowRight, Loader2, ChevronUp, ArrowLeft } from 'lucide-react'
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getCultures } from '../services/api';
+import { useI18n } from '../i18n';
 
 const CulturePage = () => {
   const navigate = useNavigate();
+  const { t, language } = useI18n();
   const [cultures, setCultures] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -22,14 +24,14 @@ const CulturePage = () => {
         setError(null);
       } catch (err) {
         console.error('Failed to fetch cultures:', err);
-        setError('加载数据失败，请稍后重试');
+        setError(t('error.loadFailed'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [language, t]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -55,7 +57,7 @@ const CulturePage = () => {
         <div className="pt-24 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <Loader2 className="w-12 h-12 text-orange-500 animate-spin mx-auto mb-4" />
-            <p className="text-gray-600 text-lg">加载中...</p>
+            <p className="text-gray-600 text-lg">{t('common.loading')}</p>
           </div>
         </div>
       </div>
@@ -80,10 +82,10 @@ const CulturePage = () => {
                 <Scroll className="w-10 h-10 text-white" />
               </div>
               <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 tracking-tight">
-                北京文化
+                {t('culture.title')}
               </h1>
               <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto">
-                探索北京悠久的历史文化，感受千年古都的独特魅力
+                {t('culture.subtitle')}
               </p>
             </motion.div>
           </div>
@@ -99,7 +101,7 @@ const CulturePage = () => {
             <div className="flex items-center gap-4 mb-8">
               <div className="flex-1 h-px bg-gradient-to-r from-transparent via-orange-300 to-transparent"></div>
               <p className="text-gray-500 text-sm uppercase tracking-widest">
-                共 {cultures.length} 项文化介绍
+                {t('culture.totalItems', { count: cultures.length })}
               </p>
               <div className="flex-1 h-px bg-gradient-to-r from-transparent via-orange-300 to-transparent"></div>
             </div>
@@ -152,7 +154,7 @@ const CulturePage = () => {
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-1 h-8 bg-gradient-to-b from-orange-500 to-amber-500 rounded-full"></div>
                       <span className="text-orange-600 text-sm font-medium uppercase tracking-wider">
-                        文化遗产
+                        {t('culture.culturalHeritage')}
                       </span>
                     </div>
                     
@@ -166,7 +168,7 @@ const CulturePage = () => {
                     
                     {culture.details && (
                       <div className="bg-amber-50 rounded-2xl p-6 mb-8">
-                        <h3 className="font-semibold text-gray-900 mb-3 text-lg">文化背景</h3>
+                        <h3 className="font-semibold text-gray-900 mb-3 text-lg">{t('culture.cultureBackground')}</h3>
                         <p className="text-gray-600 leading-relaxed">
                           {truncateText(culture.details, 120)}
                         </p>
@@ -179,7 +181,7 @@ const CulturePage = () => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      深入了解
+                      {t('culture.learnMore')}
                       <ArrowRight className="w-5 h-5" />
                     </motion.button>
                   </div>
@@ -196,10 +198,10 @@ const CulturePage = () => {
           >
             <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-3xl p-12 border border-amber-100">
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                想探索更多北京的精彩？
+                {t('culture.exploreMoreTitle')}
               </h3>
               <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-                回到首页，发现更多北京的名胜古迹、地方特产和非物质文化遗产
+                {t('culture.exploreMoreSubtitle')}
               </p>
               <motion.button
                 onClick={() => navigate('/')}
@@ -208,7 +210,7 @@ const CulturePage = () => {
                 whileTap={{ scale: 0.95 }}
               >
                 <ArrowLeft className="w-5 h-5" />
-                返回首页
+                {t('culture.backToHome')}
               </motion.button>
             </div>
           </motion.div>

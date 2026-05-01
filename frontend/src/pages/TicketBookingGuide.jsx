@@ -5,10 +5,12 @@ import { ArrowLeft, Ticket, Smartphone, Calendar, Clock, AlertCircle, ExternalLi
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getScenicSpotById, getBookingGuideByScenicSpot } from '../services/api';
+import { useI18n } from '../i18n';
 
 const TicketBookingGuide = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t, language } = useI18n();
   const [searchParams] = useSearchParams();
   const [scenicSpot, setScenicSpot] = useState(null);
   const [bookingGuide, setBookingGuide] = useState(null);
@@ -35,29 +37,29 @@ const TicketBookingGuide = () => {
         setError(null);
       } catch (err) {
         console.error('Failed to fetch data:', err);
-        setError('加载数据失败，请稍后重试');
+        setError(t('error.loadFailed'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [id]);
+  }, [id, language, t]);
 
   const getDefaultGuideData = () => ({
-    title: `${scenicSpot?.name || '景点'}购票指南`,
-    description: '请通过官方渠道购买门票，确保顺利入园。',
+    title: t('ticketGuide.defaultTitle', { name: scenicSpot?.name || '' }),
+    description: t('ticketGuide.defaultDescription'),
     steps: [
       {
-        title: '官方渠道购票',
-        content: '请访问景点官方网站或关注官方公众号/小程序进行购票。\n\n避免通过非官方渠道购票，以免造成损失。',
-        note: '建议提前3-7天预约，避免门票售罄'
+        title: t('ticketGuide.defaultStepTitle'),
+        content: t('ticketGuide.defaultStepContent'),
+        note: t('ticketGuide.defaultStepNote'),
       }
     ],
     importantNotes: [
-      '请携带购票时使用的有效身份证件原件',
-      '建议提前了解景区开放时间和限流政策',
-      '如有疑问，请联系景区官方客服'
+      t('ticketGuide.defaultNote1'),
+      t('ticketGuide.defaultNote2'),
+      t('ticketGuide.defaultNote3'),
     ],
     contactInfo: null
   });
@@ -111,7 +113,7 @@ const TicketBookingGuide = () => {
         <div className="pt-24 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gray-600 text-lg">加载中...</p>
+            <p className="text-gray-600 text-lg">{t('common.loading')}</p>
           </div>
         </div>
       </div>
@@ -131,7 +133,7 @@ const TicketBookingGuide = () => {
             whileTap={{ scale: 0.95 }}
           >
             <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm font-medium">返回景点详情</span>
+            <span className="text-sm font-medium">{t('ticketGuide.backToDetail')}</span>
           </motion.button>
         </div>
 
@@ -143,7 +145,7 @@ const TicketBookingGuide = () => {
               className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm mb-6"
             >
               <Ticket className="w-4 h-4" />
-              <span>官方购票指南</span>
+              <span>{t('ticketGuide.officialGuide')}</span>
             </motion.div>
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
@@ -173,7 +175,7 @@ const TicketBookingGuide = () => {
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
               <Smartphone className="w-6 h-6 text-blue-600" />
-              购票方式
+              {t('ticketGuide.bookingMethod')}
             </h2>
             <div className="space-y-6">
               {guideData.steps.map((step, index) => (
@@ -214,7 +216,7 @@ const TicketBookingGuide = () => {
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
               <AlertCircle className="w-6 h-6 text-amber-600" />
-              重要提示
+              {t('ticketGuide.importantNotes')}
             </h2>
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <ul className="space-y-3">
@@ -237,7 +239,7 @@ const TicketBookingGuide = () => {
             >
               <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
                 <Clock className="w-6 h-6 text-purple-600" />
-                联系方式
+                {t('ticketGuide.contactInfo')}
               </h2>
               <div className="bg-white rounded-2xl shadow-lg p-6">
                 <div className="grid md:grid-cols-2 gap-6">
@@ -246,7 +248,7 @@ const TicketBookingGuide = () => {
                       <Smartphone className="w-6 h-6 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">客服电话</p>
+                      <p className="text-sm text-gray-500">{t('ticketGuide.servicePhone')}</p>
                       <p className="text-lg font-bold text-gray-900">{guideData.contactInfo.phone}</p>
                     </div>
                   </div>
@@ -255,7 +257,7 @@ const TicketBookingGuide = () => {
                       <Clock className="w-6 h-6 text-purple-600" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">工作时间</p>
+                      <p className="text-sm text-gray-500">{t('ticketGuide.workTime')}</p>
                       <p className="text-lg font-bold text-gray-900">{guideData.contactInfo.workTime}</p>
                     </div>
                   </div>
@@ -278,10 +280,10 @@ const TicketBookingGuide = () => {
                 className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300"
               >
                 <ExternalLink className="w-5 h-5" />
-                访问官方购票网站
+                {t('ticketGuide.visitOfficialSite')}
               </a>
               <p className="text-sm text-gray-500 mt-3">
-                将在新窗口打开官方网站
+                {t('ticketGuide.openInNewWindow')}
               </p>
             </motion.div>
           )}
