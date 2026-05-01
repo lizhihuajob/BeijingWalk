@@ -56,14 +56,14 @@ const ScenicSpotDetail = () => {
         setError(null);
       } catch (err) {
         console.error('Failed to fetch scenic spot:', err);
-        setError('加载详情失败，请稍后重试');
+        setError(t('error.loadDetailFailed'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchScenicSpot();
-  }, [id]);
+  }, [id, language, t]);
 
   useEffect(() => {
     if ('speechSynthesis' in window) {
@@ -181,7 +181,7 @@ const ScenicSpotDetail = () => {
         <div className="pt-24 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
-            <p className="text-gray-600 text-lg">加载中...</p>
+            <p className="text-gray-600 text-lg">{t('common.loading')}</p>
           </div>
         </div>
       </div>
@@ -194,12 +194,12 @@ const ScenicSpotDetail = () => {
         <Header />
         <div className="pt-24 flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <p className="text-gray-600 text-lg mb-4">{error || '未找到该景点信息'}</p>
+            <p className="text-gray-600 text-lg mb-4">{error || t('error.notFound')}</p>
             <button
               onClick={() => navigate('/')}
               className="px-6 py-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
             >
-              返回首页
+              {t('common.returnHome')}
             </button>
           </div>
         </div>
@@ -220,7 +220,7 @@ const ScenicSpotDetail = () => {
             whileTap={{ scale: 0.95 }}
           >
             <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm font-medium">返回</span>
+            <span className="text-sm font-medium">{t('common.back')}</span>
           </motion.button>
         </div>
 
@@ -254,7 +254,7 @@ const ScenicSpotDetail = () => {
                   transition={{ duration: 0.6, delay: 0.4 }}
                   className="inline-block px-6 py-2 bg-white/20 backdrop-blur-sm text-white rounded-full text-lg font-medium"
                 >
-                  推荐景点
+                  {t('scenic.featured')}
                 </motion.span>
               )}
             </motion.div>
@@ -282,7 +282,7 @@ const ScenicSpotDetail = () => {
               <div className="w-16 h-16 rounded-2xl bg-blue-100 flex items-center justify-center mx-auto mb-4">
                 <MapPin className="w-8 h-8 text-blue-500" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900">位置</h3>
+              <h3 className="text-lg font-bold text-gray-900">{t('scenicDetail.position')}</h3>
             </motion.div>
             <motion.div
               whileHover={{ scale: 1.02, y: -2 }}
@@ -298,7 +298,7 @@ const ScenicSpotDetail = () => {
               <div className="w-16 h-16 rounded-2xl bg-indigo-100 flex items-center justify-center mx-auto mb-4">
                 <Layers className="w-8 h-8 text-indigo-500" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900">周边推荐</h3>
+              <h3 className="text-lg font-bold text-gray-900">{t('scenicDetail.nearby')}</h3>
             </motion.div>
             <motion.div
               whileHover={{ scale: 1.02, y: -2 }}
@@ -314,7 +314,7 @@ const ScenicSpotDetail = () => {
               <div className="w-16 h-16 rounded-2xl bg-purple-100 flex items-center justify-center mx-auto mb-4">
                 <Info className="w-8 h-8 text-purple-500" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900">景点介绍</h3>
+              <h3 className="text-lg font-bold text-gray-900">{t('scenicDetail.introduction')}</h3>
             </motion.div>
             <motion.div
               whileHover={{ scale: 1.02, y: -2 }}
@@ -330,7 +330,7 @@ const ScenicSpotDetail = () => {
               <div className="w-16 h-16 rounded-2xl bg-violet-100 flex items-center justify-center mx-auto mb-4">
                 <Clock className="w-8 h-8 text-violet-500" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900">开放时间</h3>
+              <h3 className="text-lg font-bold text-gray-900">{t('scenicDetail.openingHours')}</h3>
             </motion.div>
           </motion.div>
 
@@ -342,8 +342,8 @@ const ScenicSpotDetail = () => {
           >
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="text-center md:text-left">
-                <h3 className="text-2xl font-bold text-white mb-2">准备好开始您的旅程了吗？</h3>
-                <p className="text-white/80">立即预订门票，避免排队等待</p>
+                <h3 className="text-2xl font-bold text-white mb-2">{t('scenicDetail.readyToTravel')}</h3>
+                <p className="text-white/80">{t('scenicDetail.bookNow')}</p>
               </div>
               <motion.button
                 onClick={handleBuyTicket}
@@ -352,7 +352,7 @@ const ScenicSpotDetail = () => {
                 whileTap={{ scale: 0.95 }}
               >
                 <Ticket className="w-6 h-6" />
-                立即购票
+                {t('scenicDetail.buyTicket')}
                 <ExternalLink className="w-5 h-5" />
               </motion.button>
             </div>
@@ -367,7 +367,7 @@ const ScenicSpotDetail = () => {
             <div className="p-8 md:p-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-4">
                 <span className="w-2 h-12 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></span>
-                门票信息
+                {t('scenicDetail.ticketInfo')}
               </h2>
               
               <div className="grid md:grid-cols-2 gap-8">
@@ -377,7 +377,7 @@ const ScenicSpotDetail = () => {
                       <Sun className="w-6 h-6 text-amber-600" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-gray-900 mb-1">旺季（4月1日-10月31日）</h4>
+                      <h4 className="font-bold text-gray-900 mb-1">{t('scenicDetail.peakSeason')}</h4>
                       <p className="text-2xl font-bold text-amber-600">
                         {scenicSpot.ticket_price_peak || '请咨询景区'}
                       </p>
@@ -389,7 +389,7 @@ const ScenicSpotDetail = () => {
                       <Moon className="w-6 h-6 text-slate-600" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-gray-900 mb-1">淡季（11月1日-3月31日）</h4>
+                      <h4 className="font-bold text-gray-900 mb-1">{t('scenicDetail.offPeakSeason')}</h4>
                       <p className="text-2xl font-bold text-slate-600">
                         {scenicSpot.ticket_price_off_peak || '请咨询景区'}
                       </p>
@@ -400,7 +400,7 @@ const ScenicSpotDetail = () => {
                 <div className="space-y-4">
                   <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <Info className="w-5 h-5 text-blue-500" />
-                    门票说明
+                    {t('scenicDetail.ticketNotes')}
                   </h3>
                   
                   {scenicSpot.ticket_additional_info ? (
@@ -411,7 +411,7 @@ const ScenicSpotDetail = () => {
                     </div>
                   ) : (
                     <div className="bg-gray-50 rounded-2xl p-6">
-                      <p className="text-gray-600">请通过官方渠道了解最新门票价格及优惠政策。</p>
+                      <p className="text-gray-600">{t('scenicDetail.officialChannel')}</p>
                     </div>
                   )}
 
@@ -422,7 +422,7 @@ const ScenicSpotDetail = () => {
                         className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold rounded-full hover:shadow-lg transition-all duration-300"
                       >
                         <Ticket className="w-5 h-5" />
-                        查看购票指南
+                        {t('scenicDetail.viewBookingGuide')}
                         <ChevronRight className="w-5 h-5" />
                       </button>
                     </div>
@@ -442,7 +442,7 @@ const ScenicSpotDetail = () => {
             <div className="p-8 md:p-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-4">
                 <span className="w-2 h-12 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"></span>
-                开放时间
+                {t('scenicDetail.openingHours')}
               </h2>
 
               <div className="grid md:grid-cols-2 gap-8">
@@ -453,7 +453,7 @@ const ScenicSpotDetail = () => {
                         <Sun className="w-6 h-6 text-green-600" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-gray-900 mb-1">旺季（4月1日-10月31日）</h4>
+                        <h4 className="font-bold text-gray-900 mb-1">{t('scenicDetail.peakSeason')}</h4>
                         <p className="text-gray-700 leading-relaxed">
                           {scenicSpot.opening_hours_peak}
                         </p>
@@ -467,7 +467,7 @@ const ScenicSpotDetail = () => {
                         <Moon className="w-6 h-6 text-slate-600" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-gray-900 mb-1">淡季（11月1日-3月31日）</h4>
+                        <h4 className="font-bold text-gray-900 mb-1">{t('scenicDetail.offPeakSeason')}</h4>
                         <p className="text-gray-700 leading-relaxed">
                           {scenicSpot.opening_hours_off_peak}
                         </p>
@@ -482,7 +482,7 @@ const ScenicSpotDetail = () => {
                       <div className="flex items-start gap-3">
                         <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
                         <div>
-                          <h4 className="font-bold text-amber-800 mb-2">温馨提示</h4>
+                          <h4 className="font-bold text-amber-800 mb-2">{t('scenicDetail.warmTips')}</h4>
                           <p className="text-amber-700 leading-relaxed">
                             {scenicSpot.additional_opening_notes}
                           </p>
@@ -505,7 +505,7 @@ const ScenicSpotDetail = () => {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
               <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-4">
                 <span className="w-2 h-12 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></span>
-                景点介绍
+                {t('scenicDetail.introduction')}
               </h2>
               
               {speechSupported && (
@@ -608,7 +608,7 @@ const ScenicSpotDetail = () => {
               
               return (
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 mt-8">
-                  <h3 className="font-semibold text-gray-900 mb-3 text-lg">游览小贴士</h3>
+                  <h3 className="font-semibold text-gray-900 mb-3 text-lg">{t('scenicDetail.tourTips')}</h3>
                   <ul className="space-y-2 text-gray-600">
                     {tips.map((tip, index) => (
                       <li key={index} className="flex items-start gap-2">
@@ -633,10 +633,10 @@ const ScenicSpotDetail = () => {
           >
             <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-4">
               <span className="w-2 h-12 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></span>
-              周边推荐
+              {t('scenicDetail.nearbyTitle')}
             </h2>
             <p className="text-gray-500 mb-6">
-              探索「{scenicSpot.name}」周边的美食、文化场所和特色购物
+              {t('scenicDetail.nearbySubtitle', { name: scenicSpot.name })}
             </p>
             <NearbyRecommendations scenicSpotId={scenicSpot.id} />
           </motion.div>
@@ -650,7 +650,7 @@ const ScenicSpotDetail = () => {
             <div className="p-8 md:p-12 pb-0">
               <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-4">
                 <span className="w-2 h-12 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></span>
-                景点视频
+                {t('scenicDetail.spotVideo')}
               </h2>
             </div>
             <div className="relative aspect-video bg-gray-900 group">
@@ -664,7 +664,7 @@ const ScenicSpotDetail = () => {
               >
                 <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
                 <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
-                您的浏览器不支持视频播放
+                {t('error.notFound')}
               </video>
               
               {!isVideoPlaying && (
@@ -678,7 +678,7 @@ const ScenicSpotDetail = () => {
                     <Play className="w-12 h-12 text-white ml-2" />
                   </motion.button>
                   <p className="absolute bottom-8 text-white text-center w-full">
-                    点击播放景点介绍视频
+                    {t('scenicDetail.playVideo')}
                   </p>
                 </div>
               )}
@@ -719,7 +719,7 @@ const ScenicSpotDetail = () => {
               whileTap={{ scale: 0.95 }}
             >
               <ArrowLeft className="w-6 h-6" />
-              返回首页探索更多
+              {t('scenicDetail.returnHomeExplore')}
             </motion.button>
           </motion.div>
         </div>

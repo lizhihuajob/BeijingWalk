@@ -19,6 +19,7 @@ export const SUPPORTED_LANGUAGES = [
 ];
 
 const getBrowserLanguage = () => {
+  if (typeof navigator === 'undefined') return 'zh';
   const browserLang = navigator.language.toLowerCase();
   if (browserLang.startsWith('zh')) return 'zh';
   if (browserLang.startsWith('ja')) return 'ja';
@@ -27,6 +28,7 @@ const getBrowserLanguage = () => {
 };
 
 const getStoredLanguage = () => {
+  if (typeof localStorage === 'undefined') return null;
   try {
     const stored = localStorage.getItem('beijingwalk_language');
     if (stored && translations[stored]) {
@@ -41,9 +43,17 @@ const getStoredLanguage = () => {
 const I18nContext = createContext(undefined);
 
 export const I18nProvider = ({ children }) => {
-  const [language, setLanguageState] = useState(() => {
-    return getStoredLanguage() || getBrowserLanguage();
-  });
+  const [language, setLanguageState] = useState('zh');
+  
+  useEffect(() => {
+    const stored = getStoredLanguage();
+    if (stored) {
+      setLanguageState(stored);
+    } else {
+      const browserLang = getBrowserLanguage();
+      setLanguageState(browserLang);
+    }
+  }, []);
 
   const t = useCallback((key, params = {}) => {
     const keys = key.split('.');

@@ -9,9 +9,11 @@ import {
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getBanners, getCultures, getSpecialties, getScenicSpots, getHeritages, getCategories } from '../services/api';
+import { useI18n } from '../i18n';
 
 function HomePage() {
   const navigate = useNavigate();
+  const { t, language } = useI18n();
   const [banners, setBanners] = useState([]);
   const [featuredData, setFeaturedData] = useState({
     cultures: [],
@@ -23,11 +25,10 @@ function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [categories, setCategories] = useState([
+  
+  const defaultCategories = [
     {
       id: 1,
-      title: '北京文化',
-      description: '探索北京悠久的历史文化，感受千年古都的独特魅力',
       icon: 'Scroll',
       path: '/culture',
       gradient: 'from-amber-400 to-orange-500',
@@ -36,8 +37,6 @@ function HomePage() {
     },
     {
       id: 2,
-      title: '地方特产',
-      description: '品尝北京地道美食，感受舌尖上的老北京味道',
       icon: 'Utensils',
       path: '/specialties',
       gradient: 'from-red-400 to-pink-500',
@@ -46,8 +45,6 @@ function HomePage() {
     },
     {
       id: 3,
-      title: '名胜古迹',
-      description: '探索北京千年历史的著名景点，感受中华文明的博大精深',
       icon: 'Building',
       path: '/scenic',
       gradient: 'from-blue-400 to-purple-500',
@@ -56,27 +53,39 @@ function HomePage() {
     },
     {
       id: 4,
-      title: '非物质文化遗产',
-      description: '传承千年技艺，守护文化瑰宝，感受老北京的独特魅力',
       icon: 'Sparkles',
       path: '/heritage',
       gradient: 'from-amber-400 to-yellow-500',
       bg_light: 'from-yellow-50 to-amber-50',
       border_color: 'border-yellow-200',
     },
-  ]);
+  ];
+
+  const getCategoryTitle = (index) => {
+    const keys = ['nav.culture', 'nav.specialties', 'nav.scenic', 'nav.heritage'];
+    return t(keys[index] || 'nav.home');
+  };
+
+  const getCategoryDescription = (index) => {
+    switch (index) {
+      case 0: return t('culture.subtitle');
+      case 1: return t('specialties.subtitle');
+      case 2: return t('scenic.subtitle');
+      case 3: return t('heritage.subtitle');
+      default: return '';
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [bannersData, culturesData, specialtiesData, scenicSpotsData, heritagesData, categoriesData] = await Promise.all([
+        const [bannersData, culturesData, specialtiesData, scenicSpotsData, heritagesData] = await Promise.all([
           getBanners(),
           getCultures(),
           getSpecialties(),
           getScenicSpots(),
           getHeritages(),
-          getCategories(),
         ]);
         
         setBanners(bannersData);
@@ -87,21 +96,17 @@ function HomePage() {
           heritages: heritagesData.slice(0, 4),
         });
         
-        if (categoriesData && categoriesData.length > 0) {
-          setCategories(categoriesData);
-        }
-        
         setError(null);
       } catch (err) {
         console.error('Failed to fetch data:', err);
-        setError('加载数据失败，请稍后重试');
+        setError(t('error.loadFailed'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [language, t]);
 
   useEffect(() => {
     if (banners.length > 1) {
@@ -170,7 +175,7 @@ function HomePage() {
         <div className="pt-24 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <Loader2 className="w-16 h-16 text-orange-500 animate-spin mx-auto mb-6" />
-            <p className="text-gray-600 text-xl">加载中...</p>
+            <p className="text-gray-600 text-xl">{t('common.loading')}</p>
           </div>
         </div>
       </div>
@@ -217,7 +222,7 @@ function HomePage() {
                 className="inline-flex items-center gap-2 px-6 py-3 bg-white/20 backdrop-blur-md rounded-full mb-8"
               >
                 <MapPin className="w-5 h-5 text-white" />
-                <span className="text-white font-medium">欢迎来到首都北京</span>
+                <span className="text-white font-medium">{t('home.welcome')}</span>
               </motion.div>
 
               <motion.h1
@@ -226,10 +231,10 @@ function HomePage() {
                 transition={{ duration: 0.8, delay: 0.5 }}
                 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 tracking-tight leading-tight"
               >
-                探索北京
+                {t('home.title')}
                 <br />
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 to-orange-300">
-                  千年古都
+                  {t('home.subtitle')}
                 </span>
               </motion.h1>
 
@@ -239,7 +244,7 @@ function HomePage() {
                 transition={{ duration: 0.6, delay: 0.7 }}
                 className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed"
               >
-                感受历史与现代的完美交融，体验传统文化与时尚潮流的碰撞
+                {t('home.description')}
               </motion.p>
 
               <motion.div
@@ -254,7 +259,7 @@ function HomePage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  开始探索
+                  {t('home.startExplore')}
                   <ArrowRight className="w-6 h-6" />
                 </motion.button>
                 <motion.button
@@ -263,7 +268,7 @@ function HomePage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  了解文化
+                  {t('home.learnCulture')}
                 </motion.button>
               </motion.div>
             </motion.div>
@@ -316,21 +321,21 @@ function HomePage() {
               className="text-center mb-16"
             >
               <span className="inline-block px-4 py-2 bg-orange-100 text-orange-600 rounded-full text-sm font-medium mb-6">
-                探索分类
+                {t('home.categoriesTitle')}
               </span>
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 tracking-tight">
-                发现北京的精彩
+                {t('home.categoriesTitle')}
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                从千年文化到现代时尚，从地道美食到名胜古迹，北京总有一款适合你
+                {t('home.categoriesSubtitle')}
               </p>
             </motion.div>
 
             <div className="grid md:grid-cols-2 gap-8">
-              {categories.map((category, index) => {
+              {defaultCategories.map((category, index) => {
                 const IconComponent = getIconComponent(category.icon);
-                const bgLight = category.bgLight || category.bg_light || 'from-gray-50 to-gray-100';
-                const borderColor = category.borderColor || category.border_color || 'border-gray-200';
+                const bgLight = category.bg_light || 'from-gray-50 to-gray-100';
+                const borderColor = category.border_color || 'border-gray-200';
                 return (
                   <motion.div
                     key={category.id || category.path}
@@ -355,16 +360,16 @@ function HomePage() {
                         </motion.div>
                         <div className="flex-1">
                           <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
-                            {category.title}
+                            {getCategoryTitle(index)}
                           </h3>
                           <p className="text-gray-600 mb-6 leading-relaxed">
-                            {category.description}
+                            {getCategoryDescription(index)}
                           </p>
                           <motion.button
                             className={`inline-flex items-center gap-2 font-semibold bg-gradient-to-r ${category.gradient} bg-clip-text text-transparent hover:opacity-80 transition-opacity`}
                             whileHover={{ x: 5 }}
                           >
-                            立即探索
+                            {t('common.exploreMore')}
                             <ArrowRight className="w-5 h-5" />
                           </motion.button>
                         </div>
@@ -389,10 +394,10 @@ function HomePage() {
               >
                 <div>
                   <span className="inline-block px-4 py-2 bg-blue-100 text-blue-600 rounded-full text-sm font-medium mb-4">
-                    推荐景点
+                    {t('scenic.featured')}
                   </span>
                   <h2 className="text-4xl font-bold text-gray-900 tracking-tight">
-                    必游之地
+                    {t('home.featuredTitle')}
                   </h2>
                 </div>
                 <motion.button
@@ -400,7 +405,7 @@ function HomePage() {
                   className="hidden md:flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors"
                   whileHover={{ x: 5 }}
                 >
-                  查看全部
+                  {t('home.viewAll')}
                   <ArrowRight className="w-5 h-5" />
                 </motion.button>
               </motion.div>
@@ -473,7 +478,7 @@ function HomePage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  查看全部景点
+                  {t('home.viewAll')}
                   <ArrowRight className="w-5 h-5" />
                 </motion.button>
               </motion.div>
@@ -492,13 +497,13 @@ function HomePage() {
                 className="text-center mb-16"
               >
                 <span className="inline-block px-4 py-2 bg-red-100 text-red-600 rounded-full text-sm font-medium mb-4">
-                  地道美食
+                  {t('home.localFoodTitle')}
                 </span>
                 <h2 className="text-4xl font-bold text-gray-900 mb-4 tracking-tight">
-                  舌尖上的北京
+                  {t('home.localFoodTitle')}
                 </h2>
                 <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                  品尝正宗老北京味道，感受传统与创新的美食文化
+                  {t('home.localFoodSubtitle')}
                 </p>
               </motion.div>
 
@@ -547,7 +552,7 @@ function HomePage() {
                             className="flex items-center gap-1 text-red-500 font-semibold text-sm"
                             whileHover={{ x: 3 }}
                           >
-                            了解详情
+                            {t('scenic.viewDetails')}
                             <ArrowRight className="w-4 h-4" />
                           </motion.span>
                         </div>
@@ -570,7 +575,7 @@ function HomePage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  探索更多美食
+                  {t('home.exploreMoreFood')}
                   <ArrowRight className="w-6 h-6" />
                 </motion.button>
               </motion.div>
@@ -594,10 +599,10 @@ function HomePage() {
               className="text-center"
             >
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">
-                准备好探索北京了吗？
+                {t('home.ctaTitle')}
               </h2>
               <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed">
-                千年古都，现代之都。北京等你来发现它的独特魅力
+                {t('home.ctaSubtitle')}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <motion.button
@@ -607,7 +612,7 @@ function HomePage() {
                   whileTap={{ scale: 0.95 }}
                 >
                   <Heart className="w-6 h-6" />
-                  了解北京文化
+                  {t('home.learnBeijingCulture')}
                 </motion.button>
                 <motion.button
                   onClick={() => navigate('/guestbook')}
@@ -616,7 +621,7 @@ function HomePage() {
                   whileTap={{ scale: 0.95 }}
                 >
                   <MessageSquare className="w-6 h-6" />
-                  留言板
+                  {t('home.guestbook')}
                 </motion.button>
               </div>
             </motion.div>

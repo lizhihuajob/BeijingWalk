@@ -5,9 +5,11 @@ import { Building, ArrowRight, Loader2, ChevronUp, ArrowLeft, MapPin, Star, Cloc
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getScenicSpots } from '../services/api';
+import { useI18n } from '../i18n';
 
 const ScenicPage = () => {
   const navigate = useNavigate();
+  const { t, language } = useI18n();
   const [scenicSpots, setScenicSpots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -22,14 +24,14 @@ const ScenicPage = () => {
         setError(null);
       } catch (err) {
         console.error('Failed to fetch scenic spots:', err);
-        setError('加载数据失败，请稍后重试');
+        setError(t('error.loadFailed'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [language, t]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -58,7 +60,7 @@ const ScenicPage = () => {
         <div className="pt-24 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
-            <p className="text-gray-600 text-lg">加载中...</p>
+            <p className="text-gray-600 text-lg">{t('common.loading')}</p>
           </div>
         </div>
       </div>
@@ -83,10 +85,10 @@ const ScenicPage = () => {
                 <Building className="w-10 h-10 text-white" />
               </div>
               <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 tracking-tight">
-                名胜古迹
+                {t('scenic.title')}
               </h1>
               <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto">
-                探索北京千年历史的著名景点，感受中华文明的博大精深
+                {t('scenic.subtitle')}
               </p>
             </motion.div>
           </div>
@@ -102,8 +104,8 @@ const ScenicPage = () => {
             <div className="flex items-center gap-4 mb-8">
               <div className="w-1 h-12 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">探索北京</h2>
-                <p className="text-gray-500">共 {scenicSpots.length} 处精选景点</p>
+                <h2 className="text-2xl font-bold text-gray-900">{t('home.title')}</h2>
+                <p className="text-gray-500">{t('scenic.totalSpots', { count: scenicSpots.length })}</p>
               </div>
             </div>
           </motion.div>
@@ -129,7 +131,7 @@ const ScenicPage = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
                   <Star className="w-5 h-5 text-white fill-current" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900">推荐景点</h3>
+                <h3 className="text-xl font-bold text-gray-900">{t('scenic.featuredSpots')}</h3>
               </div>
 
               <motion.div
@@ -150,7 +152,7 @@ const ScenicPage = () => {
                 <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
                   <div className="flex flex-wrap items-center gap-3 mb-4">
                     <span className="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium">
-                      ⭐ 必游景点
+                      ⭐ {t('scenic.featured')}
                     </span>
                     {featuredSpot.location && (
                       <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm">
@@ -177,7 +179,7 @@ const ScenicPage = () => {
                       navigate(`/scenic-spot/${featuredSpot.id}`);
                     }}
                   >
-                    深入探索
+                    {t('home.exploreMore')}
                     <ArrowRight className="w-5 h-5" />
                   </motion.button>
                 </div>
@@ -195,7 +197,7 @@ const ScenicPage = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
                   <MapPin className="w-5 h-5 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900">更多景点</h3>
+                <h3 className="text-xl font-bold text-gray-900">{t('home.viewAll')}</h3>
               </div>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -244,7 +246,7 @@ const ScenicPage = () => {
                         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                           <div className="flex items-center gap-2 text-gray-500 text-sm">
                             <Clock className="w-4 h-4" />
-                            <span>建议游览</span>
+                            <span>{t('scenicDetail.tourTips')}</span>
                           </div>
                           <motion.button
                             className="inline-flex items-center gap-1.5 text-blue-500 hover:text-blue-600 text-sm font-semibold transition-colors"
@@ -254,7 +256,7 @@ const ScenicPage = () => {
                               navigate(`/scenic-spot/${spot.id}`);
                             }}
                           >
-                            查看详情
+                            {t('scenic.viewDetails')}
                             <ArrowRight className="w-4 h-4" />
                           </motion.button>
                         </div>
@@ -274,10 +276,10 @@ const ScenicPage = () => {
           >
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-12 border border-blue-100">
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                想了解更多北京的精彩？
+                {t('culture.exploreMoreTitle')}
               </h3>
               <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-                回到首页，探索北京的传统文化、地方美食和非物质文化遗产
+                {t('culture.exploreMoreSubtitle')}
               </p>
               <motion.button
                 onClick={() => navigate('/')}
@@ -286,7 +288,7 @@ const ScenicPage = () => {
                 whileTap={{ scale: 0.95 }}
               >
                 <ArrowLeft className="w-5 h-5" />
-                返回首页
+                {t('common.returnHome')}
               </motion.button>
             </div>
           </motion.div>
