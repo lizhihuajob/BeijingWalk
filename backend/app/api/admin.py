@@ -1447,9 +1447,6 @@ def get_geo_distribution():
         country_stats = db.session.query(
             Guestbook.country,
             func.count(Guestbook.id).label('count')
-        ).filter(
-            Guestbook.country.isnot(None),
-            Guestbook.country != ''
         ).group_by(
             Guestbook.country
         ).order_by(
@@ -1459,17 +1456,33 @@ def get_geo_distribution():
         province_stats = db.session.query(
             Guestbook.province,
             func.count(Guestbook.id).label('count')
-        ).filter(
-            Guestbook.province.isnot(None),
-            Guestbook.province != ''
         ).group_by(
             Guestbook.province
         ).order_by(
             desc('count')
         ).all()
         
-        countries = [{'name': c.country or '未知', 'count': c.count} for c in country_stats]
-        provinces = [{'name': p.province or '未知', 'count': p.count} for p in province_stats]
+        country_dict = {}
+        for c in country_stats:
+            if c.country is None or c.country == '':
+                key = '未知'
+            else:
+                key = c.country
+            country_dict[key] = country_dict.get(key, 0) + c.count
+        
+        countries = [{'name': k, 'count': v} for k, v in country_dict.items()]
+        countries.sort(key=lambda x: x['count'], reverse=True)
+        
+        province_dict = {}
+        for p in province_stats:
+            if p.province is None or p.province == '':
+                key = '未知'
+            else:
+                key = p.province
+            province_dict[key] = province_dict.get(key, 0) + p.count
+        
+        provinces = [{'name': k, 'count': v} for k, v in province_dict.items()]
+        provinces.sort(key=lambda x: x['count'], reverse=True)
         
         return jsonify({
             'countries': countries,
