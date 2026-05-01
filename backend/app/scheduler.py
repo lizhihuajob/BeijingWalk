@@ -1,16 +1,25 @@
 from flask_apscheduler import APScheduler
 from datetime import datetime
-from app import db, create_app
-from app.models.models import Banner, Culture, Specialty, ScenicSpot, Heritage
+from app import db
 
 scheduler = APScheduler()
+_app = None
+
+def set_app(app):
+    global _app
+    _app = app
 
 def check_content_schedule():
-    app = create_app()
-    with app.app_context():
+    global _app
+    if _app is None:
+        print("Error: App not initialized for scheduler")
+        return
+    
+    with _app.app_context():
         try:
             now = datetime.utcnow()
             
+            from app.models.models import Banner, Culture, Specialty, ScenicSpot, Heritage
             models = [Banner, Culture, Specialty, ScenicSpot, Heritage]
             
             for model in models:
@@ -41,6 +50,8 @@ def check_content_schedule():
             print(f"Error in schedule check: {e}")
 
 def init_scheduler(app):
+    global _app
+    _app = app
     scheduler.init_app(app)
     
     if not scheduler.running:
