@@ -5,9 +5,11 @@ import { Utensils, Star, ArrowRight, Loader2, ChevronUp, ArrowLeft, Search, Filt
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getSpecialties } from '../services/api';
+import { useI18n } from '../i18n';
 
 const SpecialtiesPage = () => {
   const navigate = useNavigate();
+  const { t, language } = useI18n();
   const [specialties, setSpecialties] = useState([]);
   const [filteredSpecialties, setFilteredSpecialties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,14 +28,14 @@ const SpecialtiesPage = () => {
         setError(null);
       } catch (err) {
         console.error('Failed to fetch specialties:', err);
-        setError('加载数据失败，请稍后重试');
+        setError(t('error.loadFailed'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [language, t]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -97,7 +99,7 @@ const SpecialtiesPage = () => {
         <div className="pt-24 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <Loader2 className="w-12 h-12 text-red-500 animate-spin mx-auto mb-4" />
-            <p className="text-gray-600 text-lg">加载中...</p>
+            <p className="text-gray-600 text-lg">{t('common.loading')}</p>
           </div>
         </div>
       </div>
@@ -122,10 +124,10 @@ const SpecialtiesPage = () => {
                 <Utensils className="w-10 h-10 text-white" />
               </div>
               <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 tracking-tight">
-                地方特产
+                {t('specialties.title')}
               </h1>
               <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto">
-                品尝北京地道美食，感受舌尖上的老北京味道
+                {t('specialties.subtitle')}
               </p>
             </motion.div>
           </div>
@@ -142,8 +144,8 @@ const SpecialtiesPage = () => {
               <div className="flex items-center gap-4">
                 <div className="w-1 h-12 bg-gradient-to-b from-red-500 to-pink-500 rounded-full"></div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">美食探索</h2>
-                  <p className="text-gray-500">共 {filteredSpecialties.length} 种精选特产</p>
+                  <h2 className="text-2xl font-bold text-gray-900">{t('specialties.foodExplore')}</h2>
+                  <p className="text-gray-500">{t('specialties.totalItems', { count: filteredSpecialties.length })}</p>
                 </div>
               </div>
 
@@ -152,7 +154,7 @@ const SpecialtiesPage = () => {
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="搜索特产..."
+                    placeholder={t('specialties.searchPlaceholder')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full sm:w-64 pl-12 pr-4 py-3 rounded-2xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-300"
@@ -166,9 +168,9 @@ const SpecialtiesPage = () => {
                     onChange={(e) => setSortBy(e.target.value)}
                     className="w-full sm:w-48 pl-12 pr-10 py-3 rounded-2xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-300 appearance-none cursor-pointer"
                   >
-                    <option value="default">默认排序</option>
-                    <option value="rating">评分最高</option>
-                    <option value="name">名称排序</option>
+                    <option value="default">{t('specialties.sortDefault')}</option>
+                    <option value="rating">{t('specialties.sortByRating')}</option>
+                    <option value="name">{t('specialties.sortByName')}</option>
                   </select>
                 </div>
               </div>
@@ -192,8 +194,8 @@ const SpecialtiesPage = () => {
               className="text-center py-20"
             >
               <Utensils className="w-24 h-24 text-gray-300 mx-auto mb-6" />
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">未找到相关特产</h3>
-              <p className="text-gray-500 mb-6">请尝试其他搜索关键词</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">{t('specialties.noResults')}</h3>
+              <p className="text-gray-500 mb-6">{t('specialties.tryOtherKeywords')}</p>
               <motion.button
                 onClick={() => {
                   setSearchTerm('');
@@ -203,7 +205,7 @@ const SpecialtiesPage = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                清除筛选
+                {t('specialties.clearFilter')}
               </motion.button>
             </motion.div>
           )}
@@ -256,7 +258,7 @@ const SpecialtiesPage = () => {
                           className="inline-flex items-center gap-1.5 text-red-500 hover:text-red-600 text-sm font-semibold transition-colors"
                           whileHover={{ x: 3 }}
                         >
-                          查看详情
+                          {t('specialties.learnMore')}
                           <ArrowRight className="w-4 h-4" />
                         </motion.button>
                       </div>
@@ -275,10 +277,10 @@ const SpecialtiesPage = () => {
           >
             <div className="bg-gradient-to-r from-red-50 to-pink-50 rounded-3xl p-12 border border-red-100">
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                想了解更多北京的精彩？
+                {t('specialties.exploreMoreTitle')}
               </h3>
               <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-                回到首页，探索北京的名胜古迹、传统文化和非物质文化遗产
+                {t('specialties.exploreMoreSubtitle')}
               </p>
               <motion.button
                 onClick={() => navigate('/')}
@@ -287,7 +289,7 @@ const SpecialtiesPage = () => {
                 whileTap={{ scale: 0.95 }}
               >
                 <ArrowLeft className="w-5 h-5" />
-                返回首页
+                {t('common.returnHome')}
               </motion.button>
             </div>
           </motion.div>

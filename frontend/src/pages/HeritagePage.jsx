@@ -5,9 +5,11 @@ import { Sparkles, ArrowRight, Loader2, ChevronUp, ArrowLeft, Heart, Award, User
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getHeritages } from '../services/api';
+import { useI18n } from '../i18n';
 
 const HeritagePage = () => {
   const navigate = useNavigate();
+  const { t, language } = useI18n();
   const [heritages, setHeritages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -22,14 +24,14 @@ const HeritagePage = () => {
         setError(null);
       } catch (err) {
         console.error('Failed to fetch heritages:', err);
-        setError('加载数据失败，请稍后重试');
+        setError(t('error.loadFailed'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [language, t]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -55,7 +57,7 @@ const HeritagePage = () => {
         <div className="pt-24 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <Loader2 className="w-12 h-12 text-amber-500 animate-spin mx-auto mb-4" />
-            <p className="text-gray-600 text-lg">加载中...</p>
+            <p className="text-gray-600 text-lg">{t('common.loading')}</p>
           </div>
         </div>
       </div>
@@ -80,10 +82,10 @@ const HeritagePage = () => {
                 <Sparkles className="w-10 h-10 text-white" />
               </div>
               <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 tracking-tight">
-                非物质文化遗产
+                {t('heritage.title')}
               </h1>
               <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto">
-                传承千年技艺，守护文化瑰宝，感受老北京的独特魅力
+                {t('heritage.subtitleFull')}
               </p>
             </motion.div>
           </div>
@@ -104,8 +106,8 @@ const HeritagePage = () => {
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center mx-auto mb-4 shadow-lg">
                   <Award className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">国家级非遗</h3>
-                <p className="text-gray-500 text-sm">传承千年的文化瑰宝</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{t('heritage.nationalLevel')}</h3>
+                <p className="text-gray-500 text-sm">{t('heritage.thousandYearTreasure')}</p>
               </motion.div>
 
               <motion.div
@@ -115,8 +117,8 @@ const HeritagePage = () => {
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center mx-auto mb-4 shadow-lg">
                   <Heart className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">匠心传承</h3>
-                <p className="text-gray-500 text-sm">老艺人的坚守与创新</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{t('heritage.craftsmanship')}</h3>
+                <p className="text-gray-500 text-sm">{t('heritage.craftsmanDedication')}</p>
               </motion.div>
 
               <motion.div
@@ -126,8 +128,8 @@ const HeritagePage = () => {
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center mx-auto mb-4 shadow-lg">
                   <Users className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">文化认同</h3>
-                <p className="text-gray-500 text-sm">民族的精神家园</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{t('heritage.culturalIdentity')}</h3>
+                <p className="text-gray-500 text-sm">{t('heritage.spiritualHome')}</p>
               </motion.div>
             </div>
           </motion.div>
@@ -151,8 +153,8 @@ const HeritagePage = () => {
             <div className="flex items-center gap-4 mb-8">
               <div className="w-1 h-12 bg-gradient-to-b from-amber-500 to-yellow-500 rounded-full"></div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">非遗项目</h2>
-                <p className="text-gray-500">共 {heritages.length} 项非遗技艺</p>
+                <h2 className="text-2xl font-bold text-gray-900">{t('heritage.heritageItems')}</h2>
+                <p className="text-gray-500">{t('heritage.totalItems', { count: heritages.length })}</p>
               </div>
             </div>
           </motion.div>
@@ -205,7 +207,7 @@ const HeritagePage = () => {
                     <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                       <div className="flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-amber-500" />
-                        <span className="text-xs text-amber-600 font-medium">非遗项目</span>
+                        <span className="text-xs text-amber-600 font-medium">{t('heritage.heritageItem')}</span>
                       </div>
                       <motion.button
                         className="inline-flex items-center gap-1.5 text-amber-600 hover:text-amber-700 text-sm font-semibold transition-colors"
@@ -215,7 +217,7 @@ const HeritagePage = () => {
                           navigate(`/heritage/${heritage.id}`);
                         }}
                       >
-                        了解更多
+                        {t('heritage.learnMore')}
                         <ArrowRight className="w-4 h-4" />
                       </motion.button>
                     </div>
@@ -240,11 +242,10 @@ const HeritagePage = () => {
               
               <div className="relative z-10">
                 <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                  传承文化，守护瑰宝
+                  {t('heritage.preserveCulture')}
                 </h3>
                 <p className="text-white/90 text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
-                  每一项非物质文化遗产都是历史的见证，是民族智慧的结晶。
-                  让我们一起了解、保护和传承这些珍贵的文化遗产。
+                  {t('heritage.preserveDescription')}
                 </p>
                 <motion.button
                   onClick={() => navigate('/')}
@@ -253,7 +254,7 @@ const HeritagePage = () => {
                   whileTap={{ scale: 0.95 }}
                 >
                   <ArrowLeft className="w-6 h-6" />
-                  探索更多北京文化
+                  {t('heritage.exploreMoreCulture')}
                 </motion.button>
               </div>
             </div>

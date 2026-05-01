@@ -6,10 +6,12 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getSpecialtyById } from '../services/api';
 import { trackContentView } from '../services/analytics';
+import { useI18n } from '../i18n';
 
 const SpecialtyDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t, language } = useI18n();
   const [specialty, setSpecialty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,14 +33,14 @@ const SpecialtyDetail = () => {
         setError(null);
       } catch (err) {
         console.error('Failed to fetch specialty:', err);
-        setError('加载详情失败，请稍后重试');
+        setError(t('error.loadDetailFailed'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchSpecialty();
-  }, [id]);
+  }, [id, language, t]);
 
   const renderStars = (rating) => {
     const stars = [];
@@ -82,7 +84,7 @@ const SpecialtyDetail = () => {
         <div className="pt-24 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <Loader2 className="w-12 h-12 text-red-500 animate-spin mx-auto mb-4" />
-            <p className="text-gray-600 text-lg">加载中...</p>
+            <p className="text-gray-600 text-lg">{t('common.loading')}</p>
           </div>
         </div>
       </div>
@@ -95,12 +97,12 @@ const SpecialtyDetail = () => {
         <Header />
         <div className="pt-24 flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <p className="text-gray-600 text-lg mb-4">{error || '未找到该特产信息'}</p>
+            <p className="text-gray-600 text-lg mb-4">{error || t('error.notFound')}</p>
             <button
               onClick={() => navigate('/')}
               className="px-6 py-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
             >
-              返回首页
+              {t('common.returnHome')}
             </button>
           </div>
         </div>
@@ -121,7 +123,7 @@ const SpecialtyDetail = () => {
             whileTap={{ scale: 0.95 }}
           >
             <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm font-medium">返回</span>
+            <span className="text-sm font-medium">{t('common.back')}</span>
           </motion.button>
         </div>
 
@@ -158,7 +160,7 @@ const SpecialtyDetail = () => {
                   {renderStars(specialty.rating)}
                 </div>
                 <span className="text-xl text-white/90 font-semibold">
-                  {specialty.rating}分
+                  {t('specialtyDetail.ratingScore', { rating: specialty.rating })}
                 </span>
               </motion.div>
             </motion.div>
@@ -176,25 +178,25 @@ const SpecialtyDetail = () => {
               <div className="w-16 h-16 rounded-2xl bg-red-100 flex items-center justify-center mx-auto mb-6">
                 <Star className="w-8 h-8 text-red-500" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">用户评分</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{t('specialtyDetail.userRating')}</h3>
               <p className="text-2xl font-bold text-red-500">{specialty.rating}</p>
-              <p className="text-gray-500">满分5分</p>
+              <p className="text-gray-500">{t('specialtyDetail.outOf5')}</p>
             </div>
             <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
               <div className="w-16 h-16 rounded-2xl bg-pink-100 flex items-center justify-center mx-auto mb-6">
                 <MapPin className="w-8 h-8 text-pink-500" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">产地</h3>
-              <p className="text-lg text-gray-600">北京</p>
-              <p className="text-gray-500">地道北京味</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{t('specialtyDetail.origin')}</h3>
+              <p className="text-lg text-gray-600">{t('specialtyDetail.beijing')}</p>
+              <p className="text-gray-500">{t('specialtyDetail.authenticBeijing')}</p>
             </div>
             <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
               <div className="w-16 h-16 rounded-2xl bg-rose-100 flex items-center justify-center mx-auto mb-6">
                 <DollarSign className="w-8 h-8 text-rose-500" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">推荐</h3>
-              <p className="text-lg text-gray-600">必尝美食</p>
-              <p className="text-gray-500">不容错过</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{t('specialtyDetail.recommend')}</h3>
+              <p className="text-lg text-gray-600">{t('specialtyDetail.mustTry')}</p>
+              <p className="text-gray-500">{t('specialtyDetail.notToMiss')}</p>
             </div>
           </motion.div>
 
@@ -206,26 +208,26 @@ const SpecialtyDetail = () => {
           >
             <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-4">
               <span className="w-2 h-12 bg-gradient-to-b from-red-500 to-pink-500 rounded-full"></span>
-              详细介绍
+              {t('specialtyDetail.introduction')}
             </h2>
             <p className="text-gray-600 text-lg leading-relaxed mb-6">
               {specialty.description}
             </p>
             
             <div className="bg-gradient-to-r from-red-50 to-pink-50 rounded-2xl p-6 mt-8">
-              <h3 className="font-semibold text-gray-900 mb-3 text-lg">小贴士</h3>
+              <h3 className="font-semibold text-gray-900 mb-3 text-lg">{t('specialtyDetail.tips')}</h3>
               <ul className="space-y-2 text-gray-600">
                 <li className="flex items-start gap-2">
                   <span className="text-red-500 mt-1">•</span>
-                  建议在正规店铺品尝，确保品质
+                  {t('specialtyDetail.tip1')}
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-red-500 mt-1">•</span>
-                  可以作为伴手礼带给亲朋好友
+                  {t('specialtyDetail.tip2')}
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-red-500 mt-1">•</span>
-                  注意保质期，新鲜食用最佳
+                  {t('specialtyDetail.tip3')}
                 </li>
               </ul>
             </div>
@@ -240,7 +242,7 @@ const SpecialtyDetail = () => {
             <div className="p-8 md:p-12 pb-0">
               <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-4">
                 <span className="w-2 h-12 bg-gradient-to-b from-red-500 to-pink-500 rounded-full"></span>
-                美食视频
+                {t('specialtyDetail.foodVideo')}
               </h2>
             </div>
             <div className="relative aspect-video bg-gray-900 group">
@@ -254,7 +256,7 @@ const SpecialtyDetail = () => {
               >
                 <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
                 <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
-                您的浏览器不支持视频播放
+                {t('common.browserNotSupported')}
               </video>
               
               {!isVideoPlaying && (
@@ -268,7 +270,7 @@ const SpecialtyDetail = () => {
                     <Play className="w-12 h-12 text-white ml-2" />
                   </motion.button>
                   <p className="absolute bottom-8 text-white text-center w-full">
-                    点击播放美食介绍视频
+                    {t('specialtyDetail.playVideo')}
                   </p>
                 </div>
               )}
@@ -309,7 +311,7 @@ const SpecialtyDetail = () => {
               whileTap={{ scale: 0.95 }}
             >
               <ArrowLeft className="w-6 h-6" />
-              返回首页探索更多
+              {t('specialtyDetail.returnHomeExplore')}
             </motion.button>
           </motion.div>
         </div>
