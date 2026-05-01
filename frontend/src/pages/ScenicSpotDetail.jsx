@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   ArrowLeft, MapPin, Clock, Ticket, Calendar, Play, Loader2, Pause, 
   Volume2, VolumeX, ExternalLink, Info, DollarSign, Sun, Moon,
-  ChevronRight, AlertCircle, Map, Globe, Navigation, Layers, Locate
+  ChevronRight, AlertCircle, Map, Globe, Navigation, Layers, Locate,
+  Mic, MicOff, SkipForward, Rewind, Volume1
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -12,10 +13,19 @@ import MapWrapper from '../components/MapWrapper';
 import NearbyRecommendations from '../components/NearbyRecommendations';
 import { getScenicSpotById } from '../services/api';
 import { trackContentView } from '../services/analytics';
+import { useI18n } from '../i18n';
+
+const LANGUAGE_TO_SPEECH_CODE = {
+  zh: 'zh-CN',
+  en: 'en-US',
+  ja: 'ja-JP',
+  ko: 'ko-KR',
+};
 
 const ScenicSpotDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t, language } = useI18n();
   const [scenicSpot, setScenicSpot] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,6 +33,14 @@ const ScenicSpotDetail = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [showMap, setShowMap] = useState(true);
   const videoRef = React.useRef(null);
+  
+  const [isSpeechPlaying, setIsSpeechPlaying] = useState(false);
+  const [isSpeechPaused, setIsSpeechPaused] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const [speechRate, setSpeechRate] = useState(1.0);
+  const [showSpeechControls, setShowSpeechControls] = useState(false);
+  const speechSynthRef = useRef(null);
+  const currentUtteranceRef = useRef(null);
 
   useEffect(() => {
     const fetchScenicSpot = async () => {
@@ -46,6 +64,89 @@ const ScenicSpotDetail = () => {
 
     fetchScenicSpot();
   }, [id]);
+
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      setSpeechSupported(true);
+      speechSynthRef.current = window.speechSynthesis;
+    }
+    
+    return () => {
+      if (speechSynthRef.current) {
+        speechSynthRef.current.cancel();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (speechSynthRef.current) {
+      speechSynthRef.current.cancel();
+      setIsSpeechPlaying(false);
+      setIsSpeechPaused(false);
+    }
+  }, [language]);
+
+  const buildSpeechText = useCallback(() => {
+    if (!scenicSpot) return '';
+    
+    let text = `${scenicSpot.name}。`;
+    
+    if (scenicSpot.description) {
+      text += `${scenicSpot.description}。`;
+    }
+    
+    return text;
+  }, [scenicSpot]);
+
+  const playSpeech = useCallback(() => {
+    if (!speechSynthRef.current || !scenicSpot) return;
+    
+    speechSynthRef.current.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(buildSpeechText());
+    utterance.lang = LANGUAGE_TO_SPEECH_CODE[language] || 'zh-CN';
+    utterance.rate = speechRate;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    
+    utterance.onstart = () => {
+      setIsSpeechPlaying(true);
+      setIsSpeechPaused(false);
+    };
+    
+    utterance.onend = () => {
+      setIsSpeechPlaying(false);
+      setIsSpeechPaused(false);
+    };
+    
+    utterance.onerror = () => {
+      setIsSpeechPlaying(false);
+      setIsSpeechPaused(false);
+    };
+    
+    currentUtteranceRef.current = utterance;
+    speechSynthRef.current.speak(utterance);
+  }, [buildSpeechText, language, speechRate, scenicSpot]);
+
+  const pauseSpeech = useCallback(() => {
+    if (speechSynthRef.current && isSpeechPlaying) {
+      if (isSpeechPaused) {
+        speechSynthRef.current.resume();
+        setIsSpeechPaused(false);
+      } else {
+        speechSynthRef.current.pause();
+        setIsSpeechPaused(true);
+      }
+    }
+  }, [isSpeechPlaying, isSpeechPaused]);
+
+  const stopSpeech = useCallback(() => {
+    if (speechSynthRef.current) {
+      speechSynthRef.current.cancel();
+      setIsSpeechPlaying(false);
+      setIsSpeechPaused(false);
+    }
+  }, []);
 
   const toggleVideoPlay = () => {
     if (videoRef.current) {
@@ -401,10 +502,88 @@ const ScenicSpotDetail = () => {
             transition={{ delay: 0.4 }}
             className="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-12"
           >
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-4">
-              <span className="w-2 h-12 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></span>
-              景点介绍
-            </h2>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+              <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-4">
+                <span className="w-2 h-12 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></span>
+                景点介绍
+              </h2>
+              
+              {speechSupported && (
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <motion.button
+                    onClick={isSpeechPlaying ? pauseSpeech : playSpeech}
+                    className={`flex items-center gap-2 px-5 py-3 rounded-full font-medium transition-all duration-300 ${
+                      isSpeechPlaying
+                        ? 'bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-lg'
+                        : 'bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-600 border border-blue-200 hover:shadow-md'
+                    }`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {isSpeechPlaying ? (
+                      isSpeechPaused ? (
+                        <>
+                          <Play className="w-5 h-5" />
+                          {t('scenicDetail.playVoice')}
+                        </>
+                      ) : (
+                        <>
+                          <Pause className="w-5 h-5" />
+                          {t('scenicDetail.pauseVoice')}
+                        </>
+                      )
+                    ) : (
+                      <>
+                        <Mic className="w-5 h-5" />
+                        {t('scenicDetail.playIntro')}
+                      </>
+                    )}
+                  </motion.button>
+                  
+                  {isSpeechPlaying && (
+                    <>
+                      <motion.button
+                        onClick={stopSpeech}
+                        className="p-3 rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        title={t('scenicDetail.stopVoice')}
+                      >
+                        <VolumeX className="w-5 h-5" />
+                      </motion.button>
+                      
+                      <div className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-2">
+                        <span className="text-sm text-gray-500">{t('common.language')}:</span>
+                        <div className="flex items-center gap-1">
+                          <motion.button
+                            onClick={() => setSpeechRate(Math.max(0.5, speechRate - 0.25))}
+                            className="p-1.5 rounded-full hover:bg-gray-200 transition-colors"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            disabled={speechRate <= 0.5}
+                          >
+                            <Rewind className="w-4 h-4 text-gray-600" />
+                          </motion.button>
+                          <span className="text-sm font-medium text-gray-700 w-12 text-center">
+                            {speechRate}x
+                          </span>
+                          <motion.button
+                            onClick={() => setSpeechRate(Math.min(2.0, speechRate + 0.25))}
+                            className="p-1.5 rounded-full hover:bg-gray-200 transition-colors"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            disabled={speechRate >= 2.0}
+                          >
+                            <SkipForward className="w-4 h-4 text-gray-600" />
+                          </motion.button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+            
             <p className="text-gray-600 text-lg leading-relaxed mb-6">
               {scenicSpot.description}
             </p>

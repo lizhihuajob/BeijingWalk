@@ -1,21 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Music, Pause, Volume2, VolumeX, AlertCircle } from 'lucide-react';
+import { Menu, X, Music, Pause, Volume2, VolumeX, AlertCircle, Globe, ChevronDown } from 'lucide-react';
 import { getNavigations, getSiteConfig } from '../services/api';
+import { useI18n } from '../i18n';
 
 const Header = () => {
   const location = useLocation();
+  const { t, language, setLanguage, supportedLanguages, getCurrentLanguageInfo } = useI18n();
   const [isScrolled, setIsScrolled] = useState(false);
   const isHomePage = location.pathname === '/';
   const showScrolledStyle = isScrolled || !isHomePage;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isAudioReady, setIsAudioReady] = useState(false);
   const [audioError, setAudioError] = useState(null);
   const [showErrorToast, setShowErrorToast] = useState(false);
   const audioRef = useRef(null);
+  const languageMenuRef = useRef(null);
   const [navItems, setNavItems] = useState([
     { path: '/', label: '首页' },
     { path: '/culture', label: '北京文化' },
@@ -157,6 +161,21 @@ const Header = () => {
     return location.pathname.startsWith(path);
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (languageMenuRef.current && !languageMenuRef.current.contains(event.target)) {
+        setShowLanguageMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLanguageChange = (langCode) => {
+    setLanguage(langCode);
+    setShowLanguageMenu(false);
+  };
+
   return (
     <>
       <motion.header
@@ -220,6 +239,60 @@ const Header = () => {
             </nav>
 
             <div className="flex items-center space-x-2">
+              <div className="relative" ref={languageMenuRef}>
+                <motion.button
+                  onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+                  className={`hidden md:flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-300 ${
+                    showScrolledStyle
+                      ? 'text-gray-700 hover:bg-gray-100'
+                      : 'text-white/90 hover:bg-white/20'
+                  }`}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  title={t('common.language')}
+                >
+                  <Globe className="w-5 h-5" />
+                  <span className="text-sm font-medium">{getCurrentLanguageInfo().flag}</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showLanguageMenu ? 'rotate-180' : ''}`} />
+                </motion.button>
+
+                <AnimatePresence>
+                  {showLanguageMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50"
+                    >
+                      <div className="p-2">
+                        {supportedLanguages.map((lang) => (
+                          <motion.button
+                            key={lang.code}
+                            onClick={() => handleLanguageChange(lang.code)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                              language === lang.code
+                                ? 'bg-gradient-to-r from-orange-50 to-amber-50 text-orange-600'
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                            whileHover={{ x: 4 }}
+                          >
+                            <span className="text-xl">{lang.flag}</span>
+                            <div className="text-left">
+                              <span className="font-medium block">{lang.nativeName}</span>
+                              <span className="text-xs text-gray-400">{lang.name}</span>
+                            </div>
+                            {language === lang.code && (
+                              <div className="ml-auto w-2 h-2 rounded-full bg-orange-500"></div>
+                            )}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               <AnimatePresence>
                 {isMusicPlaying && (
                   <motion.button
@@ -257,7 +330,7 @@ const Header = () => {
                 }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                title={isMusicPlaying ? '暂停音乐' : '播放背景音乐'}
+                title={isMusicPlaying ? t('header.pauseMusic') : t('header.playMusic')}
               >
                 {isMusicPlaying ? (
                   <motion.div
@@ -273,7 +346,7 @@ const Header = () => {
 
               <motion.button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className={`md:hidden p-2 rounded-full transition-all duration-300 ${
+                className={`p-2 rounded-full transition-all duration-300 ${
                   showScrolledStyle
                     ? 'text-gray-700 hover:bg-gray-100'
                     : 'text-white/90 hover:bg-white/20'
@@ -337,6 +410,29 @@ const Header = () => {
               </nav>
 
               <div className="mt-8 pt-6 border-t border-gray-200">
+                <p className="text-sm text-gray-500 mb-3">{t('common.language')}</p>
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  {supportedLanguages.map((lang) => (
+                    <motion.button
+                      key={lang.code}
+                      onClick={() => {
+                        handleLanguageChange(lang.code);
+                        setIsMenuOpen(false);
+                      }}
+                      className={`flex items-center gap-2 px-3 py-3 rounded-xl font-medium transition-colors ${
+                        language === lang.code
+                          ? 'bg-orange-100 text-orange-600 border border-orange-200'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <span className="text-lg">{lang.flag}</span>
+                      <span className="text-sm">{lang.nativeName}</span>
+                    </motion.button>
+                  ))}
+                </div>
+
                 <p className="text-sm text-gray-500 mb-3">背景音乐</p>
                 <motion.button
                   onClick={() => {
