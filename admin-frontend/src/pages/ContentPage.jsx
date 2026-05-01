@@ -25,6 +25,8 @@ const getFields = (contentType) => {
         { name: 'image_url', label: '图片URL', type: 'text', required: true },
         { name: 'description', label: '描述', type: 'textarea' },
         { name: 'order', label: '排序', type: 'number', defaultValue: 0 },
+        { name: 'publish_time', label: '发布时间', type: 'datetime-local' },
+        { name: 'expire_time', label: '下线时间', type: 'datetime-local' },
         { name: 'is_active', label: '是否启用', type: 'checkbox', defaultValue: true, checkboxLabel: '启用' },
       ];
     case 'cultures':
@@ -34,6 +36,8 @@ const getFields = (contentType) => {
         { name: 'description', label: '描述', type: 'textarea', required: true },
         { name: 'details', label: '详细内容', type: 'textarea' },
         { name: 'order', label: '排序', type: 'number', defaultValue: 0 },
+        { name: 'publish_time', label: '发布时间', type: 'datetime-local' },
+        { name: 'expire_time', label: '下线时间', type: 'datetime-local' },
         { name: 'is_active', label: '是否启用', type: 'checkbox', defaultValue: true, checkboxLabel: '启用' },
       ];
     case 'specialties':
@@ -43,6 +47,8 @@ const getFields = (contentType) => {
         { name: 'description', label: '描述', type: 'textarea', required: true },
         { name: 'rating', label: '评分', type: 'number', defaultValue: 4.5 },
         { name: 'order', label: '排序', type: 'number', defaultValue: 0 },
+        { name: 'publish_time', label: '发布时间', type: 'datetime-local' },
+        { name: 'expire_time', label: '下线时间', type: 'datetime-local' },
         { name: 'is_active', label: '是否启用', type: 'checkbox', defaultValue: true, checkboxLabel: '启用' },
       ];
     case 'scenic_spots':
@@ -59,6 +65,8 @@ const getFields = (contentType) => {
         { name: 'ticket_url', label: '购票链接', type: 'text' },
         { name: 'is_featured', label: '是否推荐', type: 'checkbox', defaultValue: false, checkboxLabel: '推荐景点' },
         { name: 'order', label: '排序', type: 'number', defaultValue: 0 },
+        { name: 'publish_time', label: '发布时间', type: 'datetime-local' },
+        { name: 'expire_time', label: '下线时间', type: 'datetime-local' },
         { name: 'is_active', label: '是否启用', type: 'checkbox', defaultValue: true, checkboxLabel: '启用' },
       ];
     case 'heritages':
@@ -68,6 +76,8 @@ const getFields = (contentType) => {
         { name: 'image_url', label: '图片URL', type: 'text', required: true },
         { name: 'description', label: '描述', type: 'textarea', required: true },
         { name: 'order', label: '排序', type: 'number', defaultValue: 0 },
+        { name: 'publish_time', label: '发布时间', type: 'datetime-local' },
+        { name: 'expire_time', label: '下线时间', type: 'datetime-local' },
         { name: 'is_active', label: '是否启用', type: 'checkbox', defaultValue: true, checkboxLabel: '启用' },
       ];
     default:

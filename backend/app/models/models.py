@@ -1,6 +1,48 @@
 from app import db
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+import re
+
+def parse_user_agent(user_agent):
+    if not user_agent:
+        return {'device': 'Unknown', 'browser': 'Unknown', 'os': 'Unknown'}
+    
+    ua = user_agent.lower()
+    
+    device = 'Desktop'
+    if 'mobile' in ua or 'android' in ua or 'iphone' in ua or 'ipad' in ua:
+        if 'ipad' in ua or 'tablet' in ua:
+            device = 'Tablet'
+        else:
+            device = 'Mobile'
+    
+    browser = 'Other'
+    if 'edg' in ua:
+        browser = 'Edge'
+    elif 'chrome' in ua and 'edg' not in ua:
+        browser = 'Chrome'
+    elif 'firefox' in ua:
+        browser = 'Firefox'
+    elif 'safari' in ua and 'chrome' not in ua:
+        browser = 'Safari'
+    elif 'opera' in ua or 'opr' in ua:
+        browser = 'Opera'
+    elif 'msie' in ua or 'trident' in ua:
+        browser = 'IE'
+    
+    os = 'Other'
+    if 'windows' in ua:
+        os = 'Windows'
+    elif 'mac os' in ua or 'macos' in ua:
+        os = 'macOS'
+    elif 'linux' in ua and 'android' not in ua:
+        os = 'Linux'
+    elif 'android' in ua:
+        os = 'Android'
+    elif 'iphone' in ua or 'ipad' in ua or 'ipod' in ua:
+        os = 'iOS'
+    
+    return {'device': device, 'browser': browser, 'os': os}
 
 class AdminUser(db.Model):
     __tablename__ = 'admin_users'
@@ -147,6 +189,8 @@ class Banner(db.Model):
     description = db.Column(db.Text)
     order = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
+    publish_time = db.Column(db.DateTime)
+    expire_time = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -157,7 +201,9 @@ class Banner(db.Model):
             'image_url': self.image_url,
             'description': self.description,
             'order': self.order,
-            'is_active': self.is_active
+            'is_active': self.is_active,
+            'publish_time': self.publish_time.isoformat() if self.publish_time else None,
+            'expire_time': self.expire_time.isoformat() if self.expire_time else None
         }
 
 class Culture(db.Model):
@@ -170,6 +216,8 @@ class Culture(db.Model):
     details = db.Column(db.Text)
     order = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
+    publish_time = db.Column(db.DateTime)
+    expire_time = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -181,7 +229,9 @@ class Culture(db.Model):
             'description': self.description,
             'details': self.details,
             'order': self.order,
-            'is_active': self.is_active
+            'is_active': self.is_active,
+            'publish_time': self.publish_time.isoformat() if self.publish_time else None,
+            'expire_time': self.expire_time.isoformat() if self.expire_time else None
         }
 
 class Specialty(db.Model):
@@ -194,6 +244,8 @@ class Specialty(db.Model):
     rating = db.Column(db.Float, default=4.5)
     order = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
+    publish_time = db.Column(db.DateTime)
+    expire_time = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -205,7 +257,9 @@ class Specialty(db.Model):
             'description': self.description,
             'rating': self.rating,
             'order': self.order,
-            'is_active': self.is_active
+            'is_active': self.is_active,
+            'publish_time': self.publish_time.isoformat() if self.publish_time else None,
+            'expire_time': self.expire_time.isoformat() if self.expire_time else None
         }
 
 class ScenicSpot(db.Model):
@@ -237,6 +291,8 @@ class ScenicSpot(db.Model):
     
     recommended_duration = db.Column(db.String(100))
     
+    publish_time = db.Column(db.DateTime)
+    expire_time = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -262,7 +318,9 @@ class ScenicSpot(db.Model):
             'opening_hours_peak': self.opening_hours_peak,
             'opening_hours_off_peak': self.opening_hours_off_peak,
             'additional_opening_notes': self.additional_opening_notes,
-            'recommended_duration': self.recommended_duration
+            'recommended_duration': self.recommended_duration,
+            'publish_time': self.publish_time.isoformat() if self.publish_time else None,
+            'expire_time': self.expire_time.isoformat() if self.expire_time else None
         }
 
 class Heritage(db.Model):
@@ -275,6 +333,8 @@ class Heritage(db.Model):
     description = db.Column(db.Text, nullable=False)
     order = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
+    publish_time = db.Column(db.DateTime)
+    expire_time = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -286,7 +346,9 @@ class Heritage(db.Model):
             'image_url': self.image_url,
             'description': self.description,
             'order': self.order,
-            'is_active': self.is_active
+            'is_active': self.is_active,
+            'publish_time': self.publish_time.isoformat() if self.publish_time else None,
+            'expire_time': self.expire_time.isoformat() if self.expire_time else None
         }
 
 class Guestbook(db.Model):
@@ -457,6 +519,31 @@ class BookingGuide(db.Model):
             'contact_work_time': self.contact_work_time,
             'order': self.order,
             'is_active': self.is_active
+        }
+
+class SearchHistory(db.Model):
+    __tablename__ = 'search_history'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    keyword = db.Column(db.String(200), nullable=False, index=True)
+    visitor_id = db.Column(db.String(100), index=True)
+    session_id = db.Column(db.String(100), index=True)
+    ip_address = db.Column(db.String(50))
+    user_agent = db.Column(db.String(500))
+    search_type = db.Column(db.String(50), default='general')
+    results_count = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'keyword': self.keyword,
+            'visitor_id': self.visitor_id,
+            'session_id': self.session_id,
+            'ip_address': self.ip_address,
+            'search_type': self.search_type,
+            'results_count': self.results_count,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
 class OperationLog(db.Model):
