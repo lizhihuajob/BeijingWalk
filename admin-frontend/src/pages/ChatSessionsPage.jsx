@@ -112,7 +112,6 @@ function ChatSessionsPage() {
 
   const openSession = (session) => {
     setSelectedSession(session);
-    fetchMessages(session.session_id);
     fetchUnreadCount();
   };
 

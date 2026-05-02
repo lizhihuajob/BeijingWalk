@@ -122,7 +122,7 @@ function TravelPackagesPage() {
       if (feature) {
         await travelPackageApi.feature(item.id);
       } else {
-        await travelPackageApi.unfeature(item(item.id));
+        await travelPackageApi.unfeature(item.id);
       }
       fetchItems();
     } catch (error) {
@@ -562,7 +562,9 @@ function TravelPackagesPage() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">详细行程（JSON 格式）</label>
-                        <p className="text-xs text-gray-500 mb-1">格式示例：[{"day": "第一天", "title": "抵达北京", "activities": ["接机入住", "自由活动"]}]</p>
+                        <p className="text-xs text-gray-500 mb-1">
+                          {`格式示例：[{"day": "第一天", "title": "抵达北京", "activities": ["接机入住", "自由活动"]}]`}
+                        </p>
                         <textarea
                           value={formData.itinerary}
                           onChange={(e) => setFormData({ ...formData, itinerary: e.target.value })}
