@@ -141,4 +141,28 @@ export const operationLogApi = {
   getById: (id) => api.get(`/admin/operation-logs/${id}`),
 };
 
+export const travelPackageApi = {
+  getAll: () => api.get('/admin/travel-packages'),
+  getById: (id) => api.get(`/admin/travel-packages/${id}`),
+  create: (data) => api.post('/admin/travel-packages', data),
+  update: (id, data) => api.put(`/admin/travel-packages/${id}`, data),
+  delete: (id) => api.delete(`/admin/travel-packages/${id}`),
+  activate: (id) => api.post(`/admin/travel-packages/${id}/activate`),
+  deactivate: (id) => api.post(`/admin/travel-packages/${id}/deactivate`),
+  feature: (id) => api.post(`/admin/travel-packages/${id}/feature`),
+  unfeature: (id) => api.post(`/admin/travel-packages/${id}/unfeature`),
+};
+
+export const chatSessionApi = {
+  getAll: (params) => {
+    const queryString = new URLSearchParams(params).toString();
+    return api.get(`/admin/chat-sessions${queryString ? '?' + queryString : ''}`);
+  },
+  getById: (sessionId) => api.get(`/admin/chat-sessions/${sessionId}`),
+  getMessages: (sessionId) => api.get(`/admin/chat-sessions/${sessionId}/messages`),
+  reply: (sessionId, data) => api.post(`/admin/chat-sessions/${sessionId}/reply`, data),
+  close: (sessionId) => api.post(`/admin/chat-sessions/${sessionId}/close`),
+  getUnreadCount: () => api.get('/admin/chat-sessions/unread-count'),
+};
+
 export default api;

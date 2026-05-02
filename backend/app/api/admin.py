@@ -5,7 +5,8 @@ from app.models.models import (
     AdminUser, PageView, ContentView, SearchHistory,
     Banner, Culture, Specialty, ScenicSpot, Heritage, Guestbook,
     SiteConfig, Navigation, Category, BookingGuide, OperationLog,
-    parse_user_agent
+    TravelPackage, ChatSession, ChatMessage,
+    parse_user_agent, parse_json_field
 )
 from datetime import datetime, timedelta
 from functools import wraps
@@ -1613,3 +1614,338 @@ def parse_datetime(value):
     except (ValueError, TypeError):
         return None
     return None
+
+@admin_bp.route('/travel-packages', methods=['GET'])
+@admin_required
+def get_travel_packages_admin():
+    packages = TravelPackage.query.order_by(TravelPackage.order).all()
+    return jsonify([pkg.to_dict() for pkg in packages]), 200
+
+@admin_bp.route('/travel-packages', methods=['POST'])
+@admin_required
+def create_travel_package():
+    data = get_request_data()
+    
+    if not data or not data.get('title') or not data.get('image_url') or not data.get('description'):
+        return jsonify({'error': '标题、图片URL和描述不能为空'}), 400
+    
+    package = TravelPackage(
+        title=data.get('title'),
+        subtitle=data.get('subtitle'),
+        image_url=data.get('image_url'),
+        description=data.get('description'),
+        price=data.get('price'),
+        price_unit=data.get('price_unit', '元/人'),
+        discount_price=data.get('discount_price'),
+        duration=data.get('duration'),
+        departure_city=data.get('departure_city'),
+        destination_city=data.get('destination_city'),
+        highlights=to_json(data.get('highlights')),
+        itinerary=to_json(data.get('itinerary')),
+        inclusion=to_json(data.get('inclusion')),
+        exclusion=to_json(data.get('exclusion')),
+        notes=data.get('notes'),
+        is_featured=data.get('is_featured', False),
+        is_active=data.get('is_active', True),
+        status=data.get('status', 'active'),
+        contact_phone=data.get('contact_phone'),
+        contact_email=data.get('contact_email'),
+        contact_name=data.get('contact_name'),
+        order=data.get('order', 0),
+        publish_time=parse_datetime(data.get('publish_time')),
+        expire_time=parse_datetime(data.get('expire_time'))
+    )
+    
+    db.session.add(package)
+    db.session.commit()
+    
+    log_operation(
+        module='旅行团产品',
+        action='create',
+        target_type='TravelPackage',
+        target_id=package.id,
+        target_name=package.title,
+        description=f'创建旅行团产品: {package.title}'
+    )
+    
+    return jsonify(package.to_dict()), 201
+
+@admin_bp.route('/travel-packages/<int:id>', methods=['GET'])
+@admin_required
+def get_travel_package_admin(id):
+    package = TravelPackage.query.get_or_404(id)
+    return jsonify(package.to_dict()), 200
+
+@admin_bp.route('/travel-packages/<int:id>', methods=['PUT'])
+@admin_required
+def update_travel_package(id):
+    package = TravelPackage.query.get_or_404(id)
+    old_title = package.title
+    data = get_request_data()
+    
+    if 'title' in data:
+        package.title = data.get('title')
+    if 'subtitle' in data:
+        package.subtitle = data.get('subtitle')
+    if 'image_url' in data:
+        package.image_url = data.get('image_url')
+    if 'description' in data:
+        package.description = data.get('description')
+    if 'price' in data:
+        package.price = data.get('price')
+    if 'price_unit' in data:
+        package.price_unit = data.get('price_unit')
+    if 'discount_price' in data:
+        package.discount_price = data.get('discount_price')
+    if 'duration' in data:
+        package.duration = data.get('duration')
+    if 'departure_city' in data:
+        package.departure_city = data.get('departure_city')
+    if 'destination_city' in data:
+        package.destination_city = data.get('destination_city')
+    if 'highlights' in data:
+        package.highlights = to_json(data.get('highlights'))
+    if 'itinerary' in data:
+        package.itinerary = to_json(data.get('itinerary'))
+    if 'inclusion' in data:
+        package.inclusion = to_json(data.get('inclusion'))
+    if 'exclusion' in data:
+        package.exclusion = to_json(data.get('exclusion'))
+    if 'notes' in data:
+        package.notes = data.get('notes')
+    if 'is_featured' in data:
+        package.is_featured = data.get('is_featured')
+    if 'is_active' in data:
+        package.is_active = data.get('is_active')
+    if 'status' in data:
+        package.status = data.get('status')
+    if 'contact_phone' in data:
+        package.contact_phone = data.get('contact_phone')
+    if 'contact_email' in data:
+        package.contact_email = data.get('contact_email')
+    if 'contact_name' in data:
+        package.contact_name = data.get('contact_name')
+    if 'order' in data:
+        package.order = data.get('order')
+    if 'publish_time' in data:
+        package.publish_time = parse_datetime(data.get('publish_time'))
+    if 'expire_time' in data:
+        package.expire_time = parse_datetime(data.get('expire_time'))
+    
+    db.session.commit()
+    
+    log_operation(
+        module='旅行团产品',
+        action='update',
+        target_type='TravelPackage',
+        target_id=id,
+        target_name=package.title,
+        description=f'更新旅行团产品: {old_title}'
+    )
+    
+    return jsonify(package.to_dict()), 200
+
+@admin_bp.route('/travel-packages/<int:id>', methods=['DELETE'])
+@admin_required
+def delete_travel_package(id):
+    package = TravelPackage.query.get_or_404(id)
+    package_title = package.title
+    db.session.delete(package)
+    db.session.commit()
+    
+    log_operation(
+        module='旅行团产品',
+        action='delete',
+        target_type='TravelPackage',
+        target_id=id,
+        target_name=package_title,
+        description=f'删除旅行团产品: {package_title}'
+    )
+    
+    return jsonify({'message': '删除成功'}), 200
+
+@admin_bp.route('/travel-packages/<int:id>/activate', methods=['POST'])
+@admin_required
+def activate_travel_package(id):
+    package = TravelPackage.query.get_or_404(id)
+    package.is_active = True
+    package.status = 'active'
+    db.session.commit()
+    
+    log_operation(
+        module='旅行团产品',
+        action='update',
+        target_type='TravelPackage',
+        target_id=id,
+        target_name=package.title,
+        description=f'上架旅行团产品: {package.title}'
+    )
+    
+    return jsonify(package.to_dict()), 200
+
+@admin_bp.route('/travel-packages/<int:id>/deactivate', methods=['POST'])
+@admin_required
+def deactivate_travel_package(id):
+    package = TravelPackage.query.get_or_404(id)
+    package.is_active = False
+    package.status = 'inactive'
+    db.session.commit()
+    
+    log_operation(
+        module='旅行团产品',
+        action='update',
+        target_type='TravelPackage',
+        target_id=id,
+        target_name=package.title,
+        description=f'下架旅行团产品: {package.title}'
+    )
+    
+    return jsonify(package.to_dict()), 200
+
+@admin_bp.route('/travel-packages/<int:id>/feature', methods=['POST'])
+@admin_required
+def feature_travel_package(id):
+    package = TravelPackage.query.get_or_404(id)
+    package.is_featured = True
+    db.session.commit()
+    
+    log_operation(
+        module='旅行团产品',
+        action='update',
+        target_type='TravelPackage',
+        target_id=id,
+        target_name=package.title,
+        description=f'设为推荐: {package.title}'
+    )
+    
+    return jsonify(package.to_dict()), 200
+
+@admin_bp.route('/travel-packages/<int:id>/unfeature', methods=['POST'])
+@admin_required
+def unfeature_travel_package(id):
+    package = TravelPackage.query.get_or_404(id)
+    package.is_featured = False
+    db.session.commit()
+    
+    log_operation(
+        module='旅行团产品',
+        action='update',
+        target_type='TravelPackage',
+        target_id=id,
+        target_name=package.title,
+        description=f'取消推荐: {package.title}'
+    )
+    
+    return jsonify(package.to_dict()), 200
+
+import uuid
+
+def generate_session_id():
+    return str(uuid.uuid4())
+
+@admin_bp.route('/chat-sessions', methods=['GET'])
+@admin_required
+def get_chat_sessions_admin():
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    status = request.args.get('status')
+    
+    query = ChatSession.query
+    
+    if status:
+        query = query.filter(ChatSession.status == status)
+    
+    pagination = query.order_by(desc(ChatSession.last_message_at), desc(ChatSession.created_at)).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    
+    return jsonify({
+        'items': [session.to_dict() for session in pagination.items],
+        'total': pagination.total,
+        'total_pages': pagination.pages,
+        'current_page': page,
+        'per_page': per_page
+    }), 200
+
+@admin_bp.route('/chat-sessions/<session_id>', methods=['GET'])
+@admin_required
+def get_chat_session_admin(session_id):
+    session = ChatSession.query.filter_by(session_id=session_id).first_or_404()
+    return jsonify(session.to_dict()), 200
+
+@admin_bp.route('/chat-sessions/<session_id>/messages', methods=['GET'])
+@admin_required
+def get_chat_messages_admin(session_id):
+    session = ChatSession.query.filter_by(session_id=session_id).first_or_404()
+    
+    messages = ChatMessage.query.filter_by(
+        session_id=session_id
+    ).order_by(ChatMessage.created_at).all()
+    
+    unread_messages = [m for m in messages if m.sender_type == 'visitor' and not m.is_read]
+    for msg in unread_messages:
+        msg.is_read = True
+        msg.read_at = datetime.utcnow()
+    
+    session.admin_unread_count = 0
+    db.session.commit()
+    
+    return jsonify([msg.to_dict() for msg in messages]), 200
+
+@admin_bp.route('/chat-sessions/<session_id>/reply', methods=['POST'])
+@admin_required
+def reply_chat_message(session_id):
+    session = ChatSession.query.filter_by(session_id=session_id).first_or_404()
+    data = get_request_data()
+    
+    content = data.get('content')
+    if not content or not content.strip():
+        return jsonify({'error': '回复内容不能为空'}), 400
+    
+    current_user_id = get_current_admin_id()
+    admin = AdminUser.query.get(current_user_id)
+    
+    message = ChatMessage(
+        session_id=session_id,
+        sender_type='admin',
+        sender_id=str(current_user_id),
+        sender_name=admin.username if admin else '管理员',
+        message_type='text',
+        content=content.strip()
+    )
+    
+    session.last_message_at = datetime.utcnow()
+    session.unread_count += 1
+    
+    db.session.add(message)
+    db.session.commit()
+    
+    return jsonify(message.to_dict()), 201
+
+@admin_bp.route('/chat-sessions/<session_id>/close', methods=['POST'])
+@admin_required
+def close_chat_session(session_id):
+    session = ChatSession.query.filter_by(session_id=session_id).first_or_404()
+    session.status = 'closed'
+    db.session.commit()
+    
+    log_operation(
+        module='聊天管理',
+        action='update',
+        target_type='ChatSession',
+        target_id=session.id,
+        target_name=session.session_id,
+        description=f'关闭聊天会话: {session.session_id}'
+    )
+    
+    return jsonify(session.to_dict()), 200
+
+@admin_bp.route('/chat-sessions/unread-count', methods=['GET'])
+@admin_required
+def get_unread_chat_count():
+    unread_count = db.session.query(func.count(ChatSession.id)).filter(
+        ChatSession.status == 'active',
+        ChatSession.admin_unread_count > 0
+    ).scalar() or 0
+    
+    return jsonify({'unread_count': unread_count}), 200

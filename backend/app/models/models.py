@@ -2,6 +2,17 @@ from app import db
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
+import json
+
+def parse_json_field(value, default=None):
+    if value is None:
+        return default
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except (json.JSONDecodeError, ValueError):
+            return default
+    return value
 
 def parse_user_agent(user_agent):
     if not user_agent:
@@ -577,5 +588,153 @@ class OperationLog(db.Model):
             'description': self.description,
             'ip_address': self.ip_address,
             'user_agent': self.user_agent,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class TravelPackage(db.Model):
+    __tablename__ = 'travel_packages'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    subtitle = db.Column(db.String(500))
+    image_url = db.Column(db.String(500), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    
+    price = db.Column(db.String(100))
+    price_unit = db.Column(db.String(20), default='元/人')
+    discount_price = db.Column(db.String(100))
+    
+    duration = db.Column(db.String(100))
+    departure_city = db.Column(db.String(100))
+    destination_city = db.Column(db.String(100))
+    
+    highlights = db.Column(db.Text)
+    itinerary = db.Column(db.Text)
+    inclusion = db.Column(db.Text)
+    exclusion = db.Column(db.Text)
+    notes = db.Column(db.Text)
+    
+    is_featured = db.Column(db.Boolean, default=False)
+    is_active = db.Column(db.Boolean, default=True)
+    status = db.Column(db.String(50), default='active')
+    
+    contact_phone = db.Column(db.String(100))
+    contact_email = db.Column(db.String(200))
+    contact_name = db.Column(db.String(100))
+    
+    order = db.Column(db.Integer, default=0)
+    view_count = db.Column(db.Integer, default=0)
+    
+    publish_time = db.Column(db.DateTime)
+    expire_time = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'subtitle': self.subtitle,
+            'image_url': self.image_url,
+            'description': self.description,
+            'price': self.price,
+            'price_unit': self.price_unit,
+            'discount_price': self.discount_price,
+            'duration': self.duration,
+            'departure_city': self.departure_city,
+            'destination_city': self.destination_city,
+            'highlights': parse_json_field(self.highlights),
+            'itinerary': parse_json_field(self.itinerary),
+            'inclusion': parse_json_field(self.inclusion),
+            'exclusion': parse_json_field(self.exclusion),
+            'notes': self.notes,
+            'is_featured': self.is_featured,
+            'is_active': self.is_active,
+            'status': self.status,
+            'contact_phone': self.contact_phone,
+            'contact_email': self.contact_email,
+            'contact_name': self.contact_name,
+            'order': self.order,
+            'view_count': self.view_count,
+            'publish_time': self.publish_time.isoformat() if self.publish_time else None,
+            'expire_time': self.expire_time.isoformat() if self.expire_time else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class ChatSession(db.Model):
+    __tablename__ = 'chat_sessions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    
+    visitor_id = db.Column(db.String(100), index=True)
+    visitor_name = db.Column(db.String(100))
+    visitor_email = db.Column(db.String(200))
+    visitor_phone = db.Column(db.String(20))
+    
+    travel_package_id = db.Column(db.Integer, db.ForeignKey('travel_packages.id'))
+    
+    status = db.Column(db.String(50), default='active')
+    assigned_admin_id = db.Column(db.Integer, db.ForeignKey('admin_users.id'))
+    
+    last_message_at = db.Column(db.DateTime)
+    unread_count = db.Column(db.Integer, default=0)
+    admin_unread_count = db.Column(db.Integer, default=0)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    travel_package = db.relationship('TravelPackage', backref='chat_sessions')
+    assigned_admin = db.relationship('AdminUser', backref='assigned_chats')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'session_id': self.session_id,
+            'visitor_id': self.visitor_id,
+            'visitor_name': self.visitor_name,
+            'visitor_email': self.visitor_email,
+            'visitor_phone': self.visitor_phone,
+            'travel_package_id': self.travel_package_id,
+            'status': self.status,
+            'assigned_admin_id': self.assigned_admin_id,
+            'last_message_at': self.last_message_at.isoformat() if self.last_message_at else None,
+            'unread_count': self.unread_count,
+            'admin_unread_count': self.admin_unread_count,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'travel_package_title': self.travel_package.title if self.travel_package else None
+        }
+
+class ChatMessage(db.Model):
+    __tablename__ = 'chat_messages'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.String(100), db.ForeignKey('chat_sessions.session_id'), nullable=False, index=True)
+    
+    sender_type = db.Column(db.String(20), nullable=False)
+    sender_id = db.Column(db.String(100))
+    sender_name = db.Column(db.String(100))
+    
+    message_type = db.Column(db.String(50), default='text')
+    content = db.Column(db.Text, nullable=False)
+    
+    is_read = db.Column(db.Boolean, default=False)
+    read_at = db.Column(db.DateTime)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'session_id': self.session_id,
+            'sender_type': self.sender_type,
+            'sender_id': self.sender_id,
+            'sender_name': self.sender_name,
+            'message_type': self.message_type,
+            'content': self.content,
+            'is_read': self.is_read,
+            'read_at': self.read_at.isoformat() if self.read_at else None,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
