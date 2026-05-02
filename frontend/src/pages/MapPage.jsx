@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -9,8 +9,26 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import MapWrapper from '../components/MapWrapper';
 import NearbyRecommendations from '../components/NearbyRecommendations';
-import { getScenicSpotsForMap } from '../services/api';
+import { getScenicSpotsForMap, recordSearchHistory } from '../services/api';
 import { useI18n } from '../i18n';
+
+const generateVisitorId = () => {
+  let visitorId = localStorage.getItem('visitor_id');
+  if (!visitorId) {
+    visitorId = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('visitor_id', visitorId);
+  }
+  return visitorId;
+};
+
+const generateSessionId = () => {
+  let sessionId = sessionStorage.getItem('session_id');
+  if (!sessionId) {
+    sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    sessionStorage.setItem('session_id', sessionId);
+  }
+  return sessionId;
+};
 
 const MapPage = () => {
   const navigate = useNavigate();
@@ -22,6 +40,34 @@ const MapPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterFeatured, setFilterFeatured] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
+  const searchTimeoutRef = useRef(null);
+  const visitorIdRef = useRef(null);
+  const sessionIdRef = useRef(null);
+  const lastSearchTermRef = useRef('');
+
+  useEffect(() => {
+    visitorIdRef.current = generateVisitorId();
+    sessionIdRef.current = generateSessionId();
+  }, []);
+
+  const handleSearch = async (keyword, results) => {
+    if (!keyword || keyword.trim() === '') return;
+    if (keyword === lastSearchTermRef.current) return;
+    
+    lastSearchTermRef.current = keyword;
+    
+    try {
+      await recordSearchHistory({
+        keyword: keyword.trim(),
+        visitor_id: visitorIdRef.current,
+        session_id: sessionIdRef.current,
+        search_type: 'map',
+        results_count: results.length
+      });
+    } catch (err) {
+      console.error('Failed to record search history:', err);
+    }
+  };
 
   useEffect(() => {
     const fetchScenicSpots = async () => {
@@ -47,6 +93,26 @@ const MapPage = () => {
     const matchesFeatured = !filterFeatured || spot.is_featured;
     return matchesSearch && matchesFeatured;
   });
+
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    if (searchQuery && searchQuery.trim().length > 0) {
+      searchTimeoutRef.current = setTimeout(() => {
+        handleSearch(searchQuery, filteredSpots);
+      }, 800);
+    } else {
+      lastSearchTermRef.current = '';
+    }
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery, filteredSpots]);
 
   const handleSpotClick = (spot, action) => {
     if (action === 'navigate' || (spot && !action)) {

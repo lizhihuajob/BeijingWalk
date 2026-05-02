@@ -1,11 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Utensils, Star, ArrowRight, Loader2, ChevronUp, ArrowLeft, Search, Filter } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { getSpecialties } from '../services/api';
+import { getSpecialties, recordSearchHistory } from '../services/api';
 import { useI18n } from '../i18n';
+
+const generateVisitorId = () => {
+  let visitorId = localStorage.getItem('visitor_id');
+  if (!visitorId) {
+    visitorId = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('visitor_id', visitorId);
+  }
+  return visitorId;
+};
+
+const generateSessionId = () => {
+  let sessionId = sessionStorage.getItem('session_id');
+  if (!sessionId) {
+    sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    sessionStorage.setItem('session_id', sessionId);
+  }
+  return sessionId;
+};
 
 const SpecialtiesPage = () => {
   const navigate = useNavigate();
@@ -17,6 +35,34 @@ const SpecialtiesPage = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('default');
+  const searchTimeoutRef = useRef(null);
+  const visitorIdRef = useRef(null);
+  const sessionIdRef = useRef(null);
+  const lastSearchTermRef = useRef('');
+
+  useEffect(() => {
+    visitorIdRef.current = generateVisitorId();
+    sessionIdRef.current = generateSessionId();
+  }, []);
+
+  const handleSearch = async (keyword, results) => {
+    if (!keyword || keyword.trim() === '') return;
+    if (keyword === lastSearchTermRef.current) return;
+    
+    lastSearchTermRef.current = keyword;
+    
+    try {
+      await recordSearchHistory({
+        keyword: keyword.trim(),
+        visitor_id: visitorIdRef.current,
+        session_id: sessionIdRef.current,
+        search_type: 'specialties',
+        results_count: results.length
+      });
+    } catch (err) {
+      console.error('Failed to record search history:', err);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,6 +110,24 @@ const SpecialtiesPage = () => {
     }
     
     setFilteredSpecialties(filtered);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    if (searchTerm && searchTerm.trim().length > 0) {
+      searchTimeoutRef.current = setTimeout(() => {
+        handleSearch(searchTerm, filtered);
+      }, 800);
+    } else {
+      lastSearchTermRef.current = '';
+    }
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
   }, [searchTerm, sortBy, specialties]);
 
   const scrollToTop = () => {

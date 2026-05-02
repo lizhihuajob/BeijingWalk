@@ -2,6 +2,35 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
 
+const formatDateTimeForInput = (value) => {
+  if (!value) return '';
+  try {
+    let dateStr = value;
+    if (typeof value === 'string') {
+      dateStr = value.replace('Z', '+00:00');
+    }
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  } catch (e) {
+    console.error('Error formatting date:', e);
+    return '';
+  }
+};
+
+const formatDateTimeForSubmit = (value, fieldType) => {
+  if (!value) return null;
+  if (fieldType === 'datetime-local' && typeof value === 'string') {
+    return value;
+  }
+  return value;
+};
+
 function ContentModal({ isOpen, onClose, onSubmit, title, fields, initialData = {} }) {
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
@@ -10,7 +39,11 @@ function ContentModal({ isOpen, onClose, onSubmit, title, fields, initialData = 
     if (isOpen) {
       const initial = {};
       fields.forEach((field) => {
-        initial[field.name] = initialData[field.name] ?? field.defaultValue ?? '';
+        let value = initialData[field.name] ?? field.defaultValue ?? '';
+        if (field.type === 'datetime-local') {
+          value = formatDateTimeForInput(value);
+        }
+        initial[field.name] = value;
       });
       setFormData(initial);
     }
@@ -24,11 +57,25 @@ function ContentModal({ isOpen, onClose, onSubmit, title, fields, initialData = 
     }));
   };
 
+  const prepareSubmitData = () => {
+    const submitData = {};
+    fields.forEach((field) => {
+      const value = formData[field.name];
+      if (field.type === 'datetime-local') {
+        submitData[field.name] = value || null;
+      } else {
+        submitData[field.name] = value;
+      }
+    });
+    return submitData;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await onSubmit(formData);
+      const submitData = prepareSubmitData();
+      await onSubmit(submitData);
       onClose();
     } catch (error) {
       console.error('Submit error:', error);

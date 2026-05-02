@@ -127,4 +127,9 @@ export const getNearbyRecommendations = async (scenicSpotId) => {
   return response.data;
 };
 
+export const recordSearchHistory = async (data) => {
+  const response = await apiClient.post('/admin/search-history', data);
+  return response.data;
+};
+
 export default apiClient;

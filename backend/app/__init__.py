@@ -24,4 +24,7 @@ def create_app(config_class=Config):
     from app.api.admin import admin_bp
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
     
+    from app.scheduler import init_scheduler
+    init_scheduler(app)
+    
     return app

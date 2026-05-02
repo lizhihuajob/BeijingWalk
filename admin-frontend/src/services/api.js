@@ -44,6 +44,9 @@ export const dashboardApi = {
   getStats: () => api.get('/admin/dashboard/stats'),
   getTrending: () => api.get('/admin/dashboard/trending'),
   getVisitTrend: (days) => api.get(`/admin/dashboard/visit-trend?days=${days}`),
+  getGeoDistribution: () => api.get('/admin/dashboard/geo-distribution'),
+  getDeviceDistribution: (days) => api.get(`/admin/dashboard/device-distribution?days=${days || 30}`),
+  getSearchKeywords: (days, limit) => api.get(`/admin/dashboard/search-keywords?days=${days || 30}&limit=${limit || 20}`),
 };
 
 export const bannerApi = {

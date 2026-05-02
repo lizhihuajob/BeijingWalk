@@ -2,9 +2,10 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from app import db
 from app.models.models import (
-    AdminUser, PageView, ContentView,
+    AdminUser, PageView, ContentView, SearchHistory,
     Banner, Culture, Specialty, ScenicSpot, Heritage, Guestbook,
-    SiteConfig, Navigation, Category, BookingGuide, OperationLog
+    SiteConfig, Navigation, Category, BookingGuide, OperationLog,
+    parse_user_agent
 )
 from datetime import datetime, timedelta
 from functools import wraps
@@ -59,6 +60,14 @@ def log_operation(module, action, target_type=None, target_id=None, target_name=
     except Exception as e:
         print(f"Error logging operation: {e}")
         db.session.rollback()
+
+def sanitize_string(value, max_length=500):
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    return text[:max_length]
 
 def admin_required(fn):
     @wraps(fn)
@@ -268,7 +277,9 @@ def create_banner():
         image_url=data.get('image_url'),
         description=data.get('description', ''),
         order=data.get('order', 0),
-        is_active=data.get('is_active', True)
+        is_active=data.get('is_active', True),
+        publish_time=parse_datetime(data.get('publish_time')),
+        expire_time=parse_datetime(data.get('expire_time'))
     )
     
     db.session.add(banner)
@@ -308,6 +319,10 @@ def update_banner(id):
         banner.order = data.get('order')
     if 'is_active' in data:
         banner.is_active = data.get('is_active')
+    if 'publish_time' in data:
+        banner.publish_time = parse_datetime(data.get('publish_time'))
+    if 'expire_time' in data:
+        banner.expire_time = parse_datetime(data.get('expire_time'))
     
     db.session.commit()
     
@@ -361,7 +376,9 @@ def create_culture():
         description=data.get('description'),
         details=data.get('details', ''),
         order=data.get('order', 0),
-        is_active=data.get('is_active', True)
+        is_active=data.get('is_active', True),
+        publish_time=parse_datetime(data.get('publish_time')),
+        expire_time=parse_datetime(data.get('expire_time'))
     )
     
     db.session.add(culture)
@@ -403,6 +420,10 @@ def update_culture(id):
         culture.order = data.get('order')
     if 'is_active' in data:
         culture.is_active = data.get('is_active')
+    if 'publish_time' in data:
+        culture.publish_time = parse_datetime(data.get('publish_time'))
+    if 'expire_time' in data:
+        culture.expire_time = parse_datetime(data.get('expire_time'))
     
     db.session.commit()
     
@@ -456,7 +477,9 @@ def create_specialty():
         description=data.get('description'),
         rating=data.get('rating', 4.5),
         order=data.get('order', 0),
-        is_active=data.get('is_active', True)
+        is_active=data.get('is_active', True),
+        publish_time=parse_datetime(data.get('publish_time')),
+        expire_time=parse_datetime(data.get('expire_time'))
     )
     
     db.session.add(specialty)
@@ -498,6 +521,10 @@ def update_specialty(id):
         specialty.order = data.get('order')
     if 'is_active' in data:
         specialty.is_active = data.get('is_active')
+    if 'publish_time' in data:
+        specialty.publish_time = parse_datetime(data.get('publish_time'))
+    if 'expire_time' in data:
+        specialty.expire_time = parse_datetime(data.get('expire_time'))
     
     db.session.commit()
     
@@ -562,7 +589,9 @@ def create_scenic_spot():
         opening_hours_peak=data.get('opening_hours_peak'),
         opening_hours_off_peak=data.get('opening_hours_off_peak'),
         additional_opening_notes=data.get('additional_opening_notes'),
-        recommended_duration=data.get('recommended_duration')
+        recommended_duration=data.get('recommended_duration'),
+        publish_time=parse_datetime(data.get('publish_time')),
+        expire_time=parse_datetime(data.get('expire_time'))
     )
     
     db.session.add(scenic_spot)
@@ -626,6 +655,10 @@ def update_scenic_spot(id):
         scenic_spot.additional_opening_notes = data.get('additional_opening_notes')
     if 'recommended_duration' in data:
         scenic_spot.recommended_duration = data.get('recommended_duration')
+    if 'publish_time' in data:
+        scenic_spot.publish_time = parse_datetime(data.get('publish_time'))
+    if 'expire_time' in data:
+        scenic_spot.expire_time = parse_datetime(data.get('expire_time'))
     
     db.session.commit()
     
@@ -679,7 +712,9 @@ def create_heritage():
         image_url=data.get('image_url'),
         description=data.get('description'),
         order=data.get('order', 0),
-        is_active=data.get('is_active', True)
+        is_active=data.get('is_active', True),
+        publish_time=parse_datetime(data.get('publish_time')),
+        expire_time=parse_datetime(data.get('expire_time'))
     )
     
     db.session.add(heritage)
@@ -721,6 +756,10 @@ def update_heritage(id):
         heritage.order = data.get('order')
     if 'is_active' in data:
         heritage.is_active = data.get('is_active')
+    if 'publish_time' in data:
+        heritage.publish_time = parse_datetime(data.get('publish_time'))
+    if 'expire_time' in data:
+        heritage.expire_time = parse_datetime(data.get('expire_time'))
     
     db.session.commit()
     
@@ -1400,3 +1439,177 @@ def reply_guestbook(id):
     )
     
     return jsonify(guestbook.to_dict()), 200
+
+@admin_bp.route('/dashboard/geo-distribution', methods=['GET'])
+@admin_required
+def get_geo_distribution():
+    try:
+        country_stats = db.session.query(
+            Guestbook.country,
+            func.count(Guestbook.id).label('count')
+        ).group_by(
+            Guestbook.country
+        ).order_by(
+            desc('count')
+        ).all()
+        
+        province_stats = db.session.query(
+            Guestbook.province,
+            func.count(Guestbook.id).label('count')
+        ).group_by(
+            Guestbook.province
+        ).order_by(
+            desc('count')
+        ).all()
+        
+        country_dict = {}
+        for c in country_stats:
+            if c.country is None or c.country == '':
+                key = '未知'
+            else:
+                key = c.country
+            country_dict[key] = country_dict.get(key, 0) + c.count
+        
+        countries = [{'name': k, 'count': v} for k, v in country_dict.items()]
+        countries.sort(key=lambda x: x['count'], reverse=True)
+        
+        province_dict = {}
+        for p in province_stats:
+            if p.province is None or p.province == '':
+                key = '未知'
+            else:
+                key = p.province
+            province_dict[key] = province_dict.get(key, 0) + p.count
+        
+        provinces = [{'name': k, 'count': v} for k, v in province_dict.items()]
+        provinces.sort(key=lambda x: x['count'], reverse=True)
+        
+        return jsonify({
+            'countries': countries,
+            'provinces': provinces
+        }), 200
+    except Exception as e:
+        print(f"Error querying geo distribution: {e}")
+        return jsonify({'countries': [], 'provinces': []}), 200
+
+@admin_bp.route('/dashboard/device-distribution', methods=['GET'])
+@admin_required
+def get_device_distribution():
+    try:
+        days = request.args.get('days', 30, type=int)
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=days)
+        
+        page_views = PageView.query.filter(
+            PageView.created_at >= start_date
+        ).all()
+        
+        device_stats = {'Mobile': 0, 'Desktop': 0, 'Tablet': 0, 'Unknown': 0}
+        browser_stats = {}
+        os_stats = {}
+        
+        for pv in page_views:
+            parsed = parse_user_agent(pv.user_agent)
+            device = parsed.get('device', 'Unknown')
+            browser = parsed.get('browser', 'Other')
+            os = parsed.get('os', 'Other')
+            
+            device_stats[device] = device_stats.get(device, 0) + 1
+            browser_stats[browser] = browser_stats.get(browser, 0) + 1
+            os_stats[os] = os_stats.get(os, 0) + 1
+        
+        device_list = [{'name': k, 'value': v} for k, v in device_stats.items() if v > 0]
+        browser_list = [{'name': k, 'value': v} for k, v in browser_stats.items() if v > 0]
+        os_list = [{'name': k, 'value': v} for k, v in os_stats.items() if v > 0]
+        
+        device_list.sort(key=lambda x: x['value'], reverse=True)
+        browser_list.sort(key=lambda x: x['value'], reverse=True)
+        os_list.sort(key=lambda x: x['value'], reverse=True)
+        
+        return jsonify({
+            'devices': device_list,
+            'browsers': browser_list,
+            'operating_systems': os_list
+        }), 200
+    except Exception as e:
+        print(f"Error querying device distribution: {e}")
+        return jsonify({'devices': [], 'browsers': [], 'operating_systems': []}), 200
+
+@admin_bp.route('/dashboard/search-keywords', methods=['GET'])
+@admin_required
+def get_search_keywords():
+    try:
+        days = request.args.get('days', 30, type=int)
+        limit = request.args.get('limit', 20, type=int)
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=days)
+        
+        keyword_stats = db.session.query(
+            SearchHistory.keyword,
+            func.count(SearchHistory.id).label('search_count'),
+            func.count(func.distinct(SearchHistory.visitor_id)).label('unique_visitors'),
+            func.sum(SearchHistory.results_count).label('total_results')
+        ).filter(
+            SearchHistory.created_at >= start_date
+        ).group_by(
+            SearchHistory.keyword
+        ).order_by(
+            desc('search_count')
+        ).limit(limit).all()
+        
+        keywords = []
+        for ks in keyword_stats:
+            avg_results = round(ks.total_results / ks.search_count if ks.search_count > 0 else 0, 2)
+            keywords.append({
+                'keyword': ks.keyword,
+                'search_count': ks.search_count,
+                'unique_visitors': ks.unique_visitors,
+                'avg_results': avg_results
+            })
+        
+        return jsonify(keywords), 200
+    except Exception as e:
+        print(f"Error querying search keywords: {e}")
+        return jsonify([]), 200
+
+@admin_bp.route('/search-history', methods=['POST'])
+def record_search():
+    data = get_request_data()
+    
+    keyword = sanitize_string(data.get('keyword'), 200)
+    if not keyword:
+        return jsonify({'error': '搜索关键词不能为空'}), 400
+    
+    search_history = SearchHistory(
+        keyword=keyword,
+        visitor_id=sanitize_string(data.get('visitor_id'), 100),
+        session_id=sanitize_string(data.get('session_id'), 100),
+        ip_address=get_client_ip(),
+        user_agent=sanitize_string(request.headers.get('User-Agent'), 500),
+        search_type=sanitize_string(data.get('search_type', 'general'), 50),
+        results_count=data.get('results_count', 0)
+    )
+    
+    try:
+        db.session.add(search_history)
+        db.session.commit()
+        return jsonify(search_history.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error recording search history: {e}")
+        return jsonify({'error': '记录搜索历史失败'}), 500
+
+def parse_datetime(value):
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        return value
+    try:
+        if isinstance(value, str):
+            if 'T' in value:
+                return datetime.fromisoformat(value.replace('Z', '+00:00'))
+            else:
+                return datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
+    except (ValueError, TypeError):
+        return None
+    return None
