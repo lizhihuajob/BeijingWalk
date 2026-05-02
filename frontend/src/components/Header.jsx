@@ -27,6 +27,7 @@ const Header = () => {
     { path: '/scenic', label: '名胜古迹' },
     { path: '/map', label: '景点地图' },
     { path: '/heritage', label: '非物质文化遗产' },
+    { path: '/travel-packages', label: '旅行团推荐' },
     { path: '/guestbook', label: '留言板' },
   ]);
   const [siteConfig, setSiteConfig] = useState({
@@ -79,7 +80,31 @@ const Header = () => {
         ]);
         
         if (navigationsData && navigationsData.length > 0) {
-          setNavItems(navigationsData);
+          const hasTravelPackage = navigationsData.some(
+            (item) => item.path === '/travel-packages'
+          );
+          if (!hasTravelPackage) {
+            const heritageIndex = navigationsData.findIndex(
+              (item) => item.path === '/heritage'
+            );
+            if (heritageIndex !== -1) {
+              const newNavItems = [...navigationsData];
+              newNavItems.splice(heritageIndex + 1, 0, {
+                path: '/travel-packages',
+                label: '旅行团推荐',
+              });
+              setNavItems(newNavItems);
+            } else {
+              const newNavItems = [...navigationsData];
+              newNavItems.push({
+                path: '/travel-packages',
+                label: '旅行团推荐',
+              });
+              setNavItems(newNavItems);
+            }
+          } else {
+            setNavItems(navigationsData);
+          }
         }
         if (siteConfigData) {
           setSiteConfig(siteConfigData);
