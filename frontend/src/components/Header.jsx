@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Music, Pause, Volume2, VolumeX, AlertCircle, Globe, ChevronDown, User, LogOut, Trophy, Star, ChevronRight } from 'lucide-react';
+import { Menu, X, Music, Pause, Volume2, VolumeX, AlertCircle, Globe, ChevronDown, User, LogOut, Trophy, Star, ChevronRight, Brain } from 'lucide-react';
 import { getNavigations, getSiteConfig } from '../services/api';
 import { useI18n } from '../i18n';
 import { useAuth } from '../contexts/AuthContext';

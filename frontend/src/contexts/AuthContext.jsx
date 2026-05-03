@@ -32,18 +32,34 @@ export const AuthProvider = ({ children }) => {
 
       if (savedToken && savedUser) {
         try {
-          setToken(savedToken);
           const parsedUser = JSON.parse(savedUser);
+          
+          setToken(savedToken);
           setUser(parsedUser);
           
-          const userData = await apiGetCurrentUser(savedToken);
-          if (userData) {
-            setUser(userData);
-            localStorage.setItem(USER_KEY, JSON.stringify(userData));
+          try {
+            const userData = await apiGetCurrentUser(savedToken);
+            if (userData) {
+              setUser(userData);
+              localStorage.setItem(USER_KEY, JSON.stringify(userData));
+            }
+          } catch (verifyError) {
+            console.error('Token verification error:', verifyError);
+            
+            if (verifyError.response?.status === 401) {
+              try {
+                const refreshed = await refreshAuthToken();
+                if (!refreshed) {
+                  logout();
+                }
+              } catch (refreshError) {
+                console.error('Token refresh failed:', refreshError);
+                logout();
+              }
+            }
           }
         } catch (error) {
-          console.error('Error verifying token:', error);
-          logout();
+          console.error('Error during auth initialization:', error);
         }
       }
       setIsLoading(false);

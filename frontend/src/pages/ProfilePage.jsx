@@ -7,6 +7,7 @@ import {
   Trophy,
   Star,
   CheckCircle,
+  XCircle,
   LogOut,
   Edit2,
   Eye,
