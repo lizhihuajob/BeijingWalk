@@ -1,19 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Music, Pause, Volume2, VolumeX, AlertCircle, Globe, ChevronDown } from 'lucide-react';
+import { Menu, X, Music, Pause, Volume2, VolumeX, AlertCircle, Globe, ChevronDown, User, LogOut, Trophy, Star, ChevronRight } from 'lucide-react';
 import { getNavigations, getSiteConfig } from '../services/api';
 import { useI18n } from '../i18n';
+import { useAuth } from '../contexts/AuthContext';
 import SearchBar from './SearchBar';
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { t, language, setLanguage, supportedLanguages, getCurrentLanguageInfo } = useI18n();
+  const { user, isAuthenticated, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const isHomePage = location.pathname === '/';
   const showScrolledStyle = isScrolled || !isHomePage;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isAudioReady, setIsAudioReady] = useState(false);
@@ -21,6 +25,7 @@ const Header = () => {
   const [showErrorToast, setShowErrorToast] = useState(false);
   const audioRef = useRef(null);
   const languageMenuRef = useRef(null);
+  const userMenuRef = useRef(null);
   const [navItems, setNavItems] = useState([
     { path: '/', label: '首页' },
     { path: '/culture', label: '北京文化' },
@@ -192,6 +197,9 @@ const Header = () => {
       if (languageMenuRef.current && !languageMenuRef.current.contains(event.target)) {
         setShowLanguageMenu(false);
       }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -200,6 +208,12 @@ const Header = () => {
   const handleLanguageChange = (langCode) => {
     setLanguage(langCode);
     setShowLanguageMenu(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setShowUserMenu(false);
+    navigate('/');
   };
 
   return (
@@ -323,6 +337,125 @@ const Header = () => {
                 </AnimatePresence>
               </div>
 
+              <div className="relative" ref={userMenuRef}>
+                {isAuthenticated ? (
+                  <>
+                    <motion.button
+                      onClick={() => setShowUserMenu(!showUserMenu)}
+                      className={`hidden md:flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-300 ${
+                        showScrolledStyle
+                          ? 'text-gray-700 hover:bg-gray-100'
+                          : 'text-white/90 hover:bg-white/20'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md">
+                        {user?.nickname?.charAt(0) || user?.username?.charAt(0) || '?'}
+                      </div>
+                      <span className="text-sm font-medium max-w-20 truncate">
+                        {user?.nickname || user?.username}
+                      </span>
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showUserMenu ? 'rotate-180' : ''}`} />
+                    </motion.button>
+
+                    <AnimatePresence>
+                      {showUserMenu && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50"
+                        >
+                          <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-amber-50">
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-amber-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">
+                                {user?.nickname?.charAt(0) || user?.username?.charAt(0) || '?'}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-gray-900 truncate">
+                                  {user?.nickname || user?.username}
+                                </p>
+                                <p className="text-xs text-gray-500 truncate">
+                                  {user?.email}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="mt-3 flex items-center gap-4 text-xs text-gray-600">
+                              <span className="flex items-center gap-1">
+                                <Star className="w-3.5 h-3.5 text-orange-500" />
+                                {user?.total_score || 0} 积分
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Trophy className="w-3.5 h-3.5 text-amber-500" />
+                                {user?.quizzes_completed || 0} 次游戏
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="p-2">
+                            <Link
+                              to="/profile"
+                              onClick={() => setShowUserMenu(false)}
+                            >
+                              <motion.button
+                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+                                whileHover={{ x: 4 }}
+                              >
+                                <User className="w-5 h-5" />
+                                <span className="font-medium">个人中心</span>
+                                <ChevronRight className="w-4 h-4 ml-auto text-gray-400" />
+                              </motion.button>
+                            </Link>
+
+                            <Link
+                              to="/quiz"
+                              onClick={() => setShowUserMenu(false)}
+                            >
+                              <motion.button
+                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+                                whileHover={{ x: 4 }}
+                              >
+                                <Brain className="w-5 h-5" />
+                                <span className="font-medium">知识问答</span>
+                                <ChevronRight className="w-4 h-4 ml-auto text-gray-400" />
+                              </motion.button>
+                            </Link>
+                          </div>
+
+                          <div className="p-2 border-t border-gray-100">
+                            <motion.button
+                              onClick={handleLogout}
+                              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 text-red-600 hover:bg-red-50"
+                              whileHover={{ x: 4 }}
+                            >
+                              <LogOut className="w-5 h-5" />
+                              <span className="font-medium">退出登录</span>
+                            </motion.button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </>
+                ) : (
+                  <Link to="/login">
+                    <motion.button
+                      className={`hidden md:flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
+                        showScrolledStyle
+                          ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 shadow-md'
+                          : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 border border-white/30'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <User className="w-4 h-4" />
+                      <span className="text-sm font-medium">登录</span>
+                    </motion.button>
+                  </Link>
+                )}
+              </div>
+
               <AnimatePresence>
                 {isMusicPlaying && (
                   <motion.button
@@ -439,7 +572,77 @@ const Header = () => {
                 })}
               </nav>
 
-              <div className="mt-8 pt-6 border-t border-gray-200">
+              {isAuthenticated ? (
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <div className="flex items-center gap-3 mb-4 px-4 py-3 bg-orange-50 rounded-xl border border-orange-200">
+                    <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center text-white font-bold shadow-md">
+                      {user?.nickname?.charAt(0) || user?.username?.charAt(0) || '?'}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">{user?.nickname || user?.username}</p>
+                      <p className="text-xs text-gray-500">{user?.total_score || 0} 积分</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2 mb-4">
+                    <Link
+                      to="/profile"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <motion.button
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <User className="w-5 h-5 text-orange-500" />
+                        <span>个人中心</span>
+                      </motion.button>
+                    </Link>
+                    
+                    <Link
+                      to="/quiz"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <motion.button
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Brain className="w-5 h-5 text-purple-500" />
+                        <span>知识问答</span>
+                      </motion.button>
+                    </Link>
+                  </div>
+                  
+                  <motion.button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-red-600 hover:bg-red-50 transition-colors"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span>退出登录</span>
+                  </motion.button>
+                </div>
+              ) : (
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <Link
+                    to="/login"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <motion.button
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <User className="w-5 h-5" />
+                      <span>登录 / 注册</span>
+                    </motion.button>
+                  </Link>
+                </div>
+              )}
+
+              <div className="mt-6 pt-6 border-t border-gray-200">
                 <p className="text-sm text-gray-500 mb-3">{t('common.language')}</p>
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   {supportedLanguages.map((lang) => (
