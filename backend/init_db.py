@@ -1076,15 +1076,39 @@ def init_database():
                     is_active=True
                 ),
                 Navigation(
+                    label='景点地图',
+                    path='/map',
+                    order=5,
+                    is_active=True
+                ),
+                Navigation(
                     label='非物质文化遗产',
                     path='/heritage',
-                    order=5,
+                    order=6,
+                    is_active=True
+                ),
+                Navigation(
+                    label='AR非遗体验',
+                    path='/ar-experience',
+                    order=7,
+                    is_active=True
+                ),
+                Navigation(
+                    label='虚拟明信片',
+                    path='/postcard',
+                    order=8,
+                    is_active=True
+                ),
+                Navigation(
+                    label='旅行团推荐',
+                    path='/travel-packages',
+                    order=9,
                     is_active=True
                 ),
                 Navigation(
                     label='留言板',
                     path='/guestbook',
-                    order=6,
+                    order=10,
                     is_active=True
                 ),
             ]
