@@ -220,4 +220,80 @@ export const generateItinerary = async (spotIds, days = 1, preferences = {}) => 
   return response.data;
 };
 
+export const getARExperiences = async (options = {}) => {
+  const params = new URLSearchParams();
+  if (options.category) params.append('category', options.category);
+  if (options.featured !== undefined) params.append('featured', options.featured.toString());
+  if (options.limit) params.append('limit', options.limit.toString());
+  if (options.offset) params.append('offset', options.offset.toString());
+  
+  const queryString = params.toString();
+  const response = await apiClient.get(`/ar-experiences${queryString ? '?' + queryString : ''}`);
+  return response.data;
+};
+
+export const getARExperienceById = async (id) => {
+  const response = await apiClient.get(`/ar-experiences/${id}`);
+  return response.data;
+};
+
+export const completeARExperience = async (id) => {
+  const response = await apiClient.post(`/ar-experiences/${id}/complete`);
+  return response.data;
+};
+
+export const getARExperiencesByHeritage = async (heritageId) => {
+  const response = await apiClient.get(`/ar-experiences/by-heritage/${heritageId}`);
+  return response.data;
+};
+
+export const getPostcardTemplates = async (options = {}) => {
+  const params = new URLSearchParams();
+  if (options.category) params.append('category', options.category);
+  if (options.featured !== undefined) params.append('featured', options.featured.toString());
+  
+  const queryString = params.toString();
+  const response = await apiClient.get(`/postcard-templates${queryString ? '?' + queryString : ''}`);
+  return response.data;
+};
+
+export const getPostcardPhotos = async (type = 'all', limit = 50, offset = 0) => {
+  const params = new URLSearchParams({
+    type,
+    limit: limit.toString(),
+    offset: offset.toString(),
+  });
+  const response = await apiClient.get(`/postcards/photos?${params.toString()}`);
+  return response.data;
+};
+
+export const createPostcard = async (data) => {
+  const response = await apiClient.post('/postcards', data);
+  return response.data;
+};
+
+export const getPostcards = async (options = {}) => {
+  const params = new URLSearchParams();
+  if (options.sessionId) params.append('session_id', options.sessionId);
+  if (options.isPublic !== undefined) params.append('public', options.isPublic.toString());
+  if (options.limit) params.append('limit', options.limit.toString());
+  if (options.offset) params.append('offset', options.offset.toString());
+  
+  const queryString = params.toString();
+  const response = await apiClient.get(`/postcards${queryString ? '?' + queryString : ''}`);
+  return response.data;
+};
+
+export const getPostcardById = async (id) => {
+  const response = await apiClient.get(`/postcards/${id}`);
+  return response.data;
+};
+
+export const sendPostcard = async (id, recipientEmail) => {
+  const response = await apiClient.post(`/postcards/${id}/send`, {
+    recipient_email: recipientEmail,
+  });
+  return response.data;
+};
+
 export default apiClient;

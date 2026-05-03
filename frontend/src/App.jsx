@@ -16,6 +16,8 @@ import TravelPackagesPage from './pages/TravelPackagesPage';
 import TravelPackageDetail from './pages/TravelPackageDetail';
 import SearchResultsPage from './pages/SearchResultsPage';
 import ItineraryPage from './pages/ItineraryPage';
+import ARExperiencePage from './pages/ARExperiencePage';
+import VirtualPostcardPage from './pages/VirtualPostcardPage';
 import { MapProvider } from './contexts/MapContext';
 import { trackPageView } from './services/analytics';
 
@@ -54,6 +56,8 @@ function App() {
         <Route path="/travel-package/:id" element={<TravelPackageDetail />} />
         <Route path="/search" element={<SearchResultsPage />} />
         <Route path="/itinerary" element={<ItineraryPage />} />
+        <Route path="/ar-experience" element={<ARExperiencePage />} />
+        <Route path="/postcard" element={<VirtualPostcardPage />} />
       </Routes>
     </MapProvider>
   );
