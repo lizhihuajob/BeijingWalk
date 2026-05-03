@@ -2,7 +2,8 @@ import json
 from app import create_app, db
 from app.models.models import (
     Banner, Culture, Specialty, ScenicSpot, Heritage, 
-    Guestbook, AdminUser, SiteConfig, Navigation, Category, BookingGuide, OperationLog
+    Guestbook, AdminUser, SiteConfig, Navigation, Category, BookingGuide, OperationLog,
+    ARExperience, VirtualPostcard, PostcardTemplate
 )
 from sqlalchemy import text
 
@@ -671,6 +672,342 @@ def init_database():
                 )
             ]
             db.session.add_all(heritages)
+        
+        if ARExperience.query.first() is None:
+            ar_experiences = [
+                ARExperience(
+                    heritage_id=1,
+                    name='景泰蓝制作工艺',
+                    description='体验景泰蓝的完整制作过程，包括制胎、掐丝、点蓝、烧蓝、磨光、镀金等六大工序。',
+                    category='传统工艺',
+                    icon='🎨',
+                    image_url='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Cloisonne%20enamel%20crafting%20process%20traditional%20Chinese%20artisan%20working%20on%20copper%20vase%20intricate%20wire%20inlay%20blue%20enamel%20colorful%20patterns&image_size=landscape_16_9',
+                    steps=json.dumps([
+                        {
+                            'title': '制胎',
+                            'description': '使用紫铜板制作器物的胎体。根据设计要求，将铜板裁剪成合适的形状，然后通过敲打、焊接等工艺制成器物的基本形状。',
+                            'duration': 60,
+                            'image': None
+                        },
+                        {
+                            'title': '掐丝',
+                            'description': '用镊子将扁细的铜丝掐、掰成各种纹样，再用白芨粘焊在铜胎上。这是景泰蓝制作中最精细的工序，需要极高的手工技艺。',
+                            'duration': 120,
+                            'image': None
+                        },
+                        {
+                            'title': '点蓝',
+                            'description': '用吸管或小铲将珐琅釉料填充到掐好的花纹轮廓内。每种颜色都要反复填充、烧制多次，才能达到理想的色泽。',
+                            'duration': 90,
+                            'image': None
+                        },
+                        {
+                            'title': '烧蓝',
+                            'description': '将点好蓝的器物放入炉膛中烧制，使珐琅釉料熔化并与铜胎牢固结合。每次烧制后需要再次点蓝，反复进行三到四次。',
+                            'duration': 30,
+                            'image': None
+                        },
+                        {
+                            'title': '磨光',
+                            'description': '用砂石、黄石、木炭等工具将烧制好的器物表面磨平，使图案和底色平整光滑。这道工序需要耐心和细心。',
+                            'duration': 60,
+                            'image': None
+                        },
+                        {
+                            'title': '镀金',
+                            'description': '将磨光后的器物进行镀金处理，使外露的铜丝和铜胎表面镀上一层黄金，增加器物的华贵感和抗氧化能力。',
+                            'duration': 30,
+                            'image': None
+                        }
+                    ], ensure_ascii=False),
+                    materials=json.dumps(['紫铜板', '扁铜丝', '珐琅釉料', '白芨', '焊药', '黄金'], ensure_ascii=False),
+                    tools=json.dumps(['镊子', '剪刀', '焊枪', '吸管', '小铲', '磨石', '木炭'], ensure_ascii=False),
+                    duration_minutes=40,
+                    difficulty_level='中等',
+                    view_count=1520,
+                    is_active=True
+                ),
+                ARExperience(
+                    heritage_id=3,
+                    name='京绣刺绣技艺',
+                    description='学习京绣的传统刺绣技法，体验平金、打籽、盘金等多种针法，感受皇家刺绣的精致与华贵。',
+                    category='传统服饰',
+                    icon='🪡',
+                    image_url='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Beijing%20embroidery%20Jingxiu%20traditional%20Chinese%20silk%20embroidery%20artisan%20hand%20stitching%20golden%20thread%20dragon%20pattern%20imperial%20royal%20craftsmanship%20colorful%20silk%20threads&image_size=landscape_16_9',
+                    steps=json.dumps([
+                        {
+                            'title': '设计纹样',
+                            'description': '根据刺绣用途设计纹样图案。京绣传统纹样多为龙、凤、牡丹、祥云等吉祥图案，讲究对称、饱满、寓意吉祥。',
+                            'duration': 30,
+                            'image': None
+                        },
+                        {
+                            'title': '绷架绷布',
+                            'description': '将绸缎布料绷紧在刺绣绷架上。绷布需要平整、松紧适度，这是保证刺绣质量的基础。',
+                            'duration': 15,
+                            'image': None
+                        },
+                        {
+                            'title': '描稿',
+                            'description': '用铅笔或淡墨将设计好的纹样轻轻描绘在绷好的布料上。描稿要求线条清晰、位置准确。',
+                            'duration': 20,
+                            'image': None
+                        },
+                        {
+                            'title': '平针绣',
+                            'description': '使用各色丝线，采用平针绣法绣出纹样的主体部分。平针绣要求针脚整齐、排线均匀、不露底布。',
+                            'duration': 60,
+                            'image': None
+                        },
+                        {
+                            'title': '盘金绣',
+                            'description': '用金线或银线盘绕出纹样轮廓，再用丝线钉牢。这是京绣最具特色的技法之一，使图案富有立体感和华贵感。',
+                            'duration': 45,
+                            'image': None
+                        },
+                        {
+                            'title': '打籽绣',
+                            'description': '每一针都将丝线绕成小结，形成颗粒状的"籽"。打籽绣常用于表现花朵的花蕊或动物的眼睛，质感独特。',
+                            'duration': 30,
+                            'image': None
+                        },
+                        {
+                            'title': '整理装裱',
+                            'description': '完成刺绣后，将作品从绷架上取下，进行熨烫整理，然后根据用途进行装裱或缝制。',
+                            'duration': 20,
+                            'image': None
+                        }
+                    ], ensure_ascii=False),
+                    materials=json.dumps(['真丝缎', '绣花线', '金线', '银线', '绒线'], ensure_ascii=False),
+                    tools=json.dumps(['绣花绷架', '绣花针', '剪刀', '顶针', '描笔'], ensure_ascii=False),
+                    duration_minutes=35,
+                    difficulty_level='中等',
+                    view_count=980,
+                    is_active=True
+                ),
+                ARExperience(
+                    heritage_id=2,
+                    name='皮影戏表演体验',
+                    description='了解北京皮影戏的历史渊源，学习皮影人物的制作技艺，体验皮影戏的表演技巧。',
+                    category='传统艺术',
+                    icon='🎪',
+                    image_url='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Chinese%20shadow%20puppetry%20Beijing%20style%20traditional%20leather%20puppets%20colorful%20intricate%20designs%20shadow%20theater%20performance%20behind%20white%20screen%20lantern%20lighting%20artisan%20craftsmanship&image_size=landscape_16_9',
+                    steps=json.dumps([
+                        {
+                            'title': '选皮制皮',
+                            'description': '选用驴皮或牛皮作为原料。将皮子浸泡软化后，刮去毛和肉，晾晒成半透明的皮子。这是制作皮影的基础材料。',
+                            'duration': 30,
+                            'image': None
+                        },
+                        {
+                            'title': '描样镂刻',
+                            'description': '将设计好的人物纹样描在皮子上，然后用刻刀进行镂刻。皮影人物一般分为头、身、四肢等部分，分别制作后再组装。',
+                            'duration': 60,
+                            'image': None
+                        },
+                        {
+                            'title': '上色熨平',
+                            'description': '用矿物颜料给镂刻好的皮影上色。传统皮影颜色鲜艳，以红、黄、绿、黑为主。上色后需要熨平，使颜色牢固。',
+                            'duration': 25,
+                            'image': None
+                        },
+                        {
+                            'title': '缀结装订',
+                            'description': '将皮影的各个部件用线绳或铆钉连接起来，使人物能够活动。头部和身体一般可以拆卸，方便更换不同的造型。',
+                            'duration': 20,
+                            'image': None
+                        },
+                        {
+                            'title': '安装操纵杆',
+                            'description': '在皮影人物的手部和颈部安装操纵杆。一般人物有三根操纵杆：颈部一根控制整体移动，双手各一根控制动作。',
+                            'duration': 15,
+                            'image': None
+                        },
+                        {
+                            'title': '学习操纵技法',
+                            'description': '学习如何操纵皮影人物。基本动作包括行走、转身、招手、打斗等。熟练的艺人可以让皮影人物表现出丰富的情感和复杂的动作。',
+                            'duration': 40,
+                            'image': None
+                        },
+                        {
+                            'title': '表演体验',
+                            'description': '在皮影戏后台体验实际表演。配合灯光和音乐，操纵皮影人物演绎一段简单的故事片段，感受皮影戏的独特魅力。',
+                            'duration': 30,
+                            'image': None
+                        }
+                    ], ensure_ascii=False),
+                    materials=json.dumps(['驴皮', '牛皮', '矿物颜料', '线绳', '铆钉'], ensure_ascii=False),
+                    tools=json.dumps(['刻刀', '剪刀', '锥子', '熨斗', '毛笔'], ensure_ascii=False),
+                    duration_minutes=30,
+                    difficulty_level='简单',
+                    view_count=2100,
+                    is_active=True
+                ),
+                ARExperience(
+                    heritage_id=None,
+                    name='北京烤鸭制作体验',
+                    description='了解北京烤鸭的历史和文化，学习烤鸭的选材、晾坯、烤制等关键工序，体验片鸭技巧。',
+                    category='传统美食',
+                    icon='🦆',
+                    image_url='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Beijing%20Roast%20Duck%20Peking%20Duck%20traditional%20Chinese%20cuisine%20chef%20preparing%20duck%20hanging%20in%20oven%20fruit%20wood%20fired%20crispy%20skin%20slicing%20duck%20meat%20pancakes%20hoisin%20sauce&image_size=landscape_16_9',
+                    steps=json.dumps([
+                        {
+                            'title': '选材',
+                            'description': '选用北京填鸭作为原料。北京填鸭生长周期短、肉质细嫩、脂肪含量适中，是制作北京烤鸭的最佳选择。鸭龄一般在45-50天左右。',
+                            'duration': 10,
+                            'image': None
+                        },
+                        {
+                            'title': '宰杀处理',
+                            'description': '将鸭子宰杀后，去除内脏和羽毛。然后从腋下开一个小口，取出内脏，用清水冲洗干净。这一步需要专业技能，确保鸭皮完整。',
+                            'duration': 15,
+                            'image': None
+                        },
+                        {
+                            'title': '打气烫皮',
+                            'description': '从鸭子的颈部开口处打气，使鸭皮与鸭肉分离。然后用沸水浇烫鸭皮，使皮肤收缩紧绷。这是保证鸭皮酥脆的关键步骤。',
+                            'duration': 20,
+                            'image': None
+                        },
+                        {
+                            'title': '挂色晾坯',
+                            'description': '在鸭皮上均匀涂抹糖水或麦芽糖水，然后将鸭子挂在通风阴凉处晾干。晾坯时间一般需要24-48小时，使鸭皮充分干燥。',
+                            'duration': 30,
+                            'image': None
+                        },
+                        {
+                            'title': '入炉烤制',
+                            'description': '将晾好的鸭子挂入特制的烤炉中，用果木（枣木、梨木等）进行烤制。烤制过程中需要不断调整鸭子的位置，使受热均匀。',
+                            'duration': 45,
+                            'image': None
+                        },
+                        {
+                            'title': '片鸭装盘',
+                            'description': '烤好的鸭子出炉后，需要趁热片鸭。传统片鸭方法有"片片"和"条片"两种。片好的鸭肉要皮脆肉嫩，肥瘦相间，配上薄饼、甜面酱、葱丝食用。',
+                            'duration': 20,
+                            'image': None
+                        }
+                    ], ensure_ascii=False),
+                    materials=json.dumps(['北京填鸭', '麦芽糖', '枣木', '梨木'], ensure_ascii=False),
+                    tools=json.dumps(['烤炉', '挂钩', '片鸭刀', '烫鸭锅'], ensure_ascii=False),
+                    duration_minutes=25,
+                    difficulty_level='简单',
+                    view_count=3200,
+                    is_active=True
+                )
+            ]
+            db.session.add_all(ar_experiences)
+            print('Default AR experiences created')
+        
+        if PostcardTemplate.query.first() is None:
+            postcard_templates = [
+                PostcardTemplate(
+                    template_id='classic-red',
+                    name='经典红',
+                    description='传统中国红配色，庄重典雅，适合各种场合',
+                    category='classic',
+                    preview_image='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=elegant%20red%20Chinese%20style%20postcard%20template%20golden%20cloud%20patterns%20traditional%20Chinese%20border%20decorations%20space%20for%20photo%20and%20message%20minimalist%20design&image_size=square',
+                    primary_color='#DC2626',
+                    secondary_color='#FCD34D',
+                    background_color='#FEF2F2',
+                    text_color='#1F2937',
+                    is_active=True,
+                    order=1
+                ),
+                PostcardTemplate(
+                    template_id='classic-gold',
+                    name='经典金',
+                    description='金色边框搭配米白色背景，高贵典雅，正式场合首选',
+                    category='classic',
+                    preview_image='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=elegant%20golden%20Chinese%20style%20postcard%20template%20intricate%20gold%20patterns%20cream%20white%20background%20traditional%20Chinese%20motifs%20space%20for%20photo%20and%20message%20luxury%20design&image_size=square',
+                    primary_color='#D97706',
+                    secondary_color='#FBBF24',
+                    background_color='#FFFBEB',
+                    text_color='#1F2937',
+                    is_active=True,
+                    order=2
+                ),
+                PostcardTemplate(
+                    template_id='modern-blue',
+                    name='现代蓝',
+                    description='清新蓝色渐变，简约现代风格，适合年轻人',
+                    category='modern',
+                    preview_image='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20minimalist%20blue%20gradient%20postcard%20template%20clean%20design%20soft%20blue%20shades%20white%20space%20for%20photo%20and%20message%20simple%20geometric%20accents%20contemporary%20style&image_size=square',
+                    primary_color='#2563EB',
+                    secondary_color='#60A5FA',
+                    background_color='#EFF6FF',
+                    text_color='#1E3A8A',
+                    is_active=True,
+                    order=3
+                ),
+                PostcardTemplate(
+                    template_id='modern-green',
+                    name='现代绿',
+                    description='自然绿色调，清新环保风格，传递祝福与希望',
+                    category='modern',
+                    preview_image='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20nature%20green%20postcard%20template%20soft%20emerald%20shades%20white%20background%20subtle%20leaf%20patterns%20space%20for%20photo%20and%20message%20clean%20eco-friendly%20design&image_size=square',
+                    primary_color='#059669',
+                    secondary_color='#34D399',
+                    background_color='#ECFDF5',
+                    text_color='#065F46',
+                    is_active=True,
+                    order=4
+                ),
+                PostcardTemplate(
+                    template_id='vintage-paper',
+                    name='复古信纸',
+                    description='仿旧羊皮纸效果，怀旧复古风格，适合文艺青年',
+                    category='vintage',
+                    preview_image='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=vintage%20parchment%20paper%20postcard%20template%20aged%20yellowed%20paper%20texture%20faded%20ink%20stains%20ornate%20victorian%20borders%20space%20for%20photo%20and%20handwritten%20message%20nostalgic%20retro%20design&image_size=square',
+                    primary_color='#92400E',
+                    secondary_color='#D97706',
+                    background_color='#FEF3C7',
+                    text_color='#78350F',
+                    is_active=True,
+                    order=5
+                ),
+                PostcardTemplate(
+                    template_id='vintage-sepia',
+                    name='复古棕褐',
+                    description='老照片色调，怀旧风格，唤起美好回忆',
+                    category='vintage',
+                    preview_image='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=vintage%20sepia%20toned%20postcard%20template%20warm%20brown%20shades%20old%20photo%20texture%20faded%20edges%20ornate%21920s%20style%20borders%20space%20for%20photo%20and%20message%20nostalgic%20retro%20design&image_size=square',
+                    primary_color='#78716C',
+                    secondary_color='#A8A29E',
+                    background_color='#FAFAF9',
+                    text_color='#44403C',
+                    is_active=True,
+                    order=6
+                ),
+                PostcardTemplate(
+                    template_id='festive-spring',
+                    name='春节喜庆',
+                    description='春节主题配色，红色金色搭配灯笼鞭炮图案，传递节日祝福',
+                    category='festive',
+                    preview_image='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=festive%20Chinese%20New%20Year%20postcard%20template%20vibrant%20red%20and%20gold%20lanterns%20firecrackers%20traditional%20Chinese%20patterns%20space%20for%20photo%20and%20greeting%20message%20celebratory%20design&image_size=square',
+                    primary_color='#B91C1C',
+                    secondary_color='#F59E0B',
+                    background_color='#FEF2F2',
+                    text_color='#7F1D1D',
+                    is_active=True,
+                    order=7
+                ),
+                PostcardTemplate(
+                    template_id='festive-midautumn',
+                    name='中秋团圆',
+                    description='中秋主题，月色桂花，适合中秋佳节传递思念与祝福',
+                    category='festive',
+                    preview_image='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=festive%20Mid%20Autumn%20Festival%20postcard%20template%20serene%20night%20sky%20full%20moon%20osmanthus%20flowers%20mooncakes%20soft%20blue%20and%20gold%20tones%20space%20for%20photo%20and%20greeting%20message%20peaceful%20reunion%20theme&image_size=square',
+                    primary_color='#1E3A8A',
+                    secondary_color='#FCD34D',
+                    background_color='#EFF6FF',
+                    text_color='#1E3A8A',
+                    is_active=True,
+                    order=8
+                )
+            ]
+            db.session.add_all(postcard_templates)
+            print('Default postcard templates created')
         
         if Guestbook.query.first() is None:
             guestbooks = [
