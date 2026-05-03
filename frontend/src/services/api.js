@@ -132,4 +132,39 @@ export const recordSearchHistory = async (data) => {
   return response.data;
 };
 
+export const getTravelPackages = async () => {
+  const response = await apiClient.get('/travel-packages');
+  return response.data;
+};
+
+export const getFeaturedTravelPackages = async () => {
+  const response = await apiClient.get('/travel-packages/featured');
+  return response.data;
+};
+
+export const getTravelPackageById = async (id) => {
+  const response = await apiClient.get(`/travel-packages/${id}`);
+  return response.data;
+};
+
+export const initChatSession = async (data) => {
+  const response = await apiClient.post('/chat/init', data);
+  return response.data;
+};
+
+export const getChatMessages = async (sessionId) => {
+  const response = await apiClient.get(`/chat/${sessionId}/messages`);
+  return response.data;
+};
+
+export const sendChatMessage = async (sessionId, data) => {
+  const response = await apiClient.post(`/chat/${sessionId}/send`, data);
+  return response.data;
+};
+
+export const pollChatMessages = async (sessionId, lastMessageId = 0) => {
+  const response = await apiClient.get(`/chat/${sessionId}/poll?last_message_id=${lastMessageId}`);
+  return response.data;
+};
+
 export default apiClient;

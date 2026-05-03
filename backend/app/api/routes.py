@@ -3,7 +3,9 @@ from app import db
 from app.models.models import (
     Banner, Culture, Specialty, ScenicSpot, Heritage, 
     Guestbook, PageView, ContentView, ContentViewEvent,
-    SiteConfig, Navigation, Category, BookingGuide
+    SiteConfig, Navigation, Category, BookingGuide,
+    TravelPackage, ChatSession, ChatMessage,
+    parse_json_field
 )
 from datetime import datetime
 import json
@@ -517,3 +519,155 @@ def get_nearby_recommendations(id):
     }
     
     return jsonify(nearby_data), 200
+
+@api_bp.route('/travel-packages', methods=['GET'])
+def get_travel_packages():
+    packages = TravelPackage.query.filter_by(is_active=True, status='active').order_by(TravelPackage.order).all()
+    return jsonify([pkg.to_dict() for pkg in packages]), 200
+
+@api_bp.route('/travel-packages/featured', methods=['GET'])
+def get_featured_travel_packages():
+    featured = TravelPackage.query.filter_by(
+        is_active=True, 
+        status='active', 
+        is_featured=True
+    ).order_by(TravelPackage.order).all()
+    return jsonify([pkg.to_dict() for pkg in featured]), 200
+
+@api_bp.route('/travel-packages/<int:id>', methods=['GET'])
+def get_travel_package(id):
+    package = TravelPackage.query.get_or_404(id)
+    
+    if not package.is_active or package.status != 'active':
+        return jsonify({'error': '该产品已下架或不存在'}), 404
+    
+    package.view_count += 1
+    db.session.commit()
+    
+    return jsonify(package.to_dict()), 200
+
+import uuid
+
+def generate_session_id():
+    return str(uuid.uuid4())
+
+@api_bp.route('/chat/init', methods=['POST'])
+def init_chat_session():
+    data = get_request_data()
+    
+    travel_package_id = data.get('travel_package_id')
+    visitor_id = sanitize_string(data.get('visitor_id'), 100)
+    visitor_name = sanitize_string(data.get('visitor_name'), 100)
+    visitor_email = sanitize_string(data.get('visitor_email'), 200)
+    visitor_phone = sanitize_string(data.get('visitor_phone'), 20)
+    
+    if not visitor_id:
+        visitor_id = str(uuid.uuid4())
+    
+    session_id = generate_session_id()
+    
+    session = ChatSession(
+        session_id=session_id,
+        visitor_id=visitor_id,
+        visitor_name=visitor_name,
+        visitor_email=visitor_email,
+        visitor_phone=visitor_phone,
+        travel_package_id=travel_package_id,
+        status='active'
+    )
+    
+    db.session.add(session)
+    db.session.commit()
+    
+    return jsonify({
+        'session_id': session_id,
+        'visitor_id': visitor_id,
+        'message': '聊天会话已创建'
+    }), 201
+
+@api_bp.route('/chat/<session_id>/messages', methods=['GET'])
+def get_chat_messages(session_id):
+    session = ChatSession.query.filter_by(session_id=session_id).first()
+    
+    if not session:
+        return jsonify({'error': '会话不存在'}), 404
+    
+    messages = ChatMessage.query.filter_by(
+        session_id=session_id
+    ).order_by(ChatMessage.created_at).all()
+    
+    unread_messages = [m for m in messages if m.sender_type == 'admin' and not m.is_read]
+    for msg in unread_messages:
+        msg.is_read = True
+        msg.read_at = datetime.utcnow()
+    
+    session.unread_count = 0
+    db.session.commit()
+    
+    return jsonify([msg.to_dict() for msg in messages]), 200
+
+@api_bp.route('/chat/<session_id>/send', methods=['POST'])
+def send_chat_message(session_id):
+    session = ChatSession.query.filter_by(session_id=session_id).first()
+    
+    if not session:
+        return jsonify({'error': '会话不存在'}), 404
+    
+    if session.status != 'active':
+        return jsonify({'error': '会话已关闭'}), 400
+    
+    data = get_request_data()
+    
+    content = data.get('content')
+    if not content or not content.strip():
+        return jsonify({'error': '消息内容不能为空'}), 400
+    
+    visitor_name = sanitize_string(data.get('visitor_name'), 100) or '游客'
+    
+    message = ChatMessage(
+        session_id=session_id,
+        sender_type='visitor',
+        sender_id=session.visitor_id,
+        sender_name=visitor_name,
+        message_type='text',
+        content=content.strip()
+    )
+    
+    session.last_message_at = datetime.utcnow()
+    session.admin_unread_count += 1
+    
+    if visitor_name and not session.visitor_name:
+        session.visitor_name = visitor_name
+    
+    db.session.add(message)
+    db.session.commit()
+    
+    return jsonify(message.to_dict()), 201
+
+@api_bp.route('/chat/<session_id>/poll', methods=['GET'])
+def poll_chat_messages(session_id):
+    session = ChatSession.query.filter_by(session_id=session_id).first()
+    
+    if not session:
+        return jsonify({'error': '会话不存在'}), 404
+    
+    last_message_id = request.args.get('last_message_id', 0, type=int)
+    
+    messages = ChatMessage.query.filter(
+        ChatMessage.session_id == session_id,
+        ChatMessage.id > last_message_id
+    ).order_by(ChatMessage.created_at).all()
+    
+    unread_admin_messages = [m for m in messages if m.sender_type == 'admin' and not m.is_read]
+    for msg in unread_admin_messages:
+        msg.is_read = True
+        msg.read_at = datetime.utcnow()
+    
+    if unread_admin_messages:
+        session.unread_count = max(0, session.unread_count - len(unread_admin_messages))
+        db.session.commit()
+    
+    return jsonify({
+        'messages': [msg.to_dict() for msg in messages],
+        'session_status': session.status
+    }), 200

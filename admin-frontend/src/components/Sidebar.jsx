@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -13,12 +13,18 @@ import {
   Menu,
   Layers,
   FileText,
+  Briefcase,
+  MessageCircle,
+  Bell,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { chatSessionApi } from '../services/api';
 
 const baseMenuItems = [
   { path: '/', icon: LayoutDashboard, label: '仪表盘', isSubmenu: false },
   { path: '/guestbooks', icon: MessageSquare, label: '留言管理', isSubmenu: false },
+  { path: '/travel-packages', icon: Briefcase, label: '旅行团产品', isSubmenu: false },
+  { path: '/chat-sessions', icon: MessageCircle, label: '咨询聊天', isSubmenu: false, hasBadge: true },
   {
     label: '网站配置',
     icon: Settings,
@@ -38,6 +44,25 @@ function Sidebar() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [expandedMenus, setExpandedMenus] = useState({ '网站配置': true });
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const token = localStorage.getItem('admin_token');
+        if (!token) return;
+        
+        const response = await chatSessionApi.getUnreadCount();
+        setUnreadChatCount(response.data.unread_count || 0);
+      } catch (error) {
+        console.error('Failed to fetch unread count:', error);
+      }
+    };
+
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const getMenuItems = () => {
     const items = [...baseMenuItems];
@@ -129,15 +154,22 @@ function Sidebar() {
                 to={item.path}
                 end={item.path === '/'}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                  `flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 ${
                     isActive
                       ? 'bg-sidebar-active text-sidebar-activeText'
                       : 'text-sidebar-text hover:bg-sidebar-hover hover:text-sidebar-activeText'
                   }`
                 }
               >
-                <item.icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
+                <div className="flex items-center gap-3">
+                  <item.icon className="w-5 h-5" />
+                  <span className="font-medium">{item.label}</span>
+                </div>
+                {item.hasBadge && unreadChatCount > 0 && (
+                  <span className="inline-flex items-center justify-center px-2 py-0.5 bg-red-500 text-white text-xs font-medium rounded-full min-w-[1.25rem]">
+                    {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                  </span>
+                )}
               </NavLink>
             )}
           </div>
