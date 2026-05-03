@@ -742,3 +742,178 @@ class ChatMessage(db.Model):
             'read_at': self.read_at.isoformat() if self.read_at else None,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
+
+class ARExperience(db.Model):
+    __tablename__ = 'ar_experiences'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    heritage_id = db.Column(db.Integer, db.ForeignKey('heritages.id'), nullable=True)
+    
+    name = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    short_description = db.Column(db.Text)
+    
+    category = db.Column(db.String(50), default='传统工艺')
+    icon = db.Column(db.String(50), default='🎨')
+    image_url = db.Column(db.String(500), nullable=False)
+    
+    ar_model_url = db.Column(db.String(500))
+    ar_asset_urls = db.Column(db.Text)
+    
+    steps = db.Column(db.Text)
+    materials = db.Column(db.Text)
+    tools = db.Column(db.Text)
+    duration_minutes = db.Column(db.Integer, default=30)
+    difficulty_level = db.Column(db.String(20), default='中等')
+    
+    featured = db.Column(db.Boolean, default=False)
+    order = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+    
+    view_count = db.Column(db.Integer, default=0)
+    completion_count = db.Column(db.Integer, default=0)
+    
+    publish_time = db.Column(db.DateTime)
+    expire_time = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    heritage = db.relationship('Heritage', backref='ar_experiences')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'heritage_id': self.heritage_id,
+            'name': self.name,
+            'description': self.description,
+            'short_description': self.short_description,
+            'category': self.category,
+            'icon': self.icon,
+            'image_url': self.image_url,
+            'ar_model_url': self.ar_model_url,
+            'ar_asset_urls': parse_json_field(self.ar_asset_urls),
+            'steps': parse_json_field(self.steps),
+            'materials': parse_json_field(self.materials),
+            'tools': parse_json_field(self.tools),
+            'duration_minutes': self.duration_minutes,
+            'difficulty_level': self.difficulty_level,
+            'featured': self.featured,
+            'order': self.order,
+            'is_active': self.is_active,
+            'view_count': self.view_count,
+            'completion_count': self.completion_count,
+            'heritage_name': self.heritage.name if self.heritage else None,
+            'publish_time': self.publish_time.isoformat() if self.publish_time else None,
+            'expire_time': self.expire_time.isoformat() if self.expire_time else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class VirtualPostcard(db.Model):
+    __tablename__ = 'virtual_postcards'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.String(100), nullable=False, index=True)
+    
+    scenic_spot_id = db.Column(db.Integer, db.ForeignKey('scenic_spots.id'), nullable=True)
+    heritage_id = db.Column(db.Integer, db.ForeignKey('heritages.id'), nullable=True)
+    
+    template_id = db.Column(db.String(50), default='default')
+    image_url = db.Column(db.String(500), nullable=False)
+    thumbnail_url = db.Column(db.String(500))
+    
+    message = db.Column(db.Text)
+    sender_name = db.Column(db.String(100))
+    recipient_name = db.Column(db.String(100))
+    recipient_email = db.Column(db.String(200))
+    
+    style_options = db.Column(db.Text)
+    generated_image_url = db.Column(db.String(500))
+    share_url = db.Column(db.String(500))
+    qr_code_url = db.Column(db.String(500))
+    
+    is_sent = db.Column(db.Boolean, default=False)
+    sent_at = db.Column(db.DateTime)
+    view_count = db.Column(db.Integer, default=0)
+    
+    is_public = db.Column(db.Boolean, default=False)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    scenic_spot = db.relationship('ScenicSpot', backref='postcards')
+    heritage = db.relationship('Heritage', backref='postcards')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'session_id': self.session_id,
+            'scenic_spot_id': self.scenic_spot_id,
+            'heritage_id': self.heritage_id,
+            'template_id': self.template_id,
+            'image_url': self.image_url,
+            'thumbnail_url': self.thumbnail_url,
+            'message': self.message,
+            'sender_name': self.sender_name,
+            'recipient_name': self.recipient_name,
+            'recipient_email': self.recipient_email,
+            'style_options': parse_json_field(self.style_options),
+            'generated_image_url': self.generated_image_url,
+            'share_url': self.share_url,
+            'qr_code_url': self.qr_code_url,
+            'is_sent': self.is_sent,
+            'sent_at': self.sent_at.isoformat() if self.sent_at else None,
+            'view_count': self.view_count,
+            'is_public': self.is_public,
+            'scenic_spot_name': self.scenic_spot.name if self.scenic_spot else None,
+            'heritage_name': self.heritage.name if self.heritage else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class PostcardTemplate(db.Model):
+    __tablename__ = 'postcard_templates'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    template_id = db.Column(db.String(50), unique=True, nullable=False, index=True)
+    
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    category = db.Column(db.String(50), default='经典')
+    
+    preview_image_url = db.Column(db.String(500), nullable=False)
+    background_color = db.Column(db.String(20), default='#ffffff')
+    text_color = db.Column(db.String(20), default='#333333')
+    accent_color = db.Column(db.String(20), default='#f59e0b')
+    
+    font_family = db.Column(db.String(100), default='serif')
+    text_position = db.Column(db.String(20), default='bottom')
+    has_decorations = db.Column(db.Boolean, default=True)
+    
+    order = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+    is_featured = db.Column(db.Boolean, default=False)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'template_id': self.template_id,
+            'name': self.name,
+            'description': self.description,
+            'category': self.category,
+            'preview_image_url': self.preview_image_url,
+            'background_color': self.background_color,
+            'text_color': self.text_color,
+            'accent_color': self.accent_color,
+            'font_family': self.font_family,
+            'text_position': self.text_position,
+            'has_decorations': self.has_decorations,
+            'order': self.order,
+            'is_active': self.is_active,
+            'is_featured': self.is_featured,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }

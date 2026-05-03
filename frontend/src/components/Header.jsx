@@ -28,6 +28,8 @@ const Header = () => {
     { path: '/scenic', label: '名胜古迹' },
     { path: '/map', label: '景点地图' },
     { path: '/heritage', label: '非物质文化遗产' },
+    { path: '/ar-experience', label: 'AR非遗体验' },
+    { path: '/postcard', label: '虚拟明信片' },
     { path: '/travel-packages', label: '旅行团推荐' },
     { path: '/guestbook', label: '留言板' },
   ]);
@@ -81,31 +83,71 @@ const Header = () => {
         ]);
         
         if (navigationsData && navigationsData.length > 0) {
-          const hasTravelPackage = navigationsData.some(
+          let newNavItems = [...navigationsData];
+          
+          const hasARExperience = newNavItems.some(
+            (item) => item.path === '/ar-experience'
+          );
+          const hasPostcard = newNavItems.some(
+            (item) => item.path === '/postcard'
+          );
+          const hasTravelPackage = newNavItems.some(
             (item) => item.path === '/travel-packages'
           );
-          if (!hasTravelPackage) {
-            const heritageIndex = navigationsData.findIndex(
-              (item) => item.path === '/heritage'
-            );
+          
+          const heritageIndex = newNavItems.findIndex(
+            (item) => item.path === '/heritage'
+          );
+          
+          if (!hasARExperience) {
             if (heritageIndex !== -1) {
-              const newNavItems = [...navigationsData];
               newNavItems.splice(heritageIndex + 1, 0, {
+                path: '/ar-experience',
+                label: 'AR非遗体验',
+              });
+            } else {
+              newNavItems.push({
+                path: '/ar-experience',
+                label: 'AR非遗体验',
+              });
+            }
+          }
+          
+          if (!hasPostcard) {
+            const arExperienceIndex = newNavItems.findIndex(
+              (item) => item.path === '/ar-experience'
+            );
+            if (arExperienceIndex !== -1) {
+              newNavItems.splice(arExperienceIndex + 1, 0, {
+                path: '/postcard',
+                label: '虚拟明信片',
+              });
+            } else {
+              newNavItems.push({
+                path: '/postcard',
+                label: '虚拟明信片',
+              });
+            }
+          }
+          
+          if (!hasTravelPackage) {
+            const postcardIndex = newNavItems.findIndex(
+              (item) => item.path === '/postcard'
+            );
+            if (postcardIndex !== -1) {
+              newNavItems.splice(postcardIndex + 1, 0, {
                 path: '/travel-packages',
                 label: '旅行团推荐',
               });
-              setNavItems(newNavItems);
             } else {
-              const newNavItems = [...navigationsData];
               newNavItems.push({
                 path: '/travel-packages',
                 label: '旅行团推荐',
               });
-              setNavItems(newNavItems);
             }
-          } else {
-            setNavItems(navigationsData);
           }
+          
+          setNavItems(newNavItems);
         }
         if (siteConfigData) {
           setSiteConfig(siteConfigData);

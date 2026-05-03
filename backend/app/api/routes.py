@@ -5,6 +5,7 @@ from app.models.models import (
     Guestbook, PageView, ContentView, ContentViewEvent,
     SiteConfig, Navigation, Category, BookingGuide,
     TravelPackage, ChatSession, ChatMessage, SearchHistory,
+    ARExperience, VirtualPostcard, PostcardTemplate,
     parse_json_field
 )
 from datetime import datetime, timedelta
@@ -990,4 +991,320 @@ def generate_itinerary():
         'itinerary': itinerary,
         'summary': summary,
         'preferences': preferences
+    }), 200
+
+@api_bp.route('/ar-experiences', methods=['GET'])
+def get_ar_experiences():
+    category = request.args.get('category')
+    featured = request.args.get('featured', type=lambda v: v.lower() == 'true')
+    limit = request.args.get('limit', 20, type=int)
+    offset = request.args.get('offset', 0, type=int)
+    
+    query = ARExperience.query.filter_by(is_active=True)
+    
+    if category:
+        query = query.filter(ARExperience.category == category)
+    if featured is not None:
+        query = query.filter(ARExperience.featured == featured)
+    
+    total_count = query.count()
+    experiences = query.order_by(ARExperience.order, ARExperience.id).offset(offset).limit(limit).all()
+    
+    return jsonify({
+        'experiences': [exp.to_dict() for exp in experiences],
+        'total': total_count,
+        'categories': ['传统工艺', '传统服饰', '传统艺术', '传统美食']
+    }), 200
+
+@api_bp.route('/ar-experiences/<int:id>', methods=['GET'])
+def get_ar_experience(id):
+    experience = ARExperience.query.get_or_404(id)
+    
+    if not experience.is_active:
+        return jsonify({'error': '该AR体验已下架'}), 404
+    
+    experience.view_count += 1
+    db.session.commit()
+    
+    return jsonify(experience.to_dict()), 200
+
+@api_bp.route('/ar-experiences/<int:id>/complete', methods=['POST'])
+def complete_ar_experience(id):
+    experience = ARExperience.query.get_or_404(id)
+    
+    if not experience.is_active:
+        return jsonify({'error': '该AR体验已下架'}), 404
+    
+    experience.completion_count += 1
+    db.session.commit()
+    
+    return jsonify({
+        'message': 'AR体验完成记录已保存',
+        'experience_id': id,
+        'completion_count': experience.completion_count
+    }), 200
+
+@api_bp.route('/ar-experiences/by-heritage/<int:heritage_id>', methods=['GET'])
+def get_ar_experiences_by_heritage(heritage_id):
+    heritage = Heritage.query.get_or_404(heritage_id)
+    
+    experiences = ARExperience.query.filter_by(
+        heritage_id=heritage_id,
+        is_active=True
+    ).order_by(ARExperience.order).all()
+    
+    return jsonify({
+        'heritage_name': heritage.name,
+        'heritage_id': heritage_id,
+        'experiences': [exp.to_dict() for exp in experiences]
+    }), 200
+
+@api_bp.route('/postcard-templates', methods=['GET'])
+def get_postcard_templates():
+    category = request.args.get('category')
+    featured = request.args.get('featured', type=lambda v: v.lower() == 'true')
+    
+    query = PostcardTemplate.query.filter_by(is_active=True)
+    
+    if category:
+        query = query.filter(PostcardTemplate.category == category)
+    if featured is not None:
+        query = query.filter(PostcardTemplate.is_featured == featured)
+    
+    templates = query.order_by(PostcardTemplate.order).all()
+    
+    default_templates = [
+        {
+            'id': 0,
+            'template_id': 'default',
+            'name': '经典明信片',
+            'description': '传统风格的明信片设计',
+            'category': '经典',
+            'preview_image_url': 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traditional%20Chinese%20postcard%20template%20with%20red%20gold%20colors%20elegant%20design&image_size=square',
+            'background_color': '#fffaf0',
+            'text_color': '#1f2937',
+            'accent_color': '#f59e0b',
+            'font_family': 'serif',
+            'text_position': 'bottom',
+            'has_decorations': True,
+            'order': 0,
+            'is_active': True,
+            'is_featured': True
+        },
+        {
+            'id': 0,
+            'template_id': 'modern',
+            'name': '现代简约',
+            'description': '简洁现代的设计风格',
+            'category': '现代',
+            'preview_image_url': 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20minimalist%20postcard%20template%20clean%20design%20white%20space&image_size=square',
+            'background_color': '#ffffff',
+            'text_color': '#111827',
+            'accent_color': '#3b82f6',
+            'font_family': 'sans-serif',
+            'text_position': 'right',
+            'has_decorations': False,
+            'order': 1,
+            'is_active': True,
+            'is_featured': True
+        },
+        {
+            'id': 0,
+            'template_id': 'vintage',
+            'name': '复古怀旧',
+            'description': '怀旧复古的老照片风格',
+            'category': '复古',
+            'preview_image_url': 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=vintage%20sepia%20postcard%20template%20old%20photo%20style%20decorative%20border&image_size=square',
+            'background_color': '#fef3c7',
+            'text_color': '#78350f',
+            'accent_color': '#92400e',
+            'font_family': 'serif',
+            'text_position': 'bottom',
+            'has_decorations': True,
+            'order': 2,
+            'is_active': True,
+            'is_featured': True
+        },
+        {
+            'id': 0,
+            'template_id': 'festive',
+            'name': '喜庆节日',
+            'description': '喜庆的节日主题设计',
+            'category': '节日',
+            'preview_image_url': 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=festive%20Chinese%20postcard%20template%20red%20gold%20lanterns%20celebration&image_size=square',
+            'background_color': '#fef2f2',
+            'text_color': '#991b1b',
+            'accent_color': '#dc2626',
+            'font_family': 'serif',
+            'text_position': 'top',
+            'has_decorations': True,
+            'order': 3,
+            'is_active': True,
+            'is_featured': False
+        }
+    ]
+    
+    result = [t.to_dict() for t in templates] if templates else default_templates
+    
+    return jsonify({
+        'templates': result,
+        'categories': ['经典', '现代', '复古', '节日', '艺术']
+    }), 200
+
+@api_bp.route('/postcards', methods=['GET'])
+def get_postcards():
+    session_id = request.args.get('session_id')
+    is_public = request.args.get('public', type=lambda v: v.lower() == 'true')
+    limit = request.args.get('limit', 20, type=int)
+    offset = request.args.get('offset', 0, type=int)
+    
+    query = VirtualPostcard.query
+    
+    if session_id:
+        query = query.filter(VirtualPostcard.session_id == session_id)
+    elif is_public:
+        query = query.filter(VirtualPostcard.is_public == True)
+    else:
+        return jsonify({'error': '请提供 session_id 或设置 public=true'}), 400
+    
+    total_count = query.count()
+    postcards = query.order_by(VirtualPostcard.created_at.desc()).offset(offset).limit(limit).all()
+    
+    return jsonify({
+        'postcards': [p.to_dict() for p in postcards],
+        'total': total_count
+    }), 200
+
+@api_bp.route('/postcards', methods=['POST'])
+def create_postcard():
+    data = get_request_data()
+    
+    session_id = sanitize_string(data.get('session_id'), 100) or str(uuid.uuid4())
+    image_url = sanitize_string(data.get('image_url'), 500)
+    template_id = sanitize_string(data.get('template_id'), 50) or 'default'
+    
+    if not image_url:
+        return jsonify({'error': '请选择照片'}), 400
+    
+    scenic_spot_id = data.get('scenic_spot_id')
+    heritage_id = data.get('heritage_id')
+    
+    if scenic_spot_id is not None and not isinstance(scenic_spot_id, int):
+        return jsonify({'error': '景点ID格式无效'}), 400
+    if heritage_id is not None and not isinstance(heritage_id, int):
+        return jsonify({'error': '非遗ID格式无效'}), 400
+    
+    message = sanitize_string(data.get('message'), 1000)
+    sender_name = sanitize_string(data.get('sender_name'), 100)
+    recipient_name = sanitize_string(data.get('recipient_name'), 100)
+    recipient_email = sanitize_string(data.get('recipient_email'), 200)
+    
+    style_options = data.get('style_options')
+    is_public = data.get('is_public', False)
+    
+    postcard = VirtualPostcard(
+        session_id=session_id,
+        scenic_spot_id=scenic_spot_id,
+        heritage_id=heritage_id,
+        template_id=template_id,
+        image_url=image_url,
+        message=message,
+        sender_name=sender_name,
+        recipient_name=recipient_name,
+        recipient_email=recipient_email,
+        style_options=json.dumps(style_options, ensure_ascii=False) if style_options else None,
+        is_public=bool(is_public)
+    )
+    
+    db.session.add(postcard)
+    db.session.commit()
+    
+    share_url = f'/postcard/{postcard.id}'
+    postcard.share_url = share_url
+    db.session.commit()
+    
+    return jsonify(postcard.to_dict()), 201
+
+@api_bp.route('/postcards/<int:id>', methods=['GET'])
+def get_postcard(id):
+    postcard = VirtualPostcard.query.get_or_404(id)
+    
+    postcard.view_count += 1
+    db.session.commit()
+    
+    return jsonify(postcard.to_dict()), 200
+
+@api_bp.route('/postcards/<int:id>/send', methods=['POST'])
+def send_postcard(id):
+    postcard = VirtualPostcard.query.get_or_404(id)
+    data = get_request_data()
+    
+    recipient_email = sanitize_string(data.get('recipient_email'), 200) or postcard.recipient_email
+    
+    if not recipient_email:
+        return jsonify({'error': '请提供收件人邮箱'}), 400
+    
+    postcard.recipient_email = recipient_email
+    postcard.is_sent = True
+    postcard.sent_at = datetime.utcnow()
+    
+    db.session.commit()
+    
+    return jsonify({
+        'message': '明信片已发送',
+        'postcard_id': id,
+        'recipient_email': recipient_email,
+        'sent_at': postcard.sent_at.isoformat()
+    }), 200
+
+@api_bp.route('/postcards/photos', methods=['GET'])
+def get_postcard_photos():
+    type_param = request.args.get('type', 'all')
+    limit = request.args.get('limit', 50, type=int)
+    offset = request.args.get('offset', 0, type=int)
+    
+    photos = []
+    
+    if type_param == 'all' or type_param == 'scenic':
+        scenic_spots = ScenicSpot.query.filter_by(is_active=True).order_by(ScenicSpot.order).offset(offset).limit(limit).all()
+        for spot in scenic_spots:
+            photos.append({
+                'id': spot.id,
+                'type': 'scenic_spot',
+                'name': spot.name,
+                'image_url': spot.image_url,
+                'description': spot.description[:80] + '...' if len(spot.description) > 80 else spot.description,
+                'location': spot.location,
+                'is_featured': spot.is_featured
+            })
+    
+    if type_param == 'all' or type_param == 'heritage':
+        heritages = Heritage.query.filter_by(is_active=True).order_by(Heritage.order).offset(offset).limit(limit).all()
+        for heritage in heritages:
+            photos.append({
+                'id': heritage.id,
+                'type': 'heritage',
+                'name': heritage.name,
+                'image_url': heritage.image_url,
+                'description': heritage.description[:80] + '...' if len(heritage.description) > 80 else heritage.description,
+                'icon': heritage.icon,
+                'is_featured': False
+            })
+    
+    if type_param == 'all' or type_param == 'culture':
+        cultures = Culture.query.filter_by(is_active=True).order_by(Culture.order).offset(offset).limit(limit).all()
+        for culture in cultures:
+            photos.append({
+                'id': culture.id,
+                'type': 'culture',
+                'name': culture.title,
+                'image_url': culture.image_url,
+                'description': culture.description[:80] + '...' if len(culture.description) > 80 else culture.description,
+                'is_featured': False
+            })
+    
+    return jsonify({
+        'photos': photos,
+        'total': len(photos),
+        'types': ['all', 'scenic', 'heritage', 'culture']
     }), 200
