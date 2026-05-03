@@ -260,7 +260,7 @@ const ItineraryPage = () => {
                         onClick={() => toggleSpot(spot)}
                         className={`group cursor-pointer rounded-2xl overflow-hidden transition-all duration-300 ${
                           isSelected
-                            ? 'ring-2 ring-orange-400 shadow-lg scale-[0]'
+                            ? 'ring-2 ring-orange-400 shadow-lg'
                             : 'bg-white shadow-sm hover:shadow-md'
                         }`}
                         whileHover={{ scale: 1.02 }}
