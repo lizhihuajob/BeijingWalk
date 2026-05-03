@@ -20,48 +20,60 @@ const TOKEN_KEY = 'beijingwalk_token';
 const REFRESH_TOKEN_KEY = 'beijingwalk_refresh_token';
 const USER_KEY = 'beijingwalk_user';
 
+const getInitialToken = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem(TOKEN_KEY) || null;
+  }
+  return null;
+};
+
+const getInitialUser = () => {
+  if (typeof window !== 'undefined') {
+    const savedUser = localStorage.getItem(USER_KEY);
+    if (savedUser) {
+      try {
+        return JSON.parse(savedUser);
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(getInitialUser);
   const [isLoading, setIsLoading] = useState(true);
-  const [token, setToken] = useState(null);
+  const [token, setToken] = useState(getInitialToken);
 
   useEffect(() => {
     const initAuth = async () => {
-      const savedToken = localStorage.getItem(TOKEN_KEY);
-      const savedUser = localStorage.getItem(USER_KEY);
-
-      if (savedToken && savedUser) {
+      const currentToken = token;
+      
+      if (currentToken) {
         try {
-          const parsedUser = JSON.parse(savedUser);
+          const userData = await apiGetCurrentUser(currentToken);
+          if (userData) {
+            setUser(userData);
+            localStorage.setItem(USER_KEY, JSON.stringify(userData));
+          }
+        } catch (verifyError) {
+          console.error('Token verification error:', verifyError);
           
-          setToken(savedToken);
-          setUser(parsedUser);
-          
-          try {
-            const userData = await apiGetCurrentUser(savedToken);
-            if (userData) {
-              setUser(userData);
-              localStorage.setItem(USER_KEY, JSON.stringify(userData));
-            }
-          } catch (verifyError) {
-            console.error('Token verification error:', verifyError);
-            
-            if (verifyError.response?.status === 401) {
-              try {
-                const refreshed = await refreshAuthToken();
-                if (!refreshed) {
-                  logout();
-                }
-              } catch (refreshError) {
-                console.error('Token refresh failed:', refreshError);
+          if (verifyError.response?.status === 401) {
+            try {
+              const refreshed = await refreshAuthToken();
+              if (!refreshed) {
                 logout();
               }
+            } catch (refreshError) {
+              console.error('Token refresh failed:', refreshError);
+              logout();
             }
           }
-        } catch (error) {
-          console.error('Error during auth initialization:', error);
         }
       }
+      
       setIsLoading(false);
     };
 
