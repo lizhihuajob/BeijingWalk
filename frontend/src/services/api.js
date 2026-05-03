@@ -220,4 +220,143 @@ export const generateItinerary = async (spotIds, days = 1, preferences = {}) => 
   return response.data;
 };
 
+export const getAuthClient = (token) => {
+  if (!token) return apiClient;
+  
+  const client = axios.create({
+    baseURL: API_BASE_URL,
+    timeout: 10000,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  
+  client.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      const originalRequest = error.config;
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
+        return Promise.reject(error);
+      }
+      return Promise.reject(error);
+    }
+  );
+  
+  return client;
+};
+
+export const login = async (identifier, password) => {
+  const response = await apiClient.post('/auth/login', {
+    username: identifier,
+    password,
+  });
+  return response.data;
+};
+
+export const register = async (username, email, password, nickname) => {
+  const response = await apiClient.post('/auth/register', {
+    username,
+    email,
+    password,
+    nickname,
+  });
+  return response.data;
+};
+
+export const refreshToken = async (refreshToken) => {
+  const response = await axios.post(
+    `${API_BASE_URL}/auth/refresh`,
+    {},
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${refreshToken}`,
+      },
+    }
+  );
+  return response.data;
+};
+
+export const getCurrentUser = async (token) => {
+  const client = getAuthClient(token);
+  const response = await client.get('/auth/me');
+  return response.data;
+};
+
+export const updateProfile = async (token, data) => {
+  const client = getAuthClient(token);
+  const response = await client.put('/auth/profile', data);
+  return response.data;
+};
+
+export const getQuizCategories = async () => {
+  const response = await apiClient.get('/quiz/categories');
+  return response.data;
+};
+
+export const getQuizCategory = async (categoryId) => {
+  const response = await apiClient.get(`/quiz/categories/${categoryId}`);
+  return response.data;
+};
+
+export const startQuiz = async (token, categoryId = null, questionCount = 10) => {
+  const client = getAuthClient(token);
+  const response = await client.post('/quiz/start', {
+    category_id: categoryId,
+    question_count: questionCount,
+  });
+  return response.data;
+};
+
+export const getCurrentQuestion = async (token, gameId) => {
+  const client = getAuthClient(token);
+  const response = await client.get(`/quiz/game/${gameId}/current`);
+  return response.data;
+};
+
+export const submitAnswer = async (token, gameId, answer, timeSpent = 0) => {
+  const client = getAuthClient(token);
+  const response = await client.post(`/quiz/game/${gameId}/answer`, {
+    answer,
+    time_spent_seconds: timeSpent,
+  });
+  return response.data;
+};
+
+export const getGameResult = async (token, gameId) => {
+  const client = getAuthClient(token);
+  const response = await client.get(`/quiz/game/${gameId}/result`);
+  return response.data;
+};
+
+export const getQuizHistory = async (token, limit = 20, offset = 0) => {
+  const client = getAuthClient(token);
+  const response = await client.get(`/quiz/history?limit=${limit}&offset=${offset}`);
+  return response.data;
+};
+
+export const getUserBadges = async (token) => {
+  const client = getAuthClient(token);
+  const response = await client.get('/user/badges');
+  return response.data;
+};
+
+export const getUserScores = async (token, limit = 20, offset = 0) => {
+  const client = getAuthClient(token);
+  const response = await client.get(`/user/scores?limit=${limit}&offset=${offset}`);
+  return response.data;
+};
+
+export const getLeaderboard = async (type = 'score', limit = 20) => {
+  const response = await apiClient.get(`/quiz/leaderboard?type=${type}&limit=${limit}`);
+  return response.data;
+};
+
+export const initQuizData = async () => {
+  const response = await apiClient.post('/quiz/init-data');
+  return response.data;
+};
+
 export default apiClient;

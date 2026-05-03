@@ -742,3 +742,319 @@ class ChatMessage(db.Model):
             'read_at': self.read_at.isoformat() if self.read_at else None,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
+
+class User(db.Model):
+    __tablename__ = 'users'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(256), nullable=False)
+    nickname = db.Column(db.String(80))
+    avatar_url = db.Column(db.String(500))
+    phone = db.Column(db.String(20))
+    
+    total_score = db.Column(db.Integer, default=0)
+    quizzes_completed = db.Column(db.Integer, default=0)
+    questions_correct = db.Column(db.Integer, default=0)
+    questions_total = db.Column(db.Integer, default=0)
+    
+    is_active = db.Column(db.Boolean, default=True)
+    last_login = db.Column(db.DateTime)
+    last_login_ip = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+    
+    def get_accuracy_rate(self):
+        if self.questions_total == 0:
+            return 0
+        return round(self.questions_correct / self.questions_total * 100, 1)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'nickname': self.nickname or self.username,
+            'avatar_url': self.avatar_url,
+            'phone': self.phone,
+            'total_score': self.total_score,
+            'quizzes_completed': self.quizzes_completed,
+            'questions_correct': self.questions_correct,
+            'questions_total': self.questions_total,
+            'accuracy_rate': self.get_accuracy_rate(),
+            'is_active': self.is_active,
+            'last_login': self.last_login.isoformat() if self.last_login else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+    
+    def to_safe_dict(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'nickname': self.nickname or self.username,
+            'avatar_url': self.avatar_url,
+            'total_score': self.total_score,
+            'quizzes_completed': self.quizzes_completed,
+            'questions_correct': self.questions_correct,
+            'questions_total': self.questions_total,
+            'accuracy_rate': self.get_accuracy_rate()
+        }
+
+class QuizCategory(db.Model):
+    __tablename__ = 'quiz_categories'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    name_en = db.Column(db.String(100))
+    description = db.Column(db.Text)
+    icon = db.Column(db.String(50), default='🧠')
+    color = db.Column(db.String(20), default='from-orange-400 to-amber-500')
+    order = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    questions = db.relationship('QuizQuestion', backref='category', lazy='dynamic')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'name_en': self.name_en,
+            'description': self.description,
+            'icon': self.icon,
+            'color': self.color,
+            'order': self.order,
+            'question_count': self.questions.filter_by(is_active=True).count()
+        }
+
+class QuizQuestion(db.Model):
+    __tablename__ = 'quiz_questions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('quiz_categories.id'), nullable=False)
+    question_text = db.Column(db.Text, nullable=False)
+    question_text_en = db.Column(db.Text)
+    difficulty = db.Column(db.String(20), default='medium')
+    points = db.Column(db.Integer, default=10)
+    
+    option_a = db.Column(db.String(500), nullable=False)
+    option_b = db.Column(db.String(500), nullable=False)
+    option_c = db.Column(db.String(500), nullable=False)
+    option_d = db.Column(db.String(500), nullable=False)
+    correct_option = db.Column(db.String(1), nullable=False)
+    explanation = db.Column(db.Text)
+    explanation_en = db.Column(db.Text)
+    
+    image_url = db.Column(db.String(500))
+    related_scenic_spot_id = db.Column(db.Integer, db.ForeignKey('scenic_spots.id'))
+    related_culture_id = db.Column(db.Integer, db.ForeignKey('cultures.id'))
+    
+    times_used = db.Column(db.Integer, default=0)
+    times_correct = db.Column(db.Integer, default=0)
+    times_incorrect = db.Column(db.Integer, default=0)
+    
+    order = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def get_accuracy_rate(self):
+        if self.times_used == 0:
+            return 0
+        return round(self.times_correct / self.times_used * 100, 1)
+    
+    def to_dict(self, include_answer=False):
+        data = {
+            'id': self.id,
+            'category_id': self.category_id,
+            'category_name': self.category.name if self.category else None,
+            'question_text': self.question_text,
+            'difficulty': self.difficulty,
+            'points': self.points,
+            'option_a': self.option_a,
+            'option_b': self.option_b,
+            'option_c': self.option_c,
+            'option_d': self.option_d,
+            'image_url': self.image_url,
+            'explanation': self.explanation if include_answer else None,
+            'accuracy_rate': self.get_accuracy_rate()
+        }
+        if include_answer:
+            data['correct_option'] = self.correct_option
+        return data
+
+class QuizGame(db.Model):
+    __tablename__ = 'quiz_games'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('quiz_categories.id'))
+    
+    game_type = db.Column(db.String(20), default='standard')
+    total_questions = db.Column(db.Integer, default=10)
+    current_question_index = db.Column(db.Integer, default=0)
+    score = db.Column(db.Integer, default=0)
+    correct_count = db.Column(db.Integer, default=0)
+    incorrect_count = db.Column(db.Integer, default=0)
+    
+    status = db.Column(db.String(20), default='active')
+    started_at = db.Column(db.DateTime, default=datetime.utcnow)
+    completed_at = db.Column(db.DateTime)
+    duration_seconds = db.Column(db.Integer, default=0)
+    
+    user = db.relationship('User', backref='quiz_games')
+    category = db.relationship('QuizCategory', backref='quiz_games')
+    
+    def get_accuracy_rate(self):
+        if self.total_questions == 0:
+            return 0
+        return round(self.correct_count / self.total_questions * 100, 1)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'category_id': self.category_id,
+            'category_name': self.category.name if self.category else None,
+            'game_type': self.game_type,
+            'total_questions': self.total_questions,
+            'current_question_index': self.current_question_index,
+            'score': self.score,
+            'correct_count': self.correct_count,
+            'incorrect_count': self.incorrect_count,
+            'accuracy_rate': self.get_accuracy_rate(),
+            'status': self.status,
+            'started_at': self.started_at.isoformat() if self.started_at else None,
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+            'duration_seconds': self.duration_seconds
+        }
+
+class QuizGameQuestion(db.Model):
+    __tablename__ = 'quiz_game_questions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('quiz_games.id'), nullable=False, index=True)
+    question_id = db.Column(db.Integer, db.ForeignKey('quiz_questions.id'), nullable=False)
+    question_index = db.Column(db.Integer, nullable=False)
+    
+    user_answer = db.Column(db.String(1))
+    is_correct = db.Column(db.Boolean)
+    points_earned = db.Column(db.Integer, default=0)
+    time_spent_seconds = db.Column(db.Integer, default=0)
+    
+    answered_at = db.Column(db.DateTime)
+    
+    game = db.relationship('QuizGame', backref='game_questions')
+    question = db.relationship('QuizQuestion', backref='game_questions')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'game_id': self.game_id,
+            'question_id': self.question_id,
+            'question_index': self.question_index,
+            'user_answer': self.user_answer,
+            'is_correct': self.is_correct,
+            'points_earned': self.points_earned,
+            'time_spent_seconds': self.time_spent_seconds,
+            'answered_at': self.answered_at.isoformat() if self.answered_at else None,
+            'question': self.question.to_dict(include_answer=True) if self.question else None
+        }
+
+class Badge(db.Model):
+    __tablename__ = 'badges'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    name_en = db.Column(db.String(100))
+    description = db.Column(db.Text, nullable=False)
+    description_en = db.Column(db.Text)
+    icon = db.Column(db.String(50), default='🏆')
+    color = db.Column(db.String(20), default='from-yellow-400 to-amber-500')
+    rarity = db.Column(db.String(20), default='common')
+    
+    requirement_type = db.Column(db.String(50), nullable=False)
+    requirement_value = db.Column(db.Integer, default=0)
+    
+    points_reward = db.Column(db.Integer, default=0)
+    
+    order = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user_badges = db.relationship('UserBadge', backref='badge', lazy='dynamic')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'icon': self.icon,
+            'color': self.color,
+            'rarity': self.rarity,
+            'requirement_type': self.requirement_type,
+            'requirement_value': self.requirement_value,
+            'points_reward': self.points_reward,
+            'user_count': self.user_badges.count()
+        }
+
+class UserBadge(db.Model):
+    __tablename__ = 'user_badges'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    badge_id = db.Column(db.Integer, db.ForeignKey('badges.id'), nullable=False)
+    
+    earned_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_new = db.Column(db.Boolean, default=True)
+    
+    user = db.relationship('User', backref='user_badges')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'badge_id': self.badge_id,
+            'earned_at': self.earned_at.isoformat() if self.earned_at else None,
+            'is_new': self.is_new,
+            'badge': self.badge.to_dict() if self.badge else None
+        }
+
+class UserScoreHistory(db.Model):
+    __tablename__ = 'user_score_history'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    
+    score_change = db.Column(db.Integer, nullable=False)
+    score_after = db.Column(db.Integer, nullable=False)
+    reason = db.Column(db.String(100), nullable=False)
+    source_type = db.Column(db.String(50))
+    source_id = db.Column(db.Integer)
+    description = db.Column(db.Text)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    
+    user = db.relationship('User', backref='score_history')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'score_change': self.score_change,
+            'score_after': self.score_after,
+            'reason': self.reason,
+            'source_type': self.source_type,
+            'source_id': self.source_id,
+            'description': self.description,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
