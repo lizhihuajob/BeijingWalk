@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Music, Pause, Volume2, VolumeX, AlertCircle, Globe, ChevronDown } from 'lucide-react';
 import { getNavigations, getSiteConfig } from '../services/api';
 import { useI18n } from '../i18n';
+import SearchBar from './SearchBar';
 
 const Header = () => {
   const location = useLocation();
@@ -262,6 +263,10 @@ const Header = () => {
                 );
               })}
             </nav>
+
+            <div className="hidden lg:block w-72">
+              <SearchBar placeholder="搜索景点、特产..." />
+            </div>
 
             <div className="flex items-center space-x-2">
               <div className="relative" ref={languageMenuRef}>

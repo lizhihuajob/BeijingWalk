@@ -41,6 +41,34 @@ def migrate_guestbook_table():
                 db.session.commit()
                 print('Guestbook table migrated successfully!')
 
+def migrate_specialty_table():
+    with app.app_context():
+        inspector = db.inspect(db.engine)
+        tables = inspector.get_table_names()
+        
+        if 'specialties' in tables:
+            columns = [c['name'] for c in inspector.get_columns('specialties')]
+            
+            new_columns = [
+                ('category', "VARCHAR(50) DEFAULT '美食'"),
+            ]
+            
+            migrations = []
+            for col_name, col_type in new_columns:
+                if col_name not in columns:
+                    migrations.append(f'ALTER TABLE specialties ADD COLUMN IF NOT EXISTS {col_name} {col_type}')
+            
+            for migration in migrations:
+                try:
+                    db.session.execute(text(migration))
+                    print(f'Executed migration: {migration}')
+                except Exception as e:
+                    print(f'Migration skipped: {migration}, Error: {e}')
+            
+            if migrations:
+                db.session.commit()
+                print('Specialty table migrated successfully!')
+
 def get_scenic_spot_update_data():
     return {
         '故宫博物院': {
@@ -99,6 +127,7 @@ def migrate_scenic_spot_table():
             columns = [c['name'] for c in inspector.get_columns('scenic_spots')]
             
             new_columns = [
+                ('spot_type', "VARCHAR(50) DEFAULT '皇家园林'"),
                 ('ticket_price_peak', 'VARCHAR(100)'),
                 ('ticket_price_off_peak', 'VARCHAR(100)'),
                 ('ticket_additional_info', 'TEXT'),
@@ -286,6 +315,7 @@ def init_database():
                     image_url='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Beijing%20Roast%20Duck%20Peking%20Duck%20crispy%20skin%20sliced%20duck%20meat%20pancakes%20hoisin%20sauce%20scallions%20cucumber%20traditional%20Chinese%20cuisine&image_size=square',
                     description='北京烤鸭是北京著名的特色菜，被誉为"天下美味"。它以色泽红艳、肉质细嫩、味道醇厚、肥而不腻的特色而驰名中外。北京烤鸭分为挂炉烤鸭和焖炉烤鸭两大流派。',
                     rating=4.9,
+                    category='美食',
                     order=1,
                     is_active=True
                 ),
@@ -294,6 +324,7 @@ def init_database():
                     image_url='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Beijing%20Candied%20Haws%20Tanghulu%20traditional%20Chinese%20snack%20candied%20fruits%20on%20bamboo%20sticks%20glossy%20sugar%20coating%20hawthorns&image_size=square',
                     description='冰糖葫芦是中国传统的小吃，尤以北京的冰糖葫芦最为著名。它是用竹签将山楂串成串，蘸上麦芽糖稀，糖稀遇风迅速变硬，吃起来又酸又甜，冰凉爽口。',
                     rating=4.7,
+                    category='美食',
                     order=2,
                     is_active=True
                 ),
@@ -302,7 +333,26 @@ def init_database():
                     image_url='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traditional%20Chinese%20Beijing%20style%20yogurt%20in%20white%20ceramic%20bowl%20topped%20with%20fresh%20fruits%20strawberries%20blueberries%20and%20honey%20drizzle%20soft%20natural%20lighting&image_size=square',
                     description='北京酸奶是北京地区特有的传统乳制品，历史悠久，口感醇厚，酸甜适中。传统的北京酸奶使用瓷碗盛装，上面盖着油纸，是老北京人喜爱的传统饮品。',
                     rating=4.6,
+                    category='饮品',
                     order=3,
+                    is_active=True
+                ),
+                Specialty(
+                    name='景泰蓝',
+                    image_url='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Cloisonne%20enamel%20Cloisonne%20Chinese%20traditional%20craft%20blue%20and%20gold%20vase%20intricate%20patterns%20traditional%20Chinese%20artwork&image_size=square',
+                    description='景泰蓝又称铜胎掐丝珐琅，是北京著名的传统特种工艺品。因其在明朝景泰年间盛行，制作技艺比较成熟，使用的珐琅釉多以蓝色为主，故而得名景泰蓝。',
+                    rating=4.8,
+                    category='工艺品',
+                    order=4,
+                    is_active=True
+                ),
+                Specialty(
+                    name='京绣',
+                    image_url='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Beijing%20embroidery%20Jingxiu%20traditional%20Chinese%20silk%20embroidery%20golden%20thread%20dragon%20pattern%20imperial%20royal%20craftsmanship&image_size=square',
+                    description='京绣又称宫廷绣，是以北京为中心的刺绣产品的总称，是中国传统刺绣工艺之一，历史悠久，可追溯到唐代。京绣以其精湛的技艺和独特的艺术风格闻名于世。',
+                    rating=4.7,
+                    category='工艺品',
+                    order=5,
                     is_active=True
                 )
             ]
@@ -350,12 +400,127 @@ def init_database():
                 ],
             }
             
+            spot_type_map = {
+                '故宫博物院': '皇家园林',
+                '颐和园': '皇家园林',
+                '天坛公园': '寺庙',
+                '明十三陵': '皇家园林',
+                '国家博物馆': '博物馆',
+                '南锣鼓巷': '胡同',
+                '雍和宫': '寺庙',
+                '恭王府': '皇家园林',
+            }
+            
+            additional_spots = {
+                '国家博物馆': {
+                    'location': '北京市东城区东长安街16号',
+                    'latitude': 39.907778,
+                    'longitude': 116.402222,
+                    'tips': [
+                        '建议提前网上预约，免费参观',
+                        '周一闭馆（法定节假日除外）',
+                        '重点展厅：古代中国、复兴之路',
+                        '可以租讲解器，了解更多文物知识',
+                    ],
+                    'opening_status': '正常开放',
+                    'ticket_price_peak': '免费',
+                    'ticket_price_off_peak': '免费',
+                    'ticket_additional_info': '免费参观，需提前预约。特殊展览可能需要单独购票。',
+                    'ticket_url': 'http://www.chnmuseum.cn/',
+                    'has_direct_booking': False,
+                    'opening_hours_peak': '9:00-17:00（16:00停止入场）',
+                    'opening_hours_off_peak': '9:00-17:00（16:00停止入场）',
+                    'additional_opening_notes': '周一闭馆（法定节假日除外）。',
+                    'recommended_duration': '3-4小时',
+                    'is_featured': False,
+                    'order': 5,
+                    'image_url': 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=National%20Museum%20of%20China%20Beijing%20grand%20building%20exhibition%20halls%20ancient%20artifacts&image_size=square',
+                    'description': '中国国家博物馆是代表国家收藏、研究、展示、阐释能够充分反映中华优秀传统文化、革命文化和社会主义先进文化代表性物证的最高机构，是国家最高历史文化艺术殿堂和文化客厅。',
+                },
+                '南锣鼓巷': {
+                    'location': '北京市东城区南锣鼓巷胡同',
+                    'latitude': 39.941667,
+                    'longitude': 116.408333,
+                    'tips': [
+                        '建议傍晚或晚上游览，夜景更美',
+                        '胡同里有很多特色小店和美食',
+                        '可以租人力车游览胡同',
+                        '注意保护历史建筑，文明游览',
+                    ],
+                    'opening_status': '正常开放',
+                    'ticket_price_peak': '免费',
+                    'ticket_price_off_peak': '免费',
+                    'ticket_additional_info': '免费开放，无需预约。',
+                    'ticket_url': None,
+                    'has_direct_booking': False,
+                    'opening_hours_peak': '全天开放',
+                    'opening_hours_off_peak': '全天开放',
+                    'additional_opening_notes': '部分店铺营业时间可能有所不同。',
+                    'recommended_duration': '2-3小时',
+                    'is_featured': False,
+                    'order': 6,
+                    'image_url': 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Beijing%20Nanluoguxiang%20Hutong%20traditional%20alleyway%20with%20courtyard%20houses%20siheyuan%20red%20doors%20gray%20brick%20walls%20old%20street&image_size=square',
+                    'description': '南锣鼓巷是北京最古老的街区之一，也是保存最完整的传统胡同区。这里保存着元大都时期的胡同格局，有众多的四合院、名人故居和特色小店。',
+                },
+                '雍和宫': {
+                    'location': '北京市东城区雍和宫大街12号',
+                    'latitude': 39.948611,
+                    'longitude': 116.417222,
+                    'tips': [
+                        '建议上午游览，人少清净',
+                        '可以请导游讲解，了解藏传佛教文化',
+                        '寺内有免费香火发放',
+                        '穿着得体，尊重宗教习俗',
+                    ],
+                    'opening_status': '正常开放',
+                    'ticket_price_peak': '25元/人',
+                    'ticket_price_off_peak': '25元/人',
+                    'ticket_additional_info': '学生凭学生证半价优惠。60岁以上老人、残疾人、现役军人凭证免票。',
+                    'ticket_url': 'https://www.yonghegong.cn/',
+                    'has_direct_booking': False,
+                    'opening_hours_peak': '4月1日-10月31日：9:00-16:30（16:00停止售票）',
+                    'opening_hours_off_peak': '11月1日-3月31日：9:00-16:00（15:30停止售票）',
+                    'additional_opening_notes': '每年农历正月初一至十五有祈福活动。',
+                    'recommended_duration': '2-3小时',
+                    'is_featured': False,
+                    'order': 7,
+                    'image_url': 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Lama%20Temple%20Yonghegong%20Beijing%20China%20traditional%20Tibetan%20Buddhist%20temple%20golden%20roofs%20red%20walls%20incense%20burning&image_size=square',
+                    'description': '雍和宫是北京市内最大的藏传佛教格鲁派寺院，始建于清康熙三十三年（1694年）。这里曾是雍正皇帝的府邸，乾隆皇帝也诞生于此，因此被称为"龙潜福地"。',
+                },
+                '恭王府': {
+                    'location': '北京市西城区前海西街17号',
+                    'latitude': 39.943333,
+                    'longitude': 116.383333,
+                    'tips': [
+                        '建议提前网上预约',
+                        '可以租讲解器，了解和珅的故事',
+                        '花园部分非常漂亮，不要错过',
+                        '周一闭馆（法定节假日除外）',
+                    ],
+                    'opening_status': '正常开放',
+                    'ticket_price_peak': '40元/人',
+                    'ticket_price_off_peak': '40元/人',
+                    'ticket_additional_info': '学生凭学生证半价优惠。60岁以上老人、残疾人、现役军人凭证免票。',
+                    'ticket_url': 'https://www.pgm.org.cn/',
+                    'has_direct_booking': False,
+                    'opening_hours_peak': '旺季（4月1日-10月31日）：8:00-17:00（16:10停止入场）',
+                    'opening_hours_off_peak': '淡季（11月1日-3月31日）：9:00-16:30（15:40停止入场）',
+                    'additional_opening_notes': '周一闭馆（法定节假日除外）。',
+                    'recommended_duration': '2-3小时',
+                    'is_featured': False,
+                    'order': 8,
+                    'image_url': 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Prince%20Gongs%20Mansion%20Beijing%20China%20traditional%20Chinese%20garden%20architecture%20courtyard%20houses%20ponds%20and%20pavilions&image_size=square',
+                    'description': '恭王府是清代规模最大的一座王府，曾先后作为和珅、永璘的宅邸。1851年恭亲王奕訢成为宅子的主人，恭王府的名称也因此得来。恭王府规模宏大，占地约6万平方米，分为府邸和花园两部分，拥有各式建筑群落30多处。',
+                },
+            }
+            
             scenic_spots = [
                 ScenicSpot(
                     name='故宫博物院',
                     image_url='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Forbidden%20City%20Palace%20Museum%20Beijing%20China%20Meridian%20Gate%20grand%20entrance%20imperial%20palace%20traditional%20Chinese%20architecture%20golden%20roofs&image_size=landscape_16_9',
                     description='故宫又称紫禁城，是中国明清两代的皇家宫殿，位于北京中轴线的中心，是中国古代宫廷建筑之精华。故宫以三大殿为中心，占地面积72万平方米，建筑面积约15万平方米。',
                     is_featured=True,
+                    spot_type='皇家园林',
                     order=1,
                     is_active=True,
                     ticket_price_peak='60元/人',
@@ -378,6 +543,7 @@ def init_database():
                     image_url='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Summer%20Palace%20Beijing%20China%20Long%20Corridor%20painted%20ceiling%20traditional%20Chinese%20garden%20architecture&image_size=square',
                     description='颐和园是中国清朝时期皇家园林，前身为清漪园，坐落在北京西郊，占地约290公顷。',
                     is_featured=False,
+                    spot_type='皇家园林',
                     order=2,
                     is_active=True,
                     ticket_price_peak='门票30元/张，联票60元/张',
@@ -400,6 +566,7 @@ def init_database():
                     image_url='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Temple%20of%20Heaven%20Beijing%20China%20Circular%20Mound%20Altar%20blue%20sky%20reflection%20symmetrical%20architecture&image_size=square',
                     description='天坛是明清两代皇帝祭祀皇天、祈五谷丰登的场所，是现存中国古代规模最大、伦理等级最高的祭天建筑群。',
                     is_featured=False,
+                    spot_type='寺庙',
                     order=3,
                     is_active=True,
                     ticket_price_peak='门票15元/张，联票34元/张',
@@ -422,6 +589,7 @@ def init_database():
                     image_url='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Ming%20Tombs%20Beijing%20China%20Sacred%20Way%20stone%20statues%20ancient%20Chinese%20imperial%20burial%20site&image_size=square',
                     description='明十三陵是明朝迁都北京后13位皇帝陵墓的皇家陵寝的总称，是中国现存规模最大、保存最完整的帝王陵墓群。',
                     is_featured=False,
+                    spot_type='皇家园林',
                     order=4,
                     is_active=True,
                     ticket_price_peak='长陵45元/人，定陵60元/人，昭陵30元/人，总神道30元/人',
@@ -438,8 +606,33 @@ def init_database():
                     longitude=spot_coordinates_map['明十三陵']['longitude'],
                     tips=json.dumps(spot_tips_map['明十三陵'], ensure_ascii=False),
                     opening_status='正常开放'
-                )
+                ),
             ]
+            
+            for spot_name, spot_data in additional_spots.items():
+                scenic_spots.append(ScenicSpot(
+                    name=spot_name,
+                    image_url=spot_data['image_url'],
+                    description=spot_data['description'],
+                    is_featured=spot_data['is_featured'],
+                    spot_type=spot_type_map.get(spot_name, '皇家园林'),
+                    order=spot_data['order'],
+                    is_active=True,
+                    ticket_price_peak=spot_data['ticket_price_peak'],
+                    ticket_price_off_peak=spot_data['ticket_price_off_peak'],
+                    ticket_additional_info=spot_data['ticket_additional_info'],
+                    ticket_url=spot_data['ticket_url'],
+                    has_direct_booking=spot_data['has_direct_booking'],
+                    opening_hours_peak=spot_data['opening_hours_peak'],
+                    opening_hours_off_peak=spot_data['opening_hours_off_peak'],
+                    additional_opening_notes=spot_data['additional_opening_notes'],
+                    recommended_duration=spot_data['recommended_duration'],
+                    location=spot_data['location'],
+                    latitude=spot_data['latitude'],
+                    longitude=spot_data['longitude'],
+                    tips=json.dumps(spot_data['tips'], ensure_ascii=False),
+                    opening_status=spot_data['opening_status']
+                ))
             db.session.add_all(scenic_spots)
         
         if Heritage.query.first() is None:
@@ -632,5 +825,6 @@ if __name__ == '__main__':
         print('Database tables created/verified')
     
     migrate_guestbook_table()
+    migrate_specialty_table()
     migrate_scenic_spot_table()
     init_database()
