@@ -28,6 +28,8 @@ const Header = () => {
     { path: '/scenic', label: '名胜古迹' },
     { path: '/map', label: '景点地图' },
     { path: '/heritage', label: '非物质文化遗产' },
+    { path: '/ar-experience', label: 'AR非遗体验' },
+    { path: '/postcard', label: '虚拟明信片' },
     { path: '/travel-packages', label: '旅行团推荐' },
     { path: '/guestbook', label: '留言板' },
   ]);
