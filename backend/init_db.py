@@ -41,6 +41,34 @@ def migrate_guestbook_table():
                 db.session.commit()
                 print('Guestbook table migrated successfully!')
 
+def migrate_specialty_table():
+    with app.app_context():
+        inspector = db.inspect(db.engine)
+        tables = inspector.get_table_names()
+        
+        if 'specialties' in tables:
+            columns = [c['name'] for c in inspector.get_columns('specialties')]
+            
+            new_columns = [
+                ('category', "VARCHAR(50) DEFAULT '美食'"),
+            ]
+            
+            migrations = []
+            for col_name, col_type in new_columns:
+                if col_name not in columns:
+                    migrations.append(f'ALTER TABLE specialties ADD COLUMN IF NOT EXISTS {col_name} {col_type}')
+            
+            for migration in migrations:
+                try:
+                    db.session.execute(text(migration))
+                    print(f'Executed migration: {migration}')
+                except Exception as e:
+                    print(f'Migration skipped: {migration}, Error: {e}')
+            
+            if migrations:
+                db.session.commit()
+                print('Specialty table migrated successfully!')
+
 def get_scenic_spot_update_data():
     return {
         '故宫博物院': {
@@ -99,6 +127,7 @@ def migrate_scenic_spot_table():
             columns = [c['name'] for c in inspector.get_columns('scenic_spots')]
             
             new_columns = [
+                ('spot_type', "VARCHAR(50) DEFAULT '皇家园林'"),
                 ('ticket_price_peak', 'VARCHAR(100)'),
                 ('ticket_price_off_peak', 'VARCHAR(100)'),
                 ('ticket_additional_info', 'TEXT'),
@@ -796,5 +825,6 @@ if __name__ == '__main__':
         print('Database tables created/verified')
     
     migrate_guestbook_table()
+    migrate_specialty_table()
     migrate_scenic_spot_table()
     init_database()
