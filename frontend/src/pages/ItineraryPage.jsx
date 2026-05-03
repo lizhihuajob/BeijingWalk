@@ -196,11 +196,12 @@ const ItineraryPage = () => {
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <h2 className="text-xl font-bold text-gray-900 mb-1">
-                      选择您想去的景点
-                    </h2>
-                    <p className="text-gray-500">
-                      已选择 <span className="text-orange-500 font-semibold">{selectedSpots.length}</span> 个景点
-                    </p>
+                        选择您想去的景点
+                      </h2>
+                      <p className="text-gray-500">
+                        已选择 <span className="text-orange-500 font-semibold">{selectedSpots.length}</span> 个景点
+                      </p>
+                    </div>
                   </div>
                   {selectedSpots.length > 0 && (
                     <button
@@ -287,7 +288,7 @@ const ItineraryPage = () => {
                           )}
 
                           <div className="absolute bottom-3 left-3">
-                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium backdrop-blur-sm bg-white/90 text-gray-700">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium backdrop-blur-sm bg-white/90 text-gray-700">
                               <span>{typeInfo.icon}</span>
                               {spot.spot_type}
                             </span>
@@ -441,7 +442,7 @@ const ItineraryPage = () => {
                                 <h4 className="font-medium text-gray-900 truncate">
                                   {spot.name}
                                 </h4>
-                                <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border typeInfo.color}>
+                                <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border ${typeInfo.color}`}>
                                   <span>{typeInfo.icon}</span>
                                   {spot.spot_type}
                                 </span>
@@ -573,7 +574,7 @@ const ItineraryPage = () => {
                             transition={{ delay: activityIndex * 0.05 }}
                             className="relative mb-6"
                           >
-                            <div className={`absolute -left-3 top-6 w-6 h-6 rounded-full bg-gradient-to-br ${getTimeBlockColor(activity.type)} flex items-center justify-center shadow-md z-10">
+                            <div className={`absolute -left-3 top-6 w-6 h-6 rounded-full bg-gradient-to-br ${getTimeBlockColor(activity.type)} flex items-center justify-center shadow-md z-10`}>
                               {getTimeBlockIcon(activity.type)}
                             </div>
 
@@ -581,7 +582,7 @@ const ItineraryPage = () => {
                               activity.is_meal ? 'border-amber-400' : 'border-gray-100'
                             }`}>
                               <div className="flex items-center gap-2 mb-3">
-                                <span className={`text-sm font-semibold text-gray-700">
+                                <span className="text-sm font-semibold text-gray-700">
                                   {activity.time}
                                 </span>
                                 <span className="text-xs text-gray-400">
