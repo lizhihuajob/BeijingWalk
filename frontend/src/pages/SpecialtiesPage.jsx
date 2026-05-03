@@ -1,11 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Utensils, Star, ArrowRight, Loader2, ChevronUp, ArrowLeft, Search, Filter } from 'lucide-react';
+import { Utensils, Star, ArrowRight, Loader2, ChevronUp, ArrowLeft, Search, Filter, Tag } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getSpecialties, recordSearchHistory } from '../services/api';
 import { useI18n } from '../i18n';
+
+const categoryOptions = [
+  { value: '', label: '全部' },
+  { value: '美食', label: '美食' },
+  { value: '工艺品', label: '工艺品' },
+  { value: '饮品', label: '饮品' },
+];
 
 const generateVisitorId = () => {
   let visitorId = localStorage.getItem('visitor_id');
@@ -35,6 +42,7 @@ const SpecialtiesPage = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('default');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const searchTimeoutRef = useRef(null);
   const visitorIdRef = useRef(null);
   const sessionIdRef = useRef(null);
@@ -94,6 +102,10 @@ const SpecialtiesPage = () => {
   useEffect(() => {
     let filtered = [...specialties];
     
+    if (selectedCategory) {
+      filtered = filtered.filter((s) => s.category === selectedCategory);
+    }
+    
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -128,7 +140,7 @@ const SpecialtiesPage = () => {
         clearTimeout(searchTimeoutRef.current);
       }
     };
-  }, [searchTerm, sortBy, specialties]);
+  }, [searchTerm, sortBy, specialties, selectedCategory]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -213,29 +225,53 @@ const SpecialtiesPage = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder={t('specialties.searchPlaceholder')}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full sm:w-64 pl-12 pr-4 py-3 rounded-2xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-300"
-                  />
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="relative">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder={t('specialties.searchPlaceholder')}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full sm:w-64 pl-12 pr-4 py-3 rounded-2xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-300"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="w-full sm:w-48 pl-12 pr-10 py-3 rounded-2xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-300 appearance-none cursor-pointer"
+                    >
+                      <option value="default">{t('specialties.sortDefault')}</option>
+                      <option value="rating">{t('specialties.sortByRating')}</option>
+                      <option value="name">{t('specialties.sortByName')}</option>
+                    </select>
+                  </div>
                 </div>
 
-                <div className="relative">
-                  <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full sm:w-48 pl-12 pr-10 py-3 rounded-2xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-300 appearance-none cursor-pointer"
-                  >
-                    <option value="default">{t('specialties.sortDefault')}</option>
-                    <option value="rating">{t('specialties.sortByRating')}</option>
-                    <option value="name">{t('specialties.sortByName')}</option>
-                  </select>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-1.5 text-gray-500 text-sm mr-2">
+                    <Tag className="w-4 h-4" />
+                    <span>类别筛选：</span>
+                  </div>
+                  {categoryOptions.map((option) => (
+                    <motion.button
+                      key={option.value}
+                      onClick={() => setSelectedCategory(option.value)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                        selectedCategory === option.value
+                          ? 'bg-gradient-to-r from-red-400 to-pink-500 text-white shadow-md'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {option.label}
+                    </motion.button>
+                  ))}
                 </div>
               </div>
             </div>
@@ -264,6 +300,7 @@ const SpecialtiesPage = () => {
                 onClick={() => {
                   setSearchTerm('');
                   setSortBy('default');
+                  setSelectedCategory('');
                 }}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-400 to-pink-500 text-white font-semibold rounded-full"
                 whileHover={{ scale: 1.05 }}

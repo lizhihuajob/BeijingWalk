@@ -167,4 +167,57 @@ export const pollChatMessages = async (sessionId, lastMessageId = 0) => {
   return response.data;
 };
 
+export const globalSearch = async (keyword, searchType = 'all', limit = 20, offset = 0) => {
+  const params = new URLSearchParams({
+    keyword,
+    type: searchType,
+    limit: limit.toString(),
+    offset: offset.toString(),
+  });
+  const response = await apiClient.get(`/search?${params.toString()}`);
+  return response.data;
+};
+
+export const filterScenicSpots = async (spotType, limit = 20, offset = 0) => {
+  const params = new URLSearchParams({
+    limit: limit.toString(),
+    offset: offset.toString(),
+  });
+  if (spotType) {
+    params.append('type', spotType);
+  }
+  const response = await apiClient.get(`/scenic-spots/filter?${params.toString()}`);
+  return response.data;
+};
+
+export const filterSpecialties = async (category, limit = 20, offset = 0) => {
+  const params = new URLSearchParams({
+    limit: limit.toString(),
+    offset: offset.toString(),
+  });
+  if (category) {
+    params.append('category', category);
+  }
+  const response = await apiClient.get(`/specialties/filter?${params.toString()}`);
+  return response.data;
+};
+
+export const getHotKeywords = async (days = 7, limit = 10) => {
+  const params = new URLSearchParams({
+    days: days.toString(),
+    limit: limit.toString(),
+  });
+  const response = await apiClient.get(`/search/hot-keywords?${params.toString()}`);
+  return response.data;
+};
+
+export const generateItinerary = async (spotIds, days = 1, preferences = {}) => {
+  const response = await apiClient.post('/itinerary/generate', {
+    spot_ids: spotIds,
+    days,
+    preferences,
+  });
+  return response.data;
+};
+
 export default apiClient;

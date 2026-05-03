@@ -253,6 +253,7 @@ class Specialty(db.Model):
     image_url = db.Column(db.String(500), nullable=False)
     description = db.Column(db.Text, nullable=False)
     rating = db.Column(db.Float, default=4.5)
+    category = db.Column(db.String(50), default='美食')
     order = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
     publish_time = db.Column(db.DateTime)
@@ -267,6 +268,7 @@ class Specialty(db.Model):
             'image_url': self.image_url,
             'description': self.description,
             'rating': self.rating,
+            'category': self.category,
             'order': self.order,
             'is_active': self.is_active,
             'publish_time': self.publish_time.isoformat() if self.publish_time else None,
@@ -281,6 +283,7 @@ class ScenicSpot(db.Model):
     image_url = db.Column(db.String(500), nullable=False)
     description = db.Column(db.Text, nullable=False)
     is_featured = db.Column(db.Boolean, default=False)
+    spot_type = db.Column(db.String(50), default='皇家园林')
     order = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
     
@@ -314,6 +317,7 @@ class ScenicSpot(db.Model):
             'image_url': self.image_url,
             'description': self.description,
             'is_featured': self.is_featured,
+            'spot_type': self.spot_type,
             'order': self.order,
             'is_active': self.is_active,
             'location': self.location,

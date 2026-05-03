@@ -14,6 +14,8 @@ import TicketBookingGuide from './pages/TicketBookingGuide';
 import MapPage from './pages/MapPage';
 import TravelPackagesPage from './pages/TravelPackagesPage';
 import TravelPackageDetail from './pages/TravelPackageDetail';
+import SearchResultsPage from './pages/SearchResultsPage';
+import ItineraryPage from './pages/ItineraryPage';
 import { MapProvider } from './contexts/MapContext';
 import { trackPageView } from './services/analytics';
 
@@ -50,6 +52,8 @@ function App() {
         <Route path="/map" element={<MapPage />} />
         <Route path="/travel-packages" element={<TravelPackagesPage />} />
         <Route path="/travel-package/:id" element={<TravelPackageDetail />} />
+        <Route path="/search" element={<SearchResultsPage />} />
+        <Route path="/itinerary" element={<ItineraryPage />} />
       </Routes>
     </MapProvider>
   );

@@ -1,16 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Building, ArrowRight, Loader2, ChevronUp, ArrowLeft, MapPin, Star, Clock } from 'lucide-react';
+import { Building, ArrowRight, Loader2, ChevronUp, ArrowLeft, MapPin, Star, Clock, Filter } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { getScenicSpots } from '../services/api';
+import { getScenicSpots, filterScenicSpots } from '../services/api';
 import { useI18n } from '../i18n';
+
+const spotTypeOptions = [
+  { value: '', label: '全部' },
+  { value: '皇家园林', label: '皇家园林' },
+  { value: '寺庙', label: '寺庙' },
+  { value: '胡同', label: '胡同' },
+  { value: '博物馆', label: '博物馆' },
+];
 
 const ScenicPage = () => {
   const navigate = useNavigate();
   const { t, language } = useI18n();
   const [scenicSpots, setScenicSpots] = useState([]);
+  const [filteredSpots, setFilteredSpots] = useState([]);
+  const [selectedSpotType, setSelectedSpotType] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -21,6 +31,7 @@ const ScenicPage = () => {
         setLoading(true);
         const data = await getScenicSpots();
         setScenicSpots(data);
+        setFilteredSpots(data);
         setError(null);
       } catch (err) {
         console.error('Failed to fetch scenic spots:', err);
@@ -32,6 +43,17 @@ const ScenicPage = () => {
 
     fetchData();
   }, [language, t]);
+
+  useEffect(() => {
+    if (selectedSpotType === '') {
+      setFilteredSpots(scenicSpots);
+    } else {
+      const filtered = scenicSpots.filter(
+        (spot) => spot.spot_type === selectedSpotType
+      );
+      setFilteredSpots(filtered);
+    }
+  }, [selectedSpotType, scenicSpots]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -50,8 +72,8 @@ const ScenicPage = () => {
     return text.substring(0, maxLength) + '...';
   };
 
-  const featuredSpot = scenicSpots.find((spot) => spot.is_featured);
-  const otherSpots = scenicSpots.filter((spot) => !spot.is_featured);
+  const featuredSpot = filteredSpots.find((spot) => spot.is_featured);
+  const otherSpots = filteredSpots.filter((spot) => !spot.is_featured);
 
   if (loading) {
     return (
@@ -101,11 +123,35 @@ const ScenicPage = () => {
             transition={{ delay: 0.2 }}
             className="mb-12"
           >
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-1 h-12 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">{t('home.title')}</h2>
-                <p className="text-gray-500">{t('scenic.totalSpots', { count: scenicSpots.length })}</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+              <div className="flex items-center gap-4">
+                <div className="w-1 h-12 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{t('home.title')}</h2>
+                  <p className="text-gray-500">{t('scenic.totalSpots', { count: filteredSpots.length })}</p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1.5 text-gray-500 text-sm mr-2">
+                  <Filter className="w-4 h-4" />
+                  <span>类型筛选：</span>
+                </div>
+                {spotTypeOptions.map((option) => (
+                  <motion.button
+                    key={option.value}
+                    onClick={() => setSelectedSpotType(option.value)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                      selectedSpotType === option.value
+                        ? 'bg-gradient-to-r from-blue-400 to-purple-500 text-white shadow-md'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {option.label}
+                  </motion.button>
+                ))}
               </div>
             </div>
           </motion.div>
@@ -117,6 +163,26 @@ const ScenicPage = () => {
               className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl mb-8 text-center"
             >
               <p className="text-lg">{error}</p>
+            </motion.div>
+          )}
+
+          {filteredSpots.length === 0 && !loading && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-20"
+            >
+              <Building className="w-24 h-24 text-gray-300 mx-auto mb-6" />
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">暂无符合条件的景点</h3>
+              <p className="text-gray-500 mb-6">请尝试选择其他类型或清除筛选</p>
+              <motion.button
+                onClick={() => setSelectedSpotType('')}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-400 to-purple-500 text-white font-semibold rounded-full"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                清除筛选
+              </motion.button>
             </motion.div>
           )}
 

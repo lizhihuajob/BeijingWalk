@@ -4,11 +4,13 @@ from app.models.models import (
     Banner, Culture, Specialty, ScenicSpot, Heritage, 
     Guestbook, PageView, ContentView, ContentViewEvent,
     SiteConfig, Navigation, Category, BookingGuide,
-    TravelPackage, ChatSession, ChatMessage,
+    TravelPackage, ChatSession, ChatMessage, SearchHistory,
     parse_json_field
 )
-from datetime import datetime
+from datetime import datetime, timedelta
+from sqlalchemy import func
 import json
+import uuid
 
 api_bp = Blueprint('api', __name__)
 
@@ -670,4 +672,322 @@ def poll_chat_messages(session_id):
     return jsonify({
         'messages': [msg.to_dict() for msg in messages],
         'session_status': session.status
+    }), 200
+
+@api_bp.route('/search', methods=['GET'])
+def global_search():
+    keyword = request.args.get('keyword', '').strip()
+    search_type = request.args.get('type', 'all')
+    limit = request.args.get('limit', 20, type=int)
+    offset = request.args.get('offset', 0, type=int)
+    
+    if not keyword:
+        return jsonify({
+            'error': '搜索关键词不能为空',
+            'results': [],
+            'total': 0
+        }), 400
+    
+    all_results = []
+    
+    if search_type == 'all' or search_type == 'scenic':
+        scenic_query = ScenicSpot.query.filter(
+            ScenicSpot.is_active == True,
+            db.or_(
+                ScenicSpot.name.like(f'%{keyword}%'),
+                ScenicSpot.description.like(f'%{keyword}%'),
+                ScenicSpot.location.like(f'%{keyword}%')
+            )
+        )
+        scenic_count = scenic_query.count()
+        scenic_results = scenic_query.order_by(ScenicSpot.order).offset(offset).limit(limit).all()
+        
+        for spot in scenic_results:
+            spot_dict = spot.to_dict()
+            spot_dict['result_type'] = 'scenic_spot'
+            spot_dict['result_type_label'] = '景点'
+            spot_dict['url'] = f'/scenic-spot/{spot.id}'
+            all_results.append(spot_dict)
+    
+    if search_type == 'all' or search_type == 'specialty':
+        specialty_query = Specialty.query.filter(
+            Specialty.is_active == True,
+            db.or_(
+                Specialty.name.like(f'%{keyword}%'),
+                Specialty.description.like(f'%{keyword}%')
+            )
+        )
+        specialty_count = specialty_query.count()
+        specialty_results = specialty_query.order_by(Specialty.order).offset(offset).limit(limit).all()
+        
+        for specialty in specialty_results:
+            specialty_dict = specialty.to_dict()
+            specialty_dict['result_type'] = 'specialty'
+            specialty_dict['result_type_label'] = '特产'
+            specialty_dict['url'] = f'/specialty/{specialty.id}'
+            all_results.append(specialty_dict)
+    
+    if search_type == 'all' or search_type == 'culture':
+        culture_query = Culture.query.filter(
+            Culture.is_active == True,
+            db.or_(
+                Culture.title.like(f'%{keyword}%'),
+                Culture.description.like(f'%{keyword}%'),
+                Culture.details.like(f'%{keyword}%')
+            )
+        )
+        culture_count = culture_query.count()
+        culture_results = culture_query.order_by(Culture.order).offset(offset).limit(limit).all()
+        
+        for culture in culture_results:
+            culture_dict = culture.to_dict()
+            culture_dict['result_type'] = 'culture'
+            culture_dict['result_type_label'] = '文化'
+            culture_dict['url'] = f'/culture/{culture.id}'
+            all_results.append(culture_dict)
+    
+    if search_type == 'all' or search_type == 'heritage':
+        heritage_query = Heritage.query.filter(
+            Heritage.is_active == True,
+            db.or_(
+                Heritage.name.like(f'%{keyword}%'),
+                Heritage.description.like(f'%{keyword}%')
+            )
+        )
+        heritage_count = heritage_query.count()
+        heritage_results = heritage_query.order_by(Heritage.order).offset(offset).limit(limit).all()
+        
+        for heritage in heritage_results:
+            heritage_dict = heritage.to_dict()
+            heritage_dict['result_type'] = 'heritage'
+            heritage_dict['result_type_label'] = '非遗'
+            heritage_dict['url'] = f'/heritage/{heritage.id}'
+            all_results.append(heritage_dict)
+    
+    try:
+        search_history = SearchHistory(
+            keyword=keyword,
+            visitor_id=sanitize_string(request.args.get('visitor_id'), 100) or str(uuid.uuid4()),
+            session_id=sanitize_string(request.args.get('session_id'), 100) or str(uuid.uuid4()),
+            ip_address=get_client_ip(),
+            user_agent=sanitize_string(request.headers.get('User-Agent'), 500),
+            search_type=search_type,
+            results_count=len(all_results)
+        )
+        db.session.add(search_history)
+        db.session.commit()
+    except Exception as e:
+        print(f'Error recording search history: {e}')
+    
+    all_results.sort(key=lambda x: x.get('order', 0))
+    
+    total_count = (
+        (scenic_count if 'scenic_count' in locals() else 0) +
+        (specialty_count if 'specialty_count' in locals() else 0) +
+        (culture_count if 'culture_count' in locals() else 0) +
+        (heritage_count if 'heritage_count' in locals() else 0)
+    )
+    
+    return jsonify({
+        'keyword': keyword,
+        'search_type': search_type,
+        'results': all_results,
+        'total': total_count,
+        'count_by_type': {
+            'scenic_spot': scenic_count if 'scenic_count' in locals() else 0,
+            'specialty': specialty_count if 'specialty_count' in locals() else 0,
+            'culture': culture_count if 'culture_count' in locals() else 0,
+            'heritage': heritage_count if 'heritage_count' in locals() else 0
+        }
+    }), 200
+
+@api_bp.route('/scenic-spots/filter', methods=['GET'])
+def filter_scenic_spots():
+    spot_type = request.args.get('type')
+    limit = request.args.get('limit', 20, type=int)
+    offset = request.args.get('offset', 0, type=int)
+    
+    query = ScenicSpot.query.filter_by(is_active=True)
+    
+    if spot_type:
+        query = query.filter(ScenicSpot.spot_type == spot_type)
+    
+    total_count = query.count()
+    results = query.order_by(ScenicSpot.order).offset(offset).limit(limit).all()
+    
+    return jsonify({
+        'results': [spot.to_dict() for spot in results],
+        'total': total_count,
+        'filter_type': spot_type,
+        'available_types': ['皇家园林', '寺庙', '胡同', '博物馆']
+    }), 200
+
+@api_bp.route('/specialties/filter', methods=['GET'])
+def filter_specialties():
+    category = request.args.get('category')
+    limit = request.args.get('limit', 20, type=int)
+    offset = request.args.get('offset', 0, type=int)
+    
+    query = Specialty.query.filter_by(is_active=True)
+    
+    if category:
+        query = query.filter(Specialty.category == category)
+    
+    total_count = query.count()
+    results = query.order_by(Specialty.order).offset(offset).limit(limit).all()
+    
+    return jsonify({
+        'results': [specialty.to_dict() for specialty in results],
+        'total': total_count,
+        'filter_category': category,
+        'available_categories': ['美食', '工艺品', '饮品']
+    }), 200
+
+@api_bp.route('/search/hot-keywords', methods=['GET'])
+def get_hot_keywords():
+    days = request.args.get('days', 7, type=int)
+    limit = request.args.get('limit', 10, type=int)
+    
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+    
+    hot_keywords = db.session.query(
+        SearchHistory.keyword,
+        func.count(SearchHistory.id).label('search_count')
+    ).filter(
+        SearchHistory.created_at >= cutoff_date
+    ).group_by(
+        SearchHistory.keyword
+    ).order_by(
+        func.count(SearchHistory.id).desc()
+    ).limit(limit).all()
+    
+    default_hot = [
+        {'keyword': '故宫', 'search_count': 0},
+        {'keyword': '长城', 'search_count': 0},
+        {'keyword': '颐和园', 'search_count': 0},
+        {'keyword': '天坛', 'search_count': 0},
+        {'keyword': '北京烤鸭', 'search_count': 0},
+        {'keyword': '胡同', 'search_count': 0},
+        {'keyword': '博物馆', 'search_count': 0},
+        {'keyword': '雍和宫', 'search_count': 0},
+    ]
+    
+    result = [{'keyword': kw.keyword, 'search_count': kw.search_count} for kw in hot_keywords]
+    
+    if not result:
+        result = default_hot
+    
+    return jsonify({
+        'hot_keywords': result,
+        'days': days,
+        'limit': limit
+    }), 200
+
+@api_bp.route('/itinerary/generate', methods=['POST'])
+def generate_itinerary():
+    data = get_request_data()
+    
+    selected_spot_ids = data.get('spot_ids', [])
+    days = data.get('days', 1)
+    preferences = data.get('preferences', {})
+    
+    if not selected_spot_ids:
+        return jsonify({'error': '请选择至少一个景点'}), 400
+    
+    if days < 1 or days > 7:
+        return jsonify({'error': '行程天数应在1-7天之间'}), 400
+    
+    spots = ScenicSpot.query.filter(
+        ScenicSpot.id.in_(selected_spot_ids),
+        ScenicSpot.is_active == True
+    ).all()
+    
+    if not spots:
+        return jsonify({'error': '未找到有效的景点'}), 404
+    
+    spot_dict = {spot.id: spot for spot in spots}
+    ordered_spots = [spot_dict[spot_id] for spot_id in selected_spot_ids if spot_id in spot_dict]
+    
+    spots_per_day = max(1, len(ordered_spots) // days)
+    itinerary = []
+    
+    time_blocks = [
+        {'time': '上午', 'time_range': '9:00-12:00', 'type': 'morning'},
+        {'time': '下午', 'time_range': '13:00-16:00', 'type': 'afternoon'},
+        {'time': '晚上', 'time_range': '18:00-21:00', 'type': 'evening'}
+    ]
+    
+    spot_index = 0
+    total_spots = len(ordered_spots)
+    
+    for day in range(1, days + 1):
+        day_plan = {
+            'day': day,
+            'title': f'第{day}天',
+            'activities': []
+        }
+        
+        spots_for_this_day = min(spots_per_day + (1 if day == days and (total_spots % days != 0) else 0), total_spots - spot_index)
+        
+        time_block_index = 0
+        for i in range(spots_for_this_day):
+            if spot_index >= total_spots:
+                break
+            
+            spot = ordered_spots[spot_index]
+            time_block = time_blocks[time_block_index % len(time_blocks)]
+            
+            spot_dict_data = spot.to_dict()
+            tips_list = parse_json_field(spot_dict_data.get('tips'), [])
+            
+            activity = {
+                'time': time_block['time'],
+                'time_range': time_block['time_range'],
+                'type': time_block['type'],
+                'spot': {
+                    'id': spot.id,
+                    'name': spot.name,
+                    'image_url': spot_dict_data.get('image_url'),
+                    'location': spot_dict_data.get('location'),
+                    'recommended_duration': spot_dict_data.get('recommended_duration'),
+                    'ticket_price_peak': spot_dict_data.get('ticket_price_peak'),
+                    'opening_status': spot_dict_data.get('opening_status')
+                },
+                'description': f'游览{spot.name}，{spot.description[:100]}...',
+                'tips': tips_list[:2] if tips_list else []
+            }
+            
+            day_plan['activities'].append(activity)
+            spot_index += 1
+            time_block_index += 1
+        
+        if day == days and preferences.get('include_dinner', True):
+            dinner_activity = {
+                'time': '晚上',
+                'time_range': '18:00-20:00',
+                'type': 'evening',
+                'spot': None,
+                'description': '推荐品尝北京特色美食，如北京烤鸭、炸酱面等。',
+                'tips': [
+                    '推荐餐厅：全聚德、大董、四季民福',
+                    '建议提前预订，避免排队'
+                ],
+                'is_meal': True
+            }
+            day_plan['activities'].append(dinner_activity)
+        
+        itinerary.append(day_plan)
+    
+    summary = {
+        'total_days': days,
+        'total_spots': len(ordered_spots),
+        'spots': [{'id': spot.id, 'name': spot.name} for spot in ordered_spots],
+        'estimated_budget': f'约{len(ordered_spots) * 50}元/人（门票参考价）',
+        'best_season': '春季（4-5月）和秋季（9-10月）是北京最佳旅游季节'
+    }
+    
+    return jsonify({
+        'itinerary': itinerary,
+        'summary': summary,
+        'preferences': preferences
     }), 200
